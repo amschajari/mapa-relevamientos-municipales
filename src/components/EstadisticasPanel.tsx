@@ -152,8 +152,7 @@ export const EstadisticasPanel = ({ barrios, tareas }: EstadisticasPanelProps) =
         </div>
 
         {/* Breakdown */}
-        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-100"
-003e
+        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-100">
           <div className="text-center">
             <p className="text-2xl font-bold text-green-600">{stats.completados}</p>
             <p className="text-xs text-gray-500">Completados</p>
