@@ -24,15 +24,19 @@ function App() {
   const [selectedBarrio, setSelectedBarrio] = useState<Barrio | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const { barrios, tareas, initializeFromGeoJSON, setBarrios } = useBarrioStore()
+  const { barrios, tareas, initializeFromGeoJSON, setBarrios, fetchBarrios } = useBarrioStore()
 
-  // Inicializar barrios desde GeoJSON al montar
+  // Cargar barrios desde Supabase al montar
   useEffect(() => {
-    if (barriosGeoJson?.features) {
-      initializeFromGeoJSON(barriosGeoJson.features as any)
+    // Primero intentar cargar desde Supabase
+    fetchBarrios().then(() => {
+      // Si no hay datos en Supabase, usar GeoJSON
+      if (barrios.length === 0 && barriosGeoJson?.features) {
+        initializeFromGeoJSON(barriosGeoJson.features as any)
+      }
       setIsLoading(false)
-    }
-  }, [initializeFromGeoJSON])
+    })
+  }, [])
 
   // Demo: Simular algunos barrios con progreso
   useEffect(() => {
