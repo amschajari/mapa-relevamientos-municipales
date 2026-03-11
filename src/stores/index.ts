@@ -1,0 +1,1 @@
+export { useBarrioStore } from './barrioStore'
