@@ -4,7 +4,6 @@ import L from 'leaflet'
 import type { GeoJsonObject } from 'geojson'
 import type { Barrio, TareaRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
-import { BarrioPopup } from './BarrioPopup'
 
 interface ControlMapProps {
   barriosGeoJson: GeoJsonObject
@@ -30,9 +29,7 @@ const FitBounds = ({ geoJson }: { geoJson: GeoJsonObject }) => {
 
 export const ControlMap = ({
   barriosGeoJson,
-  tareas = [],
   onBarrioClick,
-  selectedBarrio,
 }: ControlMapProps) => {
   const { getBarrioStatus, getBarrioProgress, setSelectedBarrio } = useBarrioStore()
 

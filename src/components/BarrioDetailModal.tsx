@@ -3,9 +3,7 @@ import {
   MapPin,
   Users,
   Calendar,
-  CheckCircle2,
   Clock,
-  MoreHorizontal,
 } from 'lucide-react'
 import type { Barrio } from '@/types'
 

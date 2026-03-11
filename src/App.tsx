@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
 import { ControlMap } from './components/ControlMap'
 import { Sidebar } from './components/Sidebar'
 import { LeyendaMapa } from './components/LeyendaMapa'
@@ -8,7 +7,7 @@ import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
 import { useBarrioStore } from './stores'
 import barriosGeoJson from './data/barrios-chajari.json'
-import type { Barrio } from './types'
+import type { Barrio, EstadoBarrio } from './types'
 
 // Tipos de vista
 const VIEWS = {
@@ -30,7 +29,7 @@ function App() {
   // Inicializar barrios desde GeoJSON al montar
   useEffect(() => {
     if (barriosGeoJson?.features) {
-      initializeFromGeoJSON(barriosGeoJson.features)
+      initializeFromGeoJSON(barriosGeoJson.features as any)
       setIsLoading(false)
     }
   }, [initializeFromGeoJSON])
@@ -40,11 +39,11 @@ function App() {
     if (barrios.length > 0 && tareas.length === 0) {
       // Crear tareas de ejemplo para algunos barrios
       const barriosEjemplo = ['Centro', 'San Clemente', 'Villa Alejandrina']
-      const nuevosBarrios = barrios.map((b) => {
+      const nuevosBarrios: Barrio[] = barrios.map((b) => {
         if (barriosEjemplo.includes(b.nombre)) {
           return {
             ...b,
-            estado: b.nombre === 'Centro' ? 'completado' : ('progreso' as const),
+            estado: b.nombre === 'Centro' ? 'completado' : ('progreso' as EstadoBarrio),
             progreso: b.nombre === 'Centro' ? 100 : Math.floor(Math.random() * 60) + 20,
             luminariasEstimadas: Math.floor(Math.random() * 200) + 50,
             luminariasRelevadas: b.nombre === 'Centro' ? 200 : Math.floor(Math.random() * 50),
@@ -67,7 +66,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case VIEWS.DASHBOARD:
-        return <DashboardView barrios={barrios} tareas={tareas} />
+        return <DashboardView barrios={barrios} />
 
       case VIEWS.MAPA:
         return (
@@ -141,7 +140,7 @@ function App() {
                       />
                     </div>
 
-                    {selectedBarrio.luminariasEstimadas > 0 && (
+                    {(selectedBarrio.luminariasEstimadas ?? 0) > 0 && (
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Luminarias:</span>

@@ -8,16 +8,15 @@ import {
   Users,
   Calendar,
 } from 'lucide-react'
-import type { Barrio, TareaRelevamiento } from '@/types'
+import type { Barrio } from '@/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 interface DashboardViewProps {
   barrios: Barrio[]
-  tareas: TareaRelevamiento[]
 }
 
-export const DashboardView = ({ barrios, tareas }: DashboardViewProps) => {
+export const DashboardView = ({ barrios }: DashboardViewProps) => {
   const stats = useMemo(() => {
     const total = barrios.length
     const completados = barrios.filter((b) => b.estado === 'completado').length
