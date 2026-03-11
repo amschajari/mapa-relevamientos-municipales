@@ -28,6 +28,16 @@ ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS validado BOOLEAN DEFAULT 
 ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS validado_por UUID;
 ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS fecha_validacion TIMESTAMPTZ;
 
+-- ==== NUEVOS CAMPOS AGREGADOS (2026-03-11) ====
+-- Check de encendido/apagado (estado cuando debe estar encendida)
+ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS estado_encendido TEXT; -- 'Encendida', 'Apagada', 'Intermitente', 'No aplica (día)'
+ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS fecha_check_encendido DATE;
+ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS hora_check_encendido TIME;
+
+-- Fechas de garantía
+ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS fecha_compra DATE;
+ALTER TABLE activos_alumbrado ADD COLUMN IF NOT EXISTS fecha_vencimiento_garantia DATE;
+
 -- =============================================================================
 -- 2. CREAR TABLA DE BARRIOS (si no existe)
 -- =============================================================================
