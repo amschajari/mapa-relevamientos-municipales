@@ -5,9 +5,11 @@ import { LeyendaMapa } from './components/LeyendaMapa'
 import { EstadisticasPanel } from './components/EstadisticasPanel'
 import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
+import { BarrioDetailModal } from './components/BarrioDetailModal'
 import { useBarrioStore } from './stores'
 import barriosGeoJson from './data/barrios-chajari.json'
-import type { Barrio, EstadoBarrio } from './types'
+import type { Barrio } from './types'
+import { Edit3 } from 'lucide-react'
 
 // Tipos de vista
 const VIEWS = {
@@ -21,10 +23,10 @@ const VIEWS = {
 
 function App() {
   const [activeTab, setActiveTab] = useState<string>(VIEWS.MAPA)
-  const [selectedBarrio, setSelectedBarrio] = useState<Barrio | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const { barrios, tareas, initializeFromGeoJSON, setBarrios, fetchBarrios } = useBarrioStore()
+  const { barrios, tareas, selectedBarrio, setSelectedBarrio, initializeFromGeoJSON, fetchBarrios } = useBarrioStore()
 
   // Cargar barrios desde Supabase al montar
   useEffect(() => {
@@ -38,7 +40,7 @@ function App() {
     })
   }, [])
 
-  // Demo: Simular algunos barrios con progreso
+  /* Demo: Simular algunos barrios con progreso
   useEffect(() => {
     if (barrios.length > 0 && tareas.length === 0) {
       // Crear tareas de ejemplo para algunos barrios
@@ -60,7 +62,7 @@ function App() {
       })
       setBarrios(nuevosBarrios)
     }
-  }, [barrios.length, tareas.length, setBarrios])
+  }, [barrios.length, tareas.length, setBarrios]) */
 
   const handleBarrioClick = (barrio: Barrio) => {
     setSelectedBarrio(barrio)
@@ -90,6 +92,10 @@ function App() {
                   tareas={tareas}
                   onBarrioClick={handleBarrioClick}
                   selectedBarrio={selectedBarrio}
+                  onEditBarrio={(barrio) => {
+                    setSelectedBarrio(barrio)
+                    setShowEditModal(true)
+                  }}
                 />
               )}
             </div>
@@ -103,7 +109,16 @@ function App() {
               {selectedBarrio && (
                 <div className="bg-white/95 backdrop-blur p-4 rounded-xl shadow-lg border border-gray-200 pointer-events-auto">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-gray-800">{selectedBarrio.nombre}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-gray-800">{selectedBarrio.nombre}</h3>
+                      <button
+                        onClick={() => setShowEditModal(true)}
+                        className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-primary-600 transition-colors"
+                        title="Editar detalles"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                     <button
                       onClick={() => setSelectedBarrio(null)}
                       className="text-gray-400 hover:text-gray-600"
@@ -162,7 +177,15 @@ function App() {
         )
 
       case VIEWS.BARRIOS:
-        return <BarriosView barrios={barrios} />
+        return (
+          <BarriosView 
+            barrios={barrios} 
+            onViewOnMap={(barrio) => {
+              setSelectedBarrio(barrio)
+              setActiveTab(VIEWS.MAPA)
+            }}
+          />
+        )
 
       case VIEWS.ESTADISTICAS:
         return <EstadisticasPanel barrios={barrios} tareas={tareas} />
@@ -185,6 +208,18 @@ function App() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {renderContent()}
       </main>
+
+      {showEditModal && selectedBarrio && (
+        <BarrioDetailModal
+          barrio={selectedBarrio}
+          onClose={() => setShowEditModal(false)}
+          onViewOnMap={(b) => {
+            setShowEditModal(false)
+            setSelectedBarrio(b)
+            setActiveTab(VIEWS.MAPA)
+          }}
+        />
+      )}
     </div>
   )
 }

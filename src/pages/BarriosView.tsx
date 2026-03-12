@@ -12,20 +12,23 @@ import {
 } from 'lucide-react'
 import type { Barrio } from '@/types'
 import { BarrioDetailModal } from '@/components/BarrioDetailModal'
+import { useBarrioStore } from '@/stores'
 
 interface BarriosViewProps {
   barrios: Barrio[]
+  onViewOnMap?: (barrio: Barrio) => void
 }
 
 type SortField = 'nombre' | 'estado' | 'progreso' | 'luminarias'
 type SortDirection = 'asc' | 'desc'
 
-export const BarriosView = ({ barrios }: BarriosViewProps) => {
+export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterEstado, setFilterEstado] = useState<string>('todos')
   const [sortField, setSortField] = useState<SortField>('progreso')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-  const [selectedBarrio, setSelectedBarrio] = useState<Barrio | null>(null)
+  
+  const { selectedBarrio, setSelectedBarrio } = useBarrioStore()
 
   const filteredBarrios = barrios
     .filter((b) => {
@@ -255,6 +258,10 @@ export const BarriosView = ({ barrios }: BarriosViewProps) => {
         <BarrioDetailModal
           barrio={selectedBarrio}
           onClose={() => setSelectedBarrio(null)}
+          onViewOnMap={(b) => {
+            setSelectedBarrio(null)
+            onViewOnMap?.(b)
+          }}
         />
       )}
     </div>

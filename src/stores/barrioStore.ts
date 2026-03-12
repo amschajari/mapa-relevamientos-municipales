@@ -18,6 +18,7 @@ interface BarrioState {
   setSelectedBarrio: (barrio: Barrio | null) => void
   addBarrio: (barrio: Barrio) => void
   updateBarrio: (id: string, updates: Partial<Barrio>) => Promise<void>
+  addTarea: (tarea: TareaRelevamiento) => Promise<void>
   updateBarrioProgress: (nombre: string, progress: number) => Promise<void>
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
 
@@ -90,30 +91,70 @@ export const useBarrioStore = create<BarrioState>()(
 
       updateBarrio: async (id, updates) => {
         // Actualizar local
-        set((state) => ({
-          barrios: state.barrios.map((b) =>
+        set((state) => {
+          const updatedBarrios = state.barrios.map((b) =>
             b.id === id ? { ...b, ...updates } : b
-          ),
-        }))
+          )
+          const updatedSelected = state.selectedBarrio?.id === id 
+            ? { ...state.selectedBarrio, ...updates } 
+            : state.selectedBarrio
+
+          return {
+            barrios: updatedBarrios,
+            selectedBarrio: updatedSelected
+          }
+        })
 
         // Sincronizar con Supabase
+        const supabaseUpdates: any = {
+          updated_at: new Date().toISOString()
+        }
+        
+        if (updates.nombre !== undefined) supabaseUpdates.nombre = updates.nombre
+        if (updates.estado !== undefined) supabaseUpdates.estado = updates.estado
+        if (updates.progreso !== undefined) supabaseUpdates.progreso = updates.progreso
+        if (updates.luminariasEstimadas !== undefined) supabaseUpdates.luminarias_estimadas = updates.luminariasEstimadas
+        if (updates.luminariasRelevadas !== undefined) supabaseUpdates.luminarias_relevadas = updates.luminariasRelevadas
+        if (updates.observaciones !== undefined) supabaseUpdates.observaciones = updates.observaciones
+
         try {
           const { error } = await supabase
             .from('barrios')
-            .update({
-              nombre: updates.nombre,
-              estado: updates.estado,
-              progreso: updates.progreso,
-              luminarias_estimadas: updates.luminariasEstimadas,
-              luminarias_relevadas: updates.luminariasRelevadas,
-              observaciones: updates.observaciones,
-              updated_at: new Date().toISOString(),
-            })
+            .update(supabaseUpdates)
             .eq('id', id)
 
           if (error) throw error
         } catch (error: any) {
           console.error('Error updating barrio:', error)
+          set({ error: error.message })
+        }
+      },
+
+      addTarea: async (tarea) => {
+        // Actualizar local
+        set((state) => ({
+          tareas: [...state.tareas, tarea],
+        }))
+
+        // Sincronizar con Supabase
+        try {
+          const { error } = await supabase
+            .from('tareas')
+            .insert({
+              id: tarea.id,
+              tipo: tarea.tipo,
+              nombre: tarea.nombre,
+              estado: tarea.estado,
+              progreso: tarea.progreso,
+              barrio_id: tarea.barrioId,
+              creado_por: tarea.creadoPor,
+              created_at: tarea.createdAt.toISOString(),
+              updated_at: tarea.updatedAt.toISOString(),
+            })
+
+          if (error) throw error
+        } catch (error: any) {
+          console.error('Error adding tarea:', error)
           set({ error: error.message })
         }
       },

@@ -1,10 +1,12 @@
+import { Edit3 } from 'lucide-react'
 import { Barrio } from '@/types'
 
 interface BarrioPopupProps {
   barrio: Barrio
+  onEdit?: (barrio: Barrio) => void
 }
 
-export const BarrioPopup = ({ barrio }: BarrioPopupProps) => {
+export const BarrioPopup = ({ barrio, onEdit }: BarrioPopupProps) => {
   const getStatusLabel = (estado: string) => {
     switch (estado) {
       case 'pendiente':
@@ -35,7 +37,19 @@ export const BarrioPopup = ({ barrio }: BarrioPopupProps) => {
 
   return (
     <div className="p-3 min-w-[200px]">
-      <h3 className="font-bold text-lg text-gray-800 mb-2">{barrio.nombre}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-bold text-lg text-gray-800">{barrio.nombre}</h3>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit?.(barrio)
+          }}
+          className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-primary-600 transition-colors"
+          title="Editar barrio"
+        >
+          <Edit3 className="w-4 h-4" />
+        </button>
+      </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
