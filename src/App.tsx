@@ -26,7 +26,7 @@ function App() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const { barrios, tareas, selectedBarrio, setSelectedBarrio, initializeFromGeoJSON, fetchBarrios } = useBarrioStore()
+  const { barrios, tareas, selectedBarrio, setSelectedBarrio, user, initializeFromGeoJSON, fetchBarrios } = useBarrioStore()
 
   // Cargar barrios desde Supabase al montar
   useEffect(() => {
@@ -111,13 +111,15 @@ function App() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-gray-800">{selectedBarrio.nombre}</h3>
-                      <button
-                        onClick={() => setShowEditModal(true)}
-                        className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-primary-600 transition-colors"
-                        title="Editar detalles"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
+                      {user?.role === 'admin' && (
+                        <button
+                          onClick={() => setShowEditModal(true)}
+                          className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-primary-600 transition-colors"
+                          title="Editar detalles"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                     <button
                       onClick={() => setSelectedBarrio(null)}

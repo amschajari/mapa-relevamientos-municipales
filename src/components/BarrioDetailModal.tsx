@@ -23,7 +23,7 @@ export const BarrioDetailModal = ({
   onClose,
   onViewOnMap,
 }: BarrioDetailModalProps) => {
-  const { updateBarrio } = useBarrioStore()
+  const { updateBarrio, user } = useBarrioStore()
 // ... (rest of states and handleSave same as before)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -224,20 +224,24 @@ export const BarrioDetailModal = ({
                 Ver en mapa
               </button>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors border border-gray-300 bg-white"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Editar
-                </button>
-                <button 
-                  onClick={() => setShowTaskModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium transition-all"
-                >
-                  <ClipboardList className="w-4 h-4" />
-                  Asignar tarea
-                </button>
+                {user?.role === 'admin' && (
+                  <>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors border border-gray-300 bg-white"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Editar
+                    </button>
+                    <button 
+                      onClick={() => setShowTaskModal(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium transition-all"
+                    >
+                      <ClipboardList className="w-4 h-4" />
+                      Asignar tarea
+                    </button>
+                  </>
+                )}
               </div>
             </>
           ) : (

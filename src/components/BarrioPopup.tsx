@@ -1,5 +1,6 @@
 import { Edit3 } from 'lucide-react'
 import { Barrio } from '@/types'
+import { useBarrioStore } from '@/stores'
 
 interface BarrioPopupProps {
   barrio: Barrio
@@ -7,6 +8,7 @@ interface BarrioPopupProps {
 }
 
 export const BarrioPopup = ({ barrio, onEdit }: BarrioPopupProps) => {
+  const { user } = useBarrioStore()
   const getStatusLabel = (estado: string) => {
     switch (estado) {
       case 'pendiente':
@@ -39,16 +41,18 @@ export const BarrioPopup = ({ barrio, onEdit }: BarrioPopupProps) => {
     <div className="p-3 min-w-[200px]">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-bold text-lg text-gray-800">{barrio.nombre}</h3>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onEdit?.(barrio)
-          }}
-          className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-primary-600 transition-colors"
-          title="Editar barrio"
-        >
-          <Edit3 className="w-4 h-4" />
-        </button>
+        {user?.role === 'admin' && onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit(barrio)
+            }}
+            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-primary-600 transition-colors"
+            title="Editar barrio"
+          >
+            <Edit3 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       <div className="space-y-2">
