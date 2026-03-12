@@ -118,6 +118,41 @@ const BarriosLayer = ({
     layer.setStyle(style)
   }
 
+  const openPopupForBarrio = useCallback(
+    (barrio: Barrio, latlng: L.LatLng) => {
+      const popup = L.popup({ minWidth: 200 })
+        .setLatLng(latlng)
+        .setContent('<div class="popup-container"></div>')
+        .openOn(map)
+
+      const container = popup.getElement()?.querySelector('.popup-container')
+      if (container) {
+        const root = createRoot(container)
+        root.render(<BarrioPopup barrio={barrio} onEdit={onEditBarrio} />)
+      }
+    },
+    [map, onEditBarrio]
+  )
+
+  // Efecto para abrir el popup programáticamente cuando cambia selectedBarrio
+  useEffect(() => {
+    if (selectedBarrio && geoJsonRef.current) {
+      let found = false
+      geoJsonRef.current.eachLayer((layer: any) => {
+        if (found) return
+        const feature = layer.feature
+        if (
+          feature.properties.Nombre === selectedBarrio.nombre ||
+          feature.properties.fid?.toString() === selectedBarrio.id
+        ) {
+          const center = layer.getBounds().getCenter()
+          openPopupForBarrio(selectedBarrio, center)
+          found = true
+        }
+      })
+    }
+  }, [selectedBarrio, openPopupForBarrio])
+
   const onEachFeature = useCallback(
     (feature: any, layer: L.Layer) => {
       const nombre = feature.properties?.Nombre || 'Sin nombre'
@@ -130,6 +165,8 @@ const BarriosLayer = ({
         nombre,
         estado: storeBarrio?.estado || 'pendiente',
         progreso: storeBarrio?.progreso || 0,
+        luminariasEstimadas: storeBarrio?.luminariasEstimadas,
+        luminariasRelevadas: storeBarrio?.luminariasRelevadas,
       }
 
       layer.on({
@@ -138,21 +175,11 @@ const BarriosLayer = ({
         click: (e: L.LeafletMouseEvent) => {
           setSelectedBarrio(barrio)
           onBarrioClick?.(barrio)
-
-          const popup = L.popup({ minWidth: 200 })
-            .setLatLng(e.latlng)
-            .setContent('<div class="popup-container"></div>')
-            .openOn(map)
-
-          const container = popup.getElement()?.querySelector('.popup-container')
-          if (container) {
-            const root = createRoot(container)
-            root.render(<BarrioPopup barrio={barrio} onEdit={onEditBarrio} />)
-          }
+          openPopupForBarrio(barrio, e.latlng)
         },
       })
     },
-    [getBarrioByNombre, getBarrioStatus, getBarrioProgress, onBarrioClick, setSelectedBarrio, map, onEditBarrio]
+    [getBarrioByNombre, onBarrioClick, setSelectedBarrio, openPopupForBarrio]
   )
 
   return (
