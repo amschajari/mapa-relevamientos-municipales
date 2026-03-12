@@ -7,9 +7,11 @@ import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
 import { BarrioDetailModal } from './components/BarrioDetailModal'
 import { useBarrioStore } from './stores'
+import { supabase } from './lib/supabase'
 import barriosGeoJson from './data/barrios-chajari.json'
 import type { Barrio } from './types'
 import { Edit3 } from 'lucide-react'
+import { LoginModal } from './components/LoginModal'
 
 // Tipos de vista
 const VIEWS = {
@@ -24,20 +26,40 @@ const VIEWS = {
 function App() {
   const [activeTab, setActiveTab] = useState<string>(VIEWS.MAPA)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const { barrios, tareas, selectedBarrio, setSelectedBarrio, user, initializeFromGeoJSON, fetchBarrios } = useBarrioStore()
+  const { 
+    barrios, 
+    tareas, 
+    selectedBarrio, 
+    setSelectedBarrio, 
+    user, 
+    setSession,
+    initializeFromGeoJSON, 
+    fetchBarrios 
+  } = useBarrioStore()
 
-  // Cargar barrios desde Supabase al montar
+  // Cargar barrios y auth desde Supabase
   useEffect(() => {
-    // Primero intentar cargar desde Supabase
+    // 1. Cargar barrios
     fetchBarrios().then(() => {
-      // Si no hay datos en Supabase, usar GeoJSON
       if (barrios.length === 0 && barriosGeoJson?.features) {
         initializeFromGeoJSON(barriosGeoJson.features as any)
       }
       setIsLoading(false)
     })
+
+    // 2. Listener de Autenticación
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   /* Demo: Simular algunos barrios con progreso
@@ -206,10 +228,18 @@ function App() {
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-gray-50">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        onLoginClick={() => setShowLoginModal(true)}
+      />
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {renderContent()}
       </main>
+
+      {showLoginModal && (
+        <LoginModal onClose={() => setShowLoginModal(false)} />
+      )}
 
       {showEditModal && selectedBarrio && (
         <BarrioDetailModal

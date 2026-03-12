@@ -29,11 +29,12 @@ interface NavItem {
 interface SidebarProps {
   activeTab: string
   onTabChange: (tab: string) => void
+  onLoginClick: () => void
 }
 
-export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
+export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, loginAsAdmin, logout } = useBarrioStore()
+  const { user, logout } = useBarrioStore()
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard },
@@ -147,7 +148,7 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
             </>
           ) : (
             <button
-              onClick={loginAsAdmin}
+              onClick={onLoginClick}
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
                 "bg-gray-100 text-gray-700 hover:bg-primary-600 hover:text-white group",

@@ -11,6 +11,7 @@ interface BarrioState {
   isLoading: boolean
   error: string | null
   user: { email: string; role: 'admin' | 'viewer' } | null
+  session: any | null
 
   // Acciones
   fetchBarrios: () => Promise<void>
@@ -20,8 +21,8 @@ interface BarrioState {
   addBarrio: (barrio: Barrio) => void
   updateBarrio: (id: string, updates: Partial<Barrio>) => Promise<void>
   addTarea: (tarea: TareaRelevamiento) => Promise<void>
-  loginAsAdmin: () => void
-  logout: () => void
+  setSession: (session: any) => void
+  logout: () => Promise<void>
   updateBarrioProgress: (nombre: string, progress: number) => Promise<void>
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
 
@@ -46,12 +47,25 @@ export const useBarrioStore = create<BarrioState>()(
       isLoading: false,
       error: null,
       user: null,
+      session: null,
 
-      loginAsAdmin: () => set({ 
-        user: { email: 'a.m.saposnik@gmail.com', role: 'admin' } 
-      }),
+      setSession: (session) => {
+        const userEmail = session?.user?.email
+        const isAdmin = userEmail === 'a.m.saposnik@gmail.com'
+        
+        set({ 
+          session,
+          user: session ? { 
+            email: userEmail, 
+            role: isAdmin ? 'admin' : 'viewer' 
+          } : null 
+        })
+      },
       
-      logout: () => set({ user: null }),
+      logout: async () => {
+        await supabase.auth.signOut()
+        set({ user: null, session: null })
+      },
 
       // Fetch barrios desde Supabase
       fetchBarrios: async () => {
