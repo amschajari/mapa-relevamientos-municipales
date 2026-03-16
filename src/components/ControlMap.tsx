@@ -140,9 +140,10 @@ const OfficialPointsLayer = () => {
 
   return (
     <MarkerClusterGroup
+      key={`cluster-group-${officialPoints.length}`}
       chunkedLoading
       iconCreateFunction={createClusterCustomIcon}
-      maxClusterRadius={50}
+      maxClusterRadius={80}
       disableClusteringAtZoom={18}
       showCoverageOnHover={true}
       spiderfyOnMaxZoom={true}
