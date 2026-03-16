@@ -15,39 +15,35 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 
 ---
 
-## 2. Definiciones de Funcionalidad y Dudas a Rever
+### 🗺️ El GIS como "Borrador Estratégico" (Acompañamiento a Odoo)
+- **Problema**: El registro oficial se realiza en **Odoo**. El GIS no debe competir ni duplicar esa carga.
+- **Nueva Visión**: El GIS es el panel de **Hoja de Ruta/Proyección**. Sirve para que el coordinador visualice y planifique las salidas de campo que luego se registran en Odoo.
+- **Métrica Clave**: No buscamos el % final de Odoo, buscamos la **Cobertura Geográfica**. Asegurar que los equipos pasen por todas las calles.
+- **Acción Inmediata**: 
+    - Reemplazar "Progreso %" por **"Manzanas Recorridas"** o **"Estado de Avance"**.
+    - Crear vistas de **Reporte para Autoridades**: Mapas de "semáforo" para el Intendente que muestren avance real vs. proyectado de forma intuitiva.
 
-### 📊 Barra de "Progreso del Relevamiento"
-- **Duda**: ¿Es realmente necesaria una barra de % fijo por barrio?
-- **Contexto**: No hay un total de luminarias real (las ~3000 actuales son ficticias).
-- **Propuesta**: 
-    - Reemplazar por **"Conteo de Luminarias Relevadas"** (valor absoluto).
-    - Usar estados visuales de "Saturación" en el mapa: a más puntos relevados, más intenso el color del barrio, sin depender de un % de "techo" desconocido.
-    - Evaluación de workflow: El progreso debería marcarse como "Terminado" manualmente por el coordinador tras una inspección visual, no solo por alcanzar un número.
-
-### 👥 Gestión de Equipos y Operarios
-- **Actual**: 2 personas iniciales en horario vespertino.
-- **Evolución**: El sistema debe permitir asignar "Operarios" individuales a tareas, no solo "Equipos" genéricos.
-- **Acción**: Ajustar `TaskAssignmentModal` para que sea una lista de operarios activos.
-
-### 🗺️ Geometría y Polígonos (QGIS)
-- **Origen**: Base QGIS (EPSG:4326/WGS84).
-- **Necesidad**: Poder editar vértices o añadir barrios desde la UI.
-- **Workflow AI**: Si se requiere un nuevo barrio, el agente debe buscar el GeoJSON base en `src/data/barrios-chajari.json` y actualizarlo o preparar una función de importación.
+### 📍 Piloto San Clemente (Contexto de Reflexión)
+- **Objetivo**: Probar la utilidad del GIS como guía de campo. El usuario usará su experiencia previa para validar si el mapa ayuda a coordinar mejor los recorridos.
+- **Relación con Odoo**: Odoo manda en el dato. El GIS manda en la **estrategia espacial**.
 
 ---
 
 ## 3. Seguridad y Roles (Master Admin)
 - **Usuario Master**: `a.m.saposnik@gmail.com`
-- **Permisos**: Solo este usuario (o usuarios validados) deben ver los iconos de edición (lápiz) y botones de "Guardar".
-- **Estado**: Por implementar (Supabase Auth + RLS).
+- **Permisos**: Solo este usuario (o usuarios validados) pueden ver los iconos de edición (lápiz) y botones de "Guardar".
+- **Estado**: **Implementado** (Supabase Auth integrado con el store. LoginModal funcional).
+
+### 🧹 Limpieza de Datos (Completada)
+- **Acción**: Eliminados registros de `luminarias_estimadas` y `progreso` ficticios. 
+- **Estado**: **Finalizado**. El sistema inicia en 0 para ser llenado con datos estratégicos reales.
 
 ---
 
 ## 4. Próximos Pasos Técnicos
-1. **Fijar base de datos real**: Eliminar datos ficticios de luminarias y empezar el conteo desde cero.
-2. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-3. **Optimización de Capas**: Leaflet puede ralentizarse con muchos puntos; evaluar `L.canvas` o clustering si el número de luminarias crece mucho.
+1. **Refactor de Dashboard**: Quitar % de Odoo-ficticio y poner "Contadores de descubrimiento" y "Estatus de Barrio" (manual).
+2. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
+3. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
 
 ---
 

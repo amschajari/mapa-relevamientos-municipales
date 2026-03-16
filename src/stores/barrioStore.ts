@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
-import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento } from '@/types'
+import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento, JornadaRelevamiento } from '@/types'
+import area from '@turf/area'
+import { calcularEstimadoAdaptive } from '@/lib/projectionUtils'
 
 interface BarrioState {
   // Estado
@@ -10,8 +12,15 @@ interface BarrioState {
   selectedBarrio: Barrio | null
   isLoading: boolean
   error: string | null
-  user: { email: string; role: 'admin' | 'viewer' } | null
+  user: { id: string; email: string; role: 'admin' | 'viewer' } | null
   session: any | null
+  discoveryPoints: any[] | null // Puntos temporales del weekend pilot
+  jornadas: JornadaRelevamiento[]
+  visibleLayers: {
+    barrios: boolean
+    luminarias: boolean
+  }
+  officialPoints: any[]
 
   // Acciones
   fetchBarrios: () => Promise<void>
@@ -25,6 +34,13 @@ interface BarrioState {
   logout: () => Promise<void>
   updateBarrioProgress: (nombre: string, progress: number) => Promise<void>
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
+  setDiscoveryPoints: (points: any[]) => void
+  clearDiscoveryPoints: () => void
+  fetchJornadas: (barrioId: string) => Promise<void>
+  addJornada: (jornada: Omit<JornadaRelevamiento, 'id' | 'creadoPor'>) => Promise<void>
+  toggleLayer: (layer: 'barrios' | 'luminarias') => void
+  fetchOfficialPoints: () => Promise<void>
+  officializeDiscoveryPoints: (barrioId: string) => Promise<void>
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -34,7 +50,7 @@ interface BarrioState {
   getBarriosConTareas: () => Barrio[]
 
   // Inicialización desde GeoJSON
-  initializeFromGeoJSON: (features: BarrioFeature[]) => void
+  initializeFromGeoJSON: (features: BarrioFeature[]) => Promise<void>
 }
 
 export const useBarrioStore = create<BarrioState>()(
@@ -48,6 +64,13 @@ export const useBarrioStore = create<BarrioState>()(
       error: null,
       user: null,
       session: null,
+      discoveryPoints: null,
+      jornadas: [],
+      visibleLayers: {
+        barrios: true,
+        luminarias: true
+      },
+      officialPoints: [],
 
       setSession: (session) => {
         const userEmail = session?.user?.email
@@ -56,6 +79,7 @@ export const useBarrioStore = create<BarrioState>()(
         set({ 
           session,
           user: session ? { 
+            id: session.user.id,
             email: userEmail, 
             role: isAdmin ? 'admin' : 'viewer' 
           } : null 
@@ -85,6 +109,7 @@ export const useBarrioStore = create<BarrioState>()(
               nombre: b.nombre,
               estado: b.estado || 'pendiente',
               progreso: b.progreso || 0,
+              superficie_ha: b.superficie_ha,
               luminariasEstimadas: b.luminarias_estimadas,
               luminariasRelevadas: b.luminarias_relevadas,
               fechaInicio: b.fecha_inicio ? new Date(b.fecha_inicio) : undefined,
@@ -140,6 +165,7 @@ export const useBarrioStore = create<BarrioState>()(
         if (updates.luminariasEstimadas !== undefined) supabaseUpdates.luminarias_estimadas = updates.luminariasEstimadas
         if (updates.luminariasRelevadas !== undefined) supabaseUpdates.luminarias_relevadas = updates.luminariasRelevadas
         if (updates.observaciones !== undefined) supabaseUpdates.observaciones = updates.observaciones
+        if (updates.superficie_ha !== undefined) supabaseUpdates.superficie_ha = updates.superficie_ha
 
         try {
           const { error } = await supabase
@@ -262,36 +288,221 @@ export const useBarrioStore = create<BarrioState>()(
         return get().barrios.filter((b) => barrioIds.has(b.id))
       },
 
-      // Inicialización desde GeoJSON (solo si no hay datos en Supabase)
-      initializeFromGeoJSON: (features) => {
-        const existingBarrios = get().barrios
+      // Inicialización desde GeoJSON: Sincronización Total
+      initializeFromGeoJSON: async (features) => {
+        const { barrios, updateBarrio } = get()
+        const geojsonNames = features.map(f => f.properties.Nombre).filter(Boolean)
+        const dbNames = barrios.map(b => b.nombre)
 
-        // Solo crear si no hay barrios en Supabase
-        if (existingBarrios.length > 0) return
+        console.log(`Sincronizando GeoJSON: ${geojsonNames.length} barrios encontrados.`)
 
-        const nuevosBarrios: Barrio[] = features
-          .filter(
-            (f) => !existingBarrios.some((b) => b.nombre === f.properties.Nombre)
-          )
-          .map((f) => ({
-            id: f.properties.fid.toString(),
-            nombre: f.properties.Nombre,
-            estado: 'pendiente',
-            progreso: 0,
-          }))
+        // 1. Barrios para ELIMINAR (Están en DB pero NO en GeoJSON)
+        const toDelete = barrios.filter(b => !geojsonNames.includes(b.nombre))
+        for (const barrio of toDelete) {
+          console.log(`Eliminando barrio obsoleto: ${barrio.nombre}`)
+          try {
+            await supabase.from('barrios').delete().eq('id', barrio.id)
+          } catch (err) {
+            console.error(`Error deleting ${barrio.nombre}:`, err)
+          }
+        }
 
-        if (nuevosBarrios.length > 0) {
-          set((state) => ({
-            barrios: [...state.barrios, ...nuevosBarrios],
-          }))
+        // 2. Barrios para AGREGAR (Están en GeoJSON pero NO en DB)
+        const toAdd = features.filter(f => !dbNames.includes(f.properties.Nombre))
+        for (const feature of toAdd) {
+          const nombre = feature.properties.Nombre
+          const areaM2 = area(feature)
+          const areaHa = Math.round((areaM2 / 10000) * 100) / 100
+          
+          console.log(`Agregando nuevo barrio: ${nombre} (${areaHa} Ha)`)
+          try {
+            const { error } = await supabase.from('barrios').insert({
+              nombre,
+              superficie_ha: areaHa,
+              estado: 'pendiente',
+              progreso: 0,
+              luminarias_estimadas: Math.round(areaHa * 4), // Default adaptativo (4 por manzana)
+              luminarias_relevadas: 0
+            })
+            if (error) throw error
+          } catch (err) {
+            console.error(`Error adding ${nombre}:`, err)
+          }
+        }
+
+        // 3. Barrios para ACTUALIZAR (Están en ambos)
+        // Ya que el fetchBarrios refrescará todo, solo nos aseguramos de actualizar superficie si cambió
+        for (const barrio of barrios) {
+          const feature = features.find(f => f.properties.Nombre === barrio.nombre)
+          if (feature) {
+            const areaM2 = area(feature)
+            const areaHa = Math.round((areaM2 / 10000) * 100) / 100
+            
+            if (areaHa !== barrio.superficie_ha) {
+              console.log(`Actualizando superficie: ${barrio.nombre} -> ${areaHa} Ha`)
+              await updateBarrio(barrio.id, { superficie_ha: areaHa })
+            }
+          }
+        }
+
+        // 4. Refrescar todo el estado desde la DB final
+        await get().fetchBarrios()
+      },
+
+      setDiscoveryPoints: (points) => set({ discoveryPoints: points }),
+      clearDiscoveryPoints: () => set({ discoveryPoints: null }),
+
+      fetchJornadas: async (barrioId) => {
+        const { data, error } = await supabase
+          .from('jornadas_relevamiento')
+          .select('*')
+          .eq('barrio_id', barrioId)
+          .order('fecha', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching jornadas:', error)
+          return
+        }
+
+        const jornadasMapeadas = data.map((j: any) => ({
+          id: j.id,
+          barrioId: j.barrio_id,
+          fecha: new Date(j.fecha),
+          agentes: j.agentes,
+          horas: j.horas,
+          luminariasRelevadas: j.luminarias_relevadas,
+          observaciones: j.observaciones,
+          creadoPor: j.creado_por
+        }))
+
+        set({ jornadas: jornadasMapeadas })
+      },
+
+      addJornada: async (jornada) => {
+        const { user } = get()
+        if (!user) return
+
+        try {
+          const { data, error } = await supabase
+            .from('jornadas_relevamiento')
+            .insert({
+              barrio_id: jornada.barrioId,
+              fecha: jornada.fecha.toISOString().split('T')[0],
+              agentes: jornada.agentes,
+              horas: jornada.horas,
+              luminarias_relevadas: jornada.luminariasRelevadas,
+              observaciones: jornada.observaciones,
+              creado_por: user.id
+            })
+            .select()
+            .single()
+
+          if (error) throw error
+
+          // Actualizar estado local de jornadas
+          const nuevaJornada = {
+            id: data.id,
+            barrioId: data.barrio_id,
+            fecha: new Date(data.fecha),
+            agentes: data.agentes,
+            horas: data.horas,
+            luminariasRelevadas: data.luminarias_relevadas,
+            observaciones: data.observaciones,
+            creadoPor: data.creado_por
+          }
+
+          set((state) => ({ jornadas: [nuevaJornada, ...state.jornadas] }))
+
+          // Recalcular progreso del barrio de forma adaptativa
+          const barrio = get().barrios.find(b => b.id === jornada.barrioId)
+          if (barrio) {
+            const nuevasRelevadas = (barrio.luminariasRelevadas || 0) + jornada.luminariasRelevadas
+            const superficieCubiertaEstimada = barrio.superficie_ha ? (barrio.superficie_ha * (barrio.progreso / 100)) : 0
+            
+            // Calculamos el nuevo estimado basado en la densidad actual observada
+            const nuevasEstimadas = calcularEstimadoAdaptive(
+              barrio.superficie_ha || 0,
+              superficieCubiertaEstimada,
+              (barrio.luminariasRelevadas || 0) // Usamos el valor previo para la densidad actual
+            ) || barrio.luminariasEstimadas || 0
+            
+            const nuevoProgreso = nuevasEstimadas > 0 ? Math.min(100, Math.round((nuevasRelevadas / nuevasEstimadas) * 100)) : 0
+            
+            await get().updateBarrio(barrio.id, {
+              luminariasRelevadas: nuevasRelevadas,
+              luminariasEstimadas: nuevasEstimadas,
+              progreso: nuevoProgreso,
+              estado: nuevoProgreso >= 100 ? 'completado' : 'progreso'
+            })
+          }
+
+        } catch (error: any) {
+          console.error('Error adding jornada:', error)
+          set({ error: error.message })
         }
       },
+
+      toggleLayer: (layer) => {
+        set((state) => ({
+          visibleLayers: {
+            ...state.visibleLayers,
+            [layer]: !state.visibleLayers[layer]
+          }
+        }))
+      },
+
+      fetchOfficialPoints: async () => {
+        try {
+          const { data, error } = await supabase
+            .from('puntos_relevamiento')
+            .select('*')
+
+          if (error) throw error
+          set({ officialPoints: data || [] })
+        } catch (error: any) {
+          console.error('Error fetching official points:', error)
+        }
+      },
+
+      officializeDiscoveryPoints: async (barrioId) => {
+        const { discoveryPoints, user } = get()
+        if (!discoveryPoints || discoveryPoints.length === 0 || !user) return
+
+        set({ isLoading: true })
+        try {
+          // Mapear puntos a formato Supabase/PostGIS (WKT)
+          const pointsToInsert = discoveryPoints.map(p => ({
+            barrio_id: barrioId,
+            geom: `POINT(${p.geometry.coordinates[0]} ${p.geometry.coordinates[1]})`,
+            nombre: p.properties?.Nombre || p.properties?.name || null,
+            propiedades: p.properties || {},
+            creado_por: user.id
+          }))
+
+          const { error } = await supabase
+            .from('puntos_relevamiento')
+            .insert(pointsToInsert)
+
+          if (error) throw error
+
+          // Limpiar temporales y refrescar oficiales
+          set({ discoveryPoints: null })
+          await get().fetchOfficialPoints()
+          alert(`¡Éxito! Se oficializaron ${pointsToInsert.length} puntos en la base de datos.`)
+        } catch (error: any) {
+          console.error('Error officializing points:', error)
+          alert('Error al oficializar los puntos: ' + error.message)
+        } finally {
+          set({ isLoading: false })
+        }
+      }
     }),
     {
       name: 'barrio-store',
       partialize: (state) => ({
         barrios: state.barrios,
         tareas: state.tareas,
+        discoveryPoints: state.discoveryPoints,
       }),
     }
   )

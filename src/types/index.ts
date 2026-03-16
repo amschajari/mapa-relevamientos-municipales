@@ -7,6 +7,7 @@ export interface Barrio {
   nombre: string
   estado: EstadoBarrio
   progreso: number // 0-100
+  superficie_ha?: number
   luminariasEstimadas?: number
   luminariasRelevadas?: number
   fechaInicio?: Date
@@ -63,6 +64,17 @@ export interface EquipoRelevamiento {
   empleados: string[] // IDs
   tareasAsignadas: string[] // IDs de tareas
   activo: boolean
+}
+
+export interface JornadaRelevamiento {
+  id: string
+  barrioId: string
+  fecha: Date
+  agentes: number
+  horas: number
+  luminariasRelevadas: number
+  observaciones?: string
+  creadoPor: string
 }
 
 export interface RegistroRelevamiento {

@@ -1,11 +1,12 @@
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
 import { useEffect, useCallback, useMemo, useRef } from 'react'
+import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Tooltip } from 'react-leaflet'
 import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
 import type { GeoJsonObject } from 'geojson'
 import type { Barrio, TareaRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
 import { BarrioPopup } from './BarrioPopup'
+import { LayerControl } from './LayerControl'
 
 interface ControlMapProps {
   barriosGeoJson: GeoJsonObject
@@ -59,6 +60,126 @@ const CenterBarrio = ({
   return null
 }
 
+const DiscoveryLayer = () => {
+  const { discoveryPoints, visibleLayers } = useBarrioStore()
+  
+  if (!visibleLayers.luminarias || !discoveryPoints || discoveryPoints.length === 0) return null
+
+  return (
+    <>
+      {discoveryPoints.map((point: any, idx: number) => {
+        const coords = point.geometry.coordinates
+        // GeoJSON es [lng, lat], Leaflet es [lat, lng]
+        const position: [number, number] = [coords[1], coords[0]]
+        const properties = point.properties || {}
+        const name = properties.Nombre || properties.name || properties.Name || properties.ID || properties.id || properties.label || `Punto ${idx + 1}`
+        
+        return (
+          <CircleMarker
+            key={`discovery-${idx}`}
+            center={position}
+            radius={5}
+            pane="markerPane"
+            pathOptions={{
+              fillColor: '#3b82f6',
+              color: '#ffffff',
+              weight: 2,
+              fillOpacity: 0.9,
+              pane: 'markerPane' // Refuerzo para Leaflet
+            }}
+          >
+            <Tooltip 
+              direction="top" 
+              offset={[0, -10]} 
+              opacity={1}
+              permanent={false}
+              sticky={true}
+              pane="tooltipPane"
+            >
+              <div className="px-2 py-1">
+                <div className="text-sm font-black text-primary-700">{name}</div>
+                <div className="text-[9px] text-gray-400 uppercase tracking-tighter">Punto de Descubrimiento</div>
+              </div>
+            </Tooltip>
+          </CircleMarker>
+        )
+      })}
+    </>
+  )
+}
+
+// Capa para visualizar puntos oficiales persistentes en Supabase
+const OfficialPointsLayer = () => {
+  const { officialPoints, visibleLayers, fetchOfficialPoints } = useBarrioStore()
+
+  useEffect(() => {
+    fetchOfficialPoints()
+  }, [fetchOfficialPoints])
+  
+  if (!visibleLayers.luminarias || !officialPoints || officialPoints.length === 0) return null
+
+  return (
+    <>
+      {officialPoints.map((point: any, idx: number) => {
+        // En Supabase/PostGIS 'geom' viene como string WKT o objeto GeoJSON dependiendo de la config
+        // Si usamos SELECT *, PostGIS devuelve el binario o el string WKT según la versión.
+        // Asumimos que como estamos insertando WKT, PostGIS lo procesa.
+        // Sin embargo, para visualizarlo aquí necesitamos GeoJSON.
+        // Si el geom no está parseado, intentaremos extraer coords del punto si PostGIS lo devuelve formateado
+        // Si no, necesitaremos ajustar la query en el store para usar ST_AsGeoJSON
+        
+        // Asumiendo que PostGIS/Supabase nos devuelve algo manejable o que ajustamos el fetch
+        if (!point.geom) return null;
+        
+        let position: [number, number] = [0, 0]
+        
+        // Detección simple de formato PostGIS/GeoJSON o WKT
+        if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
+          const match = point.geom.match(/\((.*)\)/);
+          if (match) {
+            const coords = match[1].split(' ');
+            position = [parseFloat(coords[1]), parseFloat(coords[0])]
+          }
+        } else if (point.geom.type === 'Point') {
+          position = [point.geom.coordinates[1], point.geom.coordinates[0]]
+        }
+
+        const name = point.nombre || `L-${idx + 1}`
+        
+        return (
+          <CircleMarker
+            key={`official-${point.id}`}
+            center={position}
+            radius={5}
+            pane="markerPane"
+            pathOptions={{
+              fillColor: '#10b981', // Verde para oficiales
+              color: '#ffffff',
+              weight: 2,
+              fillOpacity: 0.9,
+              pane: 'markerPane'
+            }}
+          >
+            <Tooltip 
+              direction="top" 
+              offset={[0, -10]} 
+              opacity={1}
+              permanent={false}
+              sticky={true}
+              pane="tooltipPane"
+            >
+              <div className="px-2 py-1">
+                <div className="text-sm font-black text-green-700">{name}</div>
+                <div className="text-[9px] text-gray-400 uppercase tracking-tighter">Luminaria Relevada</div>
+              </div>
+            </Tooltip>
+          </CircleMarker>
+        )
+      })}
+    </>
+  )
+}
+
 // Sub-componente para manejar la capa GeoJSON con acceso al contexto del mapa
 const BarriosLayer = ({
   geoJson,
@@ -72,8 +193,10 @@ const BarriosLayer = ({
   onEditBarrio?: (barrio: Barrio) => void
 }) => {
   const map = useMap()
-  const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio } = useBarrioStore()
+  const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio, visibleLayers } = useBarrioStore()
   const geoJsonRef = useRef<L.GeoJSON | null>(null)
+
+  if (!visibleLayers.barrios) return null
 
   // Memoizar estilos por estado para evitar recálculos
   const getBarrioStyle = useCallback(
@@ -222,6 +345,11 @@ export const ControlMap = ({
           selectedBarrio={selectedBarrio}
           onEditBarrio={onEditBarrio}
         />
+
+        <OfficialPointsLayer />
+        <DiscoveryLayer />
+
+        <LayerControl />
       </MapContainer>
     </div>
   )

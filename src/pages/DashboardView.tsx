@@ -11,12 +11,16 @@ import {
 import type { Barrio } from '@/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useBarrioStore } from '@/stores'
+import { calcularDiasRestantes } from '@/lib/projectionUtils'
 
 interface DashboardViewProps {
   barrios: Barrio[]
 }
 
 export const DashboardView = ({ barrios }: DashboardViewProps) => {
+  const { discoveryPoints } = useBarrioStore()
+  
   const stats = useMemo(() => {
     const total = barrios.length
     const completados = barrios.filter((b) => b.estado === 'completado').length
@@ -24,16 +28,14 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
     const pendientes = barrios.filter((b) => b.estado === 'pendiente').length
     const pausados = barrios.filter((b) => b.estado === 'pausado').length
 
-    const progresoGeneral = total > 0 ? Math.round((completados / total) * 100) : 0
+    const superficieTotal = barrios.reduce((acc, b) => acc + (b.superficie_ha || 0), 0)
+    const superficieRelevada = barrios.reduce((acc, b) => {
+      if (b.estado === 'completado') return acc + (b.superficie_ha || 0)
+      if (b.estado === 'progreso') return acc + ((b.superficie_ha || 0) * (b.progreso / 100))
+      return acc
+    }, 0)
 
-    const totalLuminarias = barrios.reduce(
-      (acc, b) => acc + (b.luminariasEstimadas || 0),
-      0
-    )
-    const relevadas = barrios.reduce(
-      (acc, b) => acc + (b.luminariasRelevadas || 0),
-      0
-    )
+    const progresoSuperficie = superficieTotal > 0 ? Math.round((superficieRelevada / superficieTotal) * 100) : 0
 
     return {
       total,
@@ -41,13 +43,17 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
       enProgreso,
       pendientes,
       pausados,
-      progresoGeneral,
-      totalLuminarias,
-      relevadas,
-      porcentajeRelevamiento:
-        totalLuminarias > 0 ? Math.round((relevadas / totalLuminarias) * 100) : 0,
+      superficieTotal,
+      superficieRelevada,
+      progresoSuperficie,
+      puntosDescubiertos: discoveryPoints?.length || 0,
+      diasRestantes: calcularDiasRestantes(superficieTotal - superficieRelevada, {
+        agentes: 2,
+        horasPorDia: 3,
+        velocidadEstimadaHaHora: 0.5
+      })
     }
-  }, [barrios])
+  }, [barrios, discoveryPoints])
 
   const barriosRecientes = useMemo(() => {
     return [...barrios]
@@ -114,33 +120,33 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            icon={MapPin}
-            label="Total Barrios"
-            value={stats.total}
-            subValue={`${stats.completados} completados`}
-            color="bg-blue-500"
-            trend="+2 esta semana"
+            icon={TrendingUp}
+            label="Superficie Total"
+            value={`${stats.superficieTotal.toFixed(1)} Ha`}
+            subValue={`${stats.superficieRelevada.toFixed(1)} Ha cubiertas`}
+            color="bg-indigo-500"
           />
           <StatCard
-            icon={CheckCircle2}
-            label="Completados"
-            value={stats.completados}
-            subValue={`${Math.round((stats.completados / stats.total) * 100) || 0}% del total`}
-            color="bg-green-500"
+            icon={MapPin}
+            label="Puntos Discovery"
+            value={stats.puntosDescubiertos}
+            subValue="Cargados vía GeoJSON"
+            color="bg-purple-500"
+            trend={stats.puntosDescubiertos > 0 ? "¡Nuevos datos!" : undefined}
           />
           <StatCard
             icon={Clock}
-            label="En Progreso"
-            value={stats.enProgreso}
-            subValue={`${stats.pendientes} pendientes`}
+            label="Proyección Final"
+            value={`~${stats.diasRestantes} días`}
+            subValue="2 personas, 3hs/día"
             color="bg-amber-500"
           />
           <StatCard
-            icon={AlertCircle}
-            label="Pausados"
-            value={stats.pausados}
-            subValue="Requieren atención"
-            color="bg-red-500"
+            icon={CheckCircle2}
+            label="Avance Barrios"
+            value={`${stats.completados}/${stats.total}`}
+            subValue={`${stats.progresoSuperficie}% de la superficie`}
+            color="bg-green-500"
           />
         </div>
 
@@ -152,22 +158,22 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
                 <TrendingUp className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800">Progreso General</h3>
+                <h3 className="font-semibold text-gray-800">Cobertura de Superficie</h3>
                 <p className="text-sm text-gray-500">
-                  {stats.relevadas.toLocaleString()} de {stats.totalLuminarias.toLocaleString()} luminarias relevadas
+                  {stats.superficieRelevada.toFixed(1)} de {stats.superficieTotal.toFixed(1)} Hectáreas cubiertas
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-indigo-600">{stats.progresoGeneral}%</p>
-              <p className="text-xs text-gray-500">de barrios completados</p>
+              <p className="text-3xl font-bold text-indigo-600">{stats.progresoSuperficie}%</p>
+              <p className="text-xs text-gray-500">avance por área</p>
             </div>
           </div>
 
           <div className="w-full bg-gray-100 rounded-full h-4">
             <div
               className="h-4 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-1000"
-              style={{ width: `${stats.progresoGeneral}%` }}
+              style={{ width: `${stats.progresoSuperficie}%` }}
             />
           </div>
 

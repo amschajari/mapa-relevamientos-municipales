@@ -44,7 +44,7 @@ function App() {
   useEffect(() => {
     // 1. Cargar barrios
     fetchBarrios().then(() => {
-      if (barrios.length === 0 && barriosGeoJson?.features) {
+      if (barriosGeoJson?.features) {
         initializeFromGeoJSON(barriosGeoJson.features as any)
       }
       setIsLoading(false)

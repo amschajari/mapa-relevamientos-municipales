@@ -6,11 +6,20 @@ import {
   Edit2, 
   AlertCircle, 
   Map as MapIcon, 
-  ClipboardList 
+  ClipboardList,
+  Users,
+  Clock,
+  Calendar,
+  Layers,
+  UploadCloud,
+  History,
+  CheckCircle,
+  PlusCircle
 } from 'lucide-react'
 import type { Barrio, EstadoBarrio } from '@/types'
 import { useBarrioStore } from '@/stores'
 import { TaskAssignmentModal } from './TaskAssignmentModal'
+import { calcularDiasRestantes } from '@/lib/projectionUtils'
 
 interface BarrioDetailModalProps {
   barrio: Barrio
@@ -23,12 +32,21 @@ export const BarrioDetailModal = ({
   onClose,
   onViewOnMap,
 }: BarrioDetailModalProps) => {
-  const { updateBarrio, user } = useBarrioStore()
-// ... (rest of states and handleSave same as before)
+  const { updateBarrio, user, fetchJornadas, addJornada, jornadas } = useBarrioStore()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showLogForm, setShowLogForm] = useState(false)
+
+  // Estado para el formulario de nueva jornada
+  const [newLog, setNewLog] = useState({
+    fecha: new Date(),
+    agentes: 2,
+    horas: 3,
+    luminarias: 0,
+    observaciones: ''
+  })
 
   const [editData, setEditData] = useState({
     estado: initialBarrio.estado,
@@ -36,6 +54,8 @@ export const BarrioDetailModal = ({
     observaciones: initialBarrio.observaciones || '',
     luminariasEstimadas: initialBarrio.luminariasEstimadas || 0,
     luminariasRelevadas: initialBarrio.luminariasRelevadas || 0,
+    agentes: 2,
+    horasPorDia: 3,
   })
 
   useEffect(() => {
@@ -45,8 +65,11 @@ export const BarrioDetailModal = ({
       observaciones: initialBarrio.observaciones || '',
       luminariasEstimadas: initialBarrio.luminariasEstimadas || 0,
       luminariasRelevadas: initialBarrio.luminariasRelevadas || 0,
+      agentes: 2,
+      horasPorDia: 3,
     })
-  }, [initialBarrio])
+    fetchJornadas(initialBarrio.id)
+  }, [initialBarrio, fetchJornadas])
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -63,6 +86,32 @@ export const BarrioDetailModal = ({
     } catch (err: any) {
       setError('Error al guardar los cambios. Intente nuevamente.')
       console.error(err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveJornada = async () => {
+    setIsSaving(true)
+    try {
+      await addJornada({
+        barrioId: initialBarrio.id,
+        fecha: newLog.fecha,
+        agentes: newLog.agentes,
+        horas: newLog.horas,
+        luminariasRelevadas: newLog.luminarias,
+        observaciones: newLog.observaciones
+      })
+      setShowLogForm(false)
+      setNewLog({
+        fecha: new Date(),
+        agentes: 2,
+        horas: 3,
+        luminarias: 0,
+        observaciones: ''
+      })
+    } catch (err: any) {
+      setError('Error al registrar la jornada.')
     } finally {
       setIsSaving(false)
     }
@@ -97,7 +146,15 @@ export const BarrioDetailModal = ({
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-800">{initialBarrio.nombre}</h2>
-              <p className="text-sm text-gray-500">Barrio ID: {initialBarrio.id}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">ID: {initialBarrio.id}</p>
+                {initialBarrio.superficie_ha && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <p className="text-sm font-medium text-primary-600">{initialBarrio.superficie_ha} Ha</p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -160,6 +217,7 @@ export const BarrioDetailModal = ({
             )}
           </div>
 
+          {/* Conteo de Luminarias */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 p-4 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
@@ -193,6 +251,108 @@ export const BarrioDetailModal = ({
             </div>
           </div>
 
+          {/* Calculador de Proyección (Solo Admin) */}
+          {user?.role === 'admin' && (
+            <div className="bg-primary-50 p-4 rounded-xl border border-primary-100 space-y-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Calendar className="w-4 h-4 text-primary-600" />
+                <span className="text-sm font-bold text-primary-800">Proyección de Trabajo</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider font-bold text-primary-600 flex items-center gap-1">
+                    <Users className="w-3 h-3" /> Agentes
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editData.agentes}
+                    onChange={(e) => setEditData({ ...editData, agentes: parseInt(e.target.value) || 1 })}
+                    className="w-full px-2 py-1.5 bg-white border border-primary-200 rounded text-sm font-bold text-primary-900 focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider font-bold text-primary-600 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Horas/Día
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editData.horasPorDia}
+                    onChange={(e) => setEditData({ ...editData, horasPorDia: parseInt(e.target.value) || 1 })}
+                    className="w-full px-2 py-1.5 bg-white border border-primary-200 rounded text-sm font-bold text-primary-900 focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-primary-100 flex items-center justify-between">
+                <span className="text-xs text-primary-700">Días para completar Ha:</span>
+                <span className="text-sm font-black text-primary-900 bg-white px-2 py-0.5 rounded border border-primary-200">
+                  {calcularDiasRestantes(initialBarrio.superficie_ha || 0, {
+                    agentes: editData.agentes,
+                    horasPorDia: editData.horasPorDia,
+                    velocidadEstimadaHaHora: 0.5 // Base
+                  })} días
+                </span>
+              </div>
+            </div>
+          )}
+
+          {user?.role === 'admin' && (
+            <div className="border-t border-gray-100 pt-6 space-y-3">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Layers className="w-4 h-4" />
+                    <span className="text-sm font-medium">Capa de Descubrimiento</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium cursor-pointer transition-colors text-gray-600">
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      Cargar GeoJSON
+                      <input 
+                        type="file" 
+                        accept=".geojson,.json" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              try {
+                                const json = JSON.parse(event.target?.result as string)
+                                if (json.features) {
+                                  useBarrioStore.getState().setDiscoveryPoints(json.features)
+                                  alert(`Se cargaron ${json.features.length} puntos de descubrimiento.`)
+                                }
+                              } catch (err) {
+                                alert('Error al leer el archivo GeoJSON')
+                              }
+                            }
+                            reader.readAsText(file)
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {useBarrioStore.getState().discoveryPoints && (
+                      <button
+                        onClick={() => useBarrioStore.getState().officializeDiscoveryPoints(initialBarrio.id)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold transition-colors border border-green-100 shadow-sm"
+                        title="Guardar estos puntos permanentemente en el servidor"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Oficializar Capa
+                      </button>
+                    )}
+                  </div>
+               </div>
+               <p className="text-[10px] text-gray-400">
+                 Carga los puntos relevados en tu app para validar la cobertura y calibrar el ritmo real.
+               </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700">Observaciones:</span>
@@ -207,6 +367,104 @@ export const BarrioDetailModal = ({
             ) : (
               <div className="p-3 bg-gray-50 rounded-xl text-sm text-gray-600 italic">
                 {initialBarrio.observaciones || 'Sin observaciones registradas'}
+              </div>
+            )}
+          </div>
+
+          {/* Sección de Jornadas / Libro de Guardia */}
+          <div className="border-t border-gray-100 pt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-800">
+                <History className="w-4 h-4 text-primary-600" />
+                <span className="text-sm font-bold">Libro de Guardia</span>
+              </div>
+              {user?.role === 'admin' && !showLogForm && (
+                <button 
+                  onClick={() => setShowLogForm(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 hover:bg-primary-100 rounded-lg text-xs font-bold transition-colors"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  Registrar Día
+                </button>
+              )}
+            </div>
+
+            {showLogForm ? (
+              <div className="bg-primary-50 p-4 rounded-xl border border-primary-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-black text-primary-600">Agentes</label>
+                    <input 
+                      type="number" value={newLog.agentes} 
+                      onChange={e => setNewLog({...newLog, agentes: parseInt(e.target.value) || 0})}
+                      className="w-full px-2 py-1.5 rounded border border-primary-200 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-black text-primary-600">Horas</label>
+                    <input 
+                      type="number" value={newLog.horas} 
+                      onChange={e => setNewLog({...newLog, horas: parseInt(e.target.value) || 0})}
+                      className="w-full px-2 py-1.5 rounded border border-primary-200 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-[10px] uppercase font-black text-primary-600">Luminarias Encontradas</label>
+                    <input 
+                      type="number" value={newLog.luminarias} 
+                      onChange={e => setNewLog({...newLog, luminarias: parseInt(e.target.value) || 0})}
+                      className="w-full px-2 py-1.5 rounded border border-primary-200 text-lg font-bold text-primary-900 focus:ring-2 focus:ring-primary-500 outline-none"
+                      placeholder="Ej: 25"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setShowLogForm(false)}
+                    className="flex-1 px-4 py-2 text-gray-500 text-xs font-bold hover:bg-gray-100 rounded-lg"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={handleSaveJornada}
+                    disabled={isSaving || newLog.luminarias <= 0}
+                    className="flex-none px-4 py-2 bg-primary-600 text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSaving ? 'Guardando...' : (
+                      <>
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Finalizar Jornada
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {jornadas.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    No hay jornadas registradas para este barrio.
+                  </p>
+                ) : (
+                  <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                    {jornadas.map((j) => (
+                      <div key={j.id} className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm flex items-center justify-between group hover:border-primary-200 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
+                            {new Date(j.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-800">+{j.luminariasRelevadas} <span className="text-[10px] text-gray-400 font-normal">luminarias</span></p>
+                            <p className="text-[10px] text-gray-500">{j.agentes} agentes • {j.horas} hs</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-400">{j.creadoPor.split('@')[0]}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
