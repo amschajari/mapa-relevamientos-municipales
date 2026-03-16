@@ -41,6 +41,7 @@ interface BarrioState {
   toggleLayer: (layer: 'barrios' | 'luminarias') => void
   fetchOfficialPoints: () => Promise<void>
   officializeDiscoveryPoints: (barrioId: string) => Promise<void>
+  resetOfficialPoints: (barrioId: string) => Promise<void>
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -338,9 +339,13 @@ export const useBarrioStore = create<BarrioState>()(
             const areaM2 = area(feature)
             const areaHa = Math.round((areaM2 / 10000) * 100) / 100
             
-            if (areaHa !== barrio.superficie_ha) {
-              console.log(`Actualizando superficie: ${barrio.nombre} -> ${areaHa} Ha`)
-              await updateBarrio(barrio.id, { superficie_ha: areaHa })
+            // Actualizar si la superficie cambió O si faltan las estimaciones base
+            if (areaHa !== barrio.superficie_ha || (barrio.luminariasEstimadas || 0) === 0) {
+              console.log(`Actualizando datos base: ${barrio.nombre} -> ${areaHa} Ha`)
+              await updateBarrio(barrio.id, { 
+                superficie_ha: areaHa,
+                luminariasEstimadas: barrio.luminariasEstimadas || Math.round(areaHa * 4)
+              })
             }
           }
         }
@@ -485,13 +490,61 @@ export const useBarrioStore = create<BarrioState>()(
 
           if (error) throw error
 
+          // Calcular estadísticas finales basadas en los nuevos puntos
+          const totalNuevos = pointsToInsert.length
+          const barrio = get().barrios.find(b => b.id === barrioId)
+          
+          if (barrio) {
+            const nuevasRelevadas = totalNuevos
+            // Si no tenemos superficie, no podemos estimar mucho más que el actual
+            const nuevasEstimadas = Math.max(barrio.luminariasEstimadas || 0, nuevasRelevadas)
+            const nuevoProgreso = nuevasEstimadas > 0 ? Math.min(100, Math.round((nuevasRelevadas / nuevasEstimadas) * 100)) : 0
+
+            await get().updateBarrio(barrioId, {
+              luminariasRelevadas: nuevasRelevadas,
+              luminariasEstimadas: nuevasEstimadas,
+              progreso: nuevoProgreso,
+              estado: nuevoProgreso >= 100 ? 'completado' : 'progreso'
+            })
+          }
+
           // Limpiar temporales y refrescar oficiales
           set({ discoveryPoints: null })
           await get().fetchOfficialPoints()
-          alert(`¡Éxito! Se oficializaron ${pointsToInsert.length} puntos en la base de datos.`)
+          alert(`¡Éxito! Se oficializaron ${totalNuevos} puntos en la base de datos.`)
         } catch (error: any) {
           console.error('Error officializing points:', error)
           alert('Error al oficializar los puntos: ' + error.message)
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      resetOfficialPoints: async (barrioId) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar TODOS los puntos oficiales de este barrio? Esta acción no se puede deshacer.')) return
+
+        set({ isLoading: true })
+        try {
+          // Eliminar puntos de la tabla
+          const { error: puntosError } = await supabase
+            .from('puntos_relevamiento')
+            .delete()
+            .eq('barrio_id', barrioId)
+
+          if (puntosError) throw puntosError
+
+          // Resetear estadísticas del barrio
+          await get().updateBarrio(barrioId, {
+            luminariasRelevadas: 0,
+            progreso: 0,
+            estado: 'pendiente'
+          })
+
+          await get().fetchOfficialPoints()
+          alert('Relevamiento reiniciado. Todos los puntos han sido eliminados.')
+        } catch (error: any) {
+          console.error('Error resetting points:', error)
+          alert('Error al reiniciar el relevamiento: ' + error.message)
         } finally {
           set({ isLoading: false })
         }

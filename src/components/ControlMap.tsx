@@ -5,6 +5,7 @@ import L from 'leaflet'
 import type { GeoJsonObject } from 'geojson'
 import type { Barrio, TareaRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import { BarrioPopup } from './BarrioPopup'
 import { LayerControl } from './LayerControl'
 
@@ -115,25 +116,42 @@ const OfficialPointsLayer = () => {
   useEffect(() => {
     fetchOfficialPoints()
   }, [fetchOfficialPoints])
+
+  const createClusterCustomIcon = (cluster: any) => {
+    const count = cluster.getChildCount();
+    let size = 'w-8 h-8';
+    if (count > 50) size = 'w-10 h-10';
+    if (count > 100) size = 'w-12 h-12';
+
+    return L.divIcon({
+      html: `
+        <div class="flex items-center justify-center ${size} bg-amber-500/20 rounded-full border-2 border-amber-500 shadow-lg backdrop-blur-sm animate-pulse-slow">
+          <div class="flex items-center justify-center w-full h-full bg-amber-500 rounded-full text-white text-xs font-black shadow-inner">
+            ${count}
+          </div>
+        </div>
+      `,
+      className: 'custom-marker-cluster',
+      iconSize: L.point(40, 40, true),
+    });
+  };
   
   if (!visibleLayers.luminarias || !officialPoints || officialPoints.length === 0) return null
 
   return (
-    <>
+    <MarkerClusterGroup
+      chunkedLoading
+      iconCreateFunction={createClusterCustomIcon}
+      maxClusterRadius={50}
+      disableClusteringAtZoom={17}
+      showCoverageOnHover={false}
+      spiderfyOnMaxZoom={true}
+    >
       {officialPoints.map((point: any, idx: number) => {
-        // En Supabase/PostGIS 'geom' viene como string WKT o objeto GeoJSON dependiendo de la config
-        // Si usamos SELECT *, PostGIS devuelve el binario o el string WKT según la versión.
-        // Asumimos que como estamos insertando WKT, PostGIS lo procesa.
-        // Sin embargo, para visualizarlo aquí necesitamos GeoJSON.
-        // Si el geom no está parseado, intentaremos extraer coords del punto si PostGIS lo devuelve formateado
-        // Si no, necesitaremos ajustar la query en el store para usar ST_AsGeoJSON
-        
-        // Asumiendo que PostGIS/Supabase nos devuelve algo manejable o que ajustamos el fetch
         if (!point.geom) return null;
         
         let position: [number, number] = [0, 0]
         
-        // Detección simple de formato PostGIS/GeoJSON o WKT
         if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
           const match = point.geom.match(/\((.*)\)/);
           if (match) {
@@ -153,7 +171,7 @@ const OfficialPointsLayer = () => {
             radius={5}
             pane="markerPane"
             pathOptions={{
-              fillColor: '#10b981', // Verde para oficiales
+              fillColor: '#fbbf24', // Amarillo/Ambar para oficiales (Luz)
               color: '#ffffff',
               weight: 2,
               fillOpacity: 0.9,
@@ -169,14 +187,14 @@ const OfficialPointsLayer = () => {
               pane="tooltipPane"
             >
               <div className="px-2 py-1">
-                <div className="text-sm font-black text-green-700">{name}</div>
+                <div className="text-sm font-black text-amber-600">{name}</div>
                 <div className="text-[9px] text-gray-400 uppercase tracking-tighter">Luminaria Relevada</div>
               </div>
             </Tooltip>
           </CircleMarker>
         )
       })}
-    </>
+    </MarkerClusterGroup>
   )
 }
 
@@ -195,8 +213,6 @@ const BarriosLayer = ({
   const map = useMap()
   const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio, visibleLayers } = useBarrioStore()
   const geoJsonRef = useRef<L.GeoJSON | null>(null)
-
-  if (!visibleLayers.barrios) return null
 
   // Memoizar estilos por estado para evitar recálculos
   const getBarrioStyle = useCallback(
@@ -288,6 +304,7 @@ const BarriosLayer = ({
         nombre,
         estado: storeBarrio?.estado || 'pendiente',
         progreso: storeBarrio?.progreso || 0,
+        superficie_ha: storeBarrio?.superficie_ha,
         luminariasEstimadas: storeBarrio?.luminariasEstimadas,
         luminariasRelevadas: storeBarrio?.luminariasRelevadas,
       }
@@ -305,14 +322,14 @@ const BarriosLayer = ({
     [getBarrioByNombre, onBarrioClick, setSelectedBarrio, openPopupForBarrio]
   )
 
-  return (
+  return visibleLayers.barrios ? (
     <GeoJSON
       ref={geoJsonRef}
       data={geoJson}
       style={getBarrioStyle}
       onEachFeature={onEachFeature}
     />
-  )
+  ) : null
 }
 
 export const ControlMap = ({

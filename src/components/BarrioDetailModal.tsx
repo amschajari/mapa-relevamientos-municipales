@@ -32,7 +32,7 @@ export const BarrioDetailModal = ({
   onClose,
   onViewOnMap,
 }: BarrioDetailModalProps) => {
-  const { updateBarrio, user, fetchJornadas, addJornada, jornadas } = useBarrioStore()
+  const { updateBarrio, user, fetchJornadas, addJornada, jornadas, resetOfficialPoints } = useBarrioStore()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -350,6 +350,23 @@ export const BarrioDetailModal = ({
                <p className="text-[10px] text-gray-400">
                  Carga los puntos relevados en tu app para validar la cobertura y calibrar el ritmo real.
                </p>
+            </div>
+          )}
+
+          {user?.role === 'admin' && (
+            <div className="border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
+                <div>
+                  <p className="text-sm font-bold text-red-700">Reiniciar Relevamiento</p>
+                  <p className="text-[10px] text-red-600/70">Borra todos los puntos oficiales del servidor.</p>
+                </div>
+                <button
+                  onClick={() => resetOfficialPoints(initialBarrio.id)}
+                  className="px-3 py-1.5 bg-white text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold border border-red-200 transition-colors shadow-sm"
+                >
+                  Reiniciar
+                </button>
+              </div>
             </div>
           )}
 

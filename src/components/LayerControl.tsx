@@ -8,7 +8,7 @@ export const LayerControl = () => {
   const { visibleLayers, toggleLayer } = useBarrioStore();
 
   return (
-    <div className="absolute bottom-6 left-6 z-[1000]">
+    <div className="absolute bottom-8 left-4 z-[1000]">
       {/* Menu */}
       {isOpen && (
         <div className="mb-3 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 min-w-[180px] animate-in fade-in slide-in-from-bottom-4 duration-300">
