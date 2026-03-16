@@ -8,8 +8,15 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 ## 1. Resumen de Implementación Actual (Checkpoint)
 - **Mapa Leaflet**: Refactorizado para usar `BarriosLayer` dentro de `MapContainer`.
 - **Interacción**: Mejorada la lógica de clusters (zoom + coverage) y popups enriquecidos.
-- **Gestión de Estados**: Sistema de cierre manual de barrios habilitado (botón "Finalizar").
-- **Auto-Inicio**: Los barrios pasan de 'Pendiente' a 'En Progreso' automáticamente al detectar actividad.
+- **Gestión de Estados**: Implementado cierre manual de barrios y botón de "Finalizar" con persistencia.
+- **Datos**: Normalización de secuencia de luminarias (L1-L238) en San Clemente.
+
+### Próximos Pasos (Hoja de Ruta)
+- [ ] **Integración Odoo (Fase 1: CSV)**:
+    - Implementar utilidad de importación de CSV de luminarias.
+    - Mapear campos de Odoo (`Tipo Luminaria`, `Estado de la base`, `Medidor`) al campo `propiedades` (JSONB).
+    - Limpieza automática de coordenadas al importar.
+- [ ] **Optimización de Memoria**: Implementar carga dinámica de puntos (Lazy Loading) para manejar grandes volúmenes de datos.
 - **Estándares**: `DEVELOPMENT.md` y `ROADMAP.md` establecidos para continuidad de contexto.
 - **Agentic Workflows**: Directorio `.agent/workflows` configurado para automatización.
 - **Calidad**: Vitest configurado para pruebas unitarias.
