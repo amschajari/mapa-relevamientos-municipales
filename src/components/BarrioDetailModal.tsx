@@ -508,12 +508,25 @@ export const BarrioDetailModal = ({
                       <Edit2 className="w-4 h-4" />
                       Editar
                     </button>
+                    {initialBarrio.estado !== 'completado' && (
+                      <button 
+                        onClick={async () => {
+                          if (confirm('¿Marcar este barrio como COMPLETADO? Esto indicará que el relevamiento ha finalizado oficialmente.')) {
+                            await updateBarrio(initialBarrio.id, { estado: 'completado' })
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-bold transition-all shadow-sm"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Finalizar
+                      </button>
+                    )}
                     <button 
                       onClick={() => setShowTaskModal(true)}
                       className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium transition-all"
                     >
                       <ClipboardList className="w-4 h-4" />
-                      Asignar tarea
+                      Asignar
                     </button>
                   </>
                 )}
