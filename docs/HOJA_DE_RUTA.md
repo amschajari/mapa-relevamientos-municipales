@@ -70,6 +70,22 @@ Este documento establece el estado actual del proyecto, los desafíos identifica
     - Code review enfocado en escalabilidad de capas de GeoJSON.
 
 ---
-
-**Preparado por:** Antigravity AI
+ 
+ ## 5. Dinámica de Trabajo Diario (Puente Odoo-GIS)
+ 
+ Para resolver la desconexión actual entre el relevamiento en Odoo y el control en el GIS, se establece la siguiente dinámica:
+ 
+ ### A. Fase de Transición (Actual - Manual)
+ - **Registro en Odoo**: Los chicos cargan los datos en Odoo como fuente oficial.
+ - **Sincronización al GIS**: Al final de la jornada (o semanalmente), se exporta un listado de Odoo y se usa la herramienta **"Libro de Guardia"** en el GIS para registrar la cantidad total de luminarias cargadas por barrio.
+ - **Auditoría Visual**: Si se dispone del archivo de puntos (KML/GeoJSON) que generan los chicos, se usa la **"Capa de Descubrimiento"** para ver *geográficamente* dónde estuvieron y oficializar esos puntos si coinciden con los totales de Odoo.
+ 
+ ### B. Fase de Integración (Futuro - Automatizado)
+ - **Importador de Odoo**: Desarrollar un script que lea la API de Odoo diariamente.
+ - **Matching Geográfico**: El GIS buscará automáticamente nuevos registros en Odoo y los proyectará en el mapa basándose en la dirección o coordenadas registradas.
+ - **Alertas de Cobertura**: El GIS resaltará en rojo las calles donde Odoo dice que "no hay nada" para que el coordinador decida si es un error de carga o si realmente no hay luminarias en esa zona.
+ 
+ ---
+ 
+ **Preparado por:** Antigravity AI
 **Para:** Municipalidad de Chajarí
