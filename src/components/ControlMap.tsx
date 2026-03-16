@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react'
-import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Tooltip, Popup } from 'react-leaflet'
 import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
 import type { GeoJsonObject } from 'geojson'
@@ -143,9 +143,10 @@ const OfficialPointsLayer = () => {
       chunkedLoading
       iconCreateFunction={createClusterCustomIcon}
       maxClusterRadius={50}
-      disableClusteringAtZoom={17}
-      showCoverageOnHover={false}
+      disableClusteringAtZoom={18}
+      showCoverageOnHover={true}
       spiderfyOnMaxZoom={true}
+      zoomToBoundsOnClick={true}
     >
       {officialPoints.map((point: any, idx: number) => {
         if (!point.geom) return null;
@@ -178,19 +179,19 @@ const OfficialPointsLayer = () => {
               pane: 'markerPane'
             }}
           >
-            <Tooltip 
-              direction="top" 
-              offset={[0, -10]} 
-              opacity={1}
-              permanent={false}
-              sticky={true}
-              pane="tooltipPane"
+            <Popup 
+              className="luminaria-popup"
+              minWidth={150}
             >
-              <div className="px-2 py-1">
-                <div className="text-sm font-black text-amber-600">{name}</div>
-                <div className="text-[9px] text-gray-400 uppercase tracking-tighter">Luminaria Relevada</div>
+              <div className="px-1 py-1">
+                <div className="text-sm font-black text-amber-600 border-b border-gray-100 pb-1 mb-1">{name}</div>
+                <div className="text-[10px] text-gray-400 uppercase tracking-tighter mb-2">Luminaria Relevada</div>
+                <div className="text-xs text-gray-600">
+                  <strong>ID:</strong> {point.id?.substring(0,8) || 'N/A'} <br/>
+                  <strong>Coord:</strong> {position[0].toFixed(5)}, {position[1].toFixed(5)}
+                </div>
               </div>
-            </Tooltip>
+            </Popup>
           </CircleMarker>
         )
       })}
