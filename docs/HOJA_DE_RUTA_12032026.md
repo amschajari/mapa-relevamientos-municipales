@@ -1,54 +1,75 @@
-# HOJA DE RUTA Y CONTEXTO DE DESARROLLO - 12/03/2026
+# HOJA DE RUTA - 12/03/2026
 ## Sistema de Control de Relevamientos - Municipalidad de Chajarí
 
-Este documento sirve como guía para el desarrollo continuo y transferencia de contexto entre agentes de IA y desarrolladores.
+Este documento establece el estado actual del proyecto, los desafíos identificados y el plan de acción para las próximas etapas de desarrollo.
 
 ---
 
-## 1. Resumen de Implementación Actual (Checkpoint)
-- **Mapa Leaflet**: Refactorizado para usar `BarriosLayer` dentro de `MapContainer`, evitando errores de contexto de `useMap`.
-- **Reactividad**: Estado `selectedBarrio` centralizado en `barrioStore.ts` (Zustand). Los cambios en el modal se reflejan instantáneamente en el panel lateral y popups del mapa sin F5.
-- **Edición**: Lápiz de edición habilitado en Popups y Panel Lateral.
-- **Persistencia**: Sincronización bidireccional con Supabase (PostgreSQL + PostGIS).
-- **Despliegue**: GitHub Actions configurado para `gh-pages` vía rama `main`.
+## 1. Estado de Avance Actual
+- **Mapa Interactivo**: Capa de polígonos (Barrios) estable y optimizada.
+- **Inventario Persistente**: Implementada tabla `puntos_relevamiento` en Supabase (PostGIS).
+- **Control de Capas**: UI flotante para prender/apagar Barrios y Luminarias.
+- **Visualización Pro**: Clusterización de luminarias con diseño "Luz" (Amarillo Ámbar con pulso).
+- **Gestión Admin**: Botón de **Reiniciar Relevamiento** para limpieza de datos de prueba.
+- **Seguridad RLS**: Políticas configuradas para CRUD de puntos vía JWT (Master Admin).
+- **Sincronización Inteligente**: Auditor de superficie (Ha) y estimación automática de luminarias.
+- **Corrección de Bugs**: Resuelto "Error #300" (crash de Leaflet al ocultar capas).
 
 ---
 
-## 2. Definiciones de Funcionalidad y Dudas a Rever
+## 2. Inquietudes y Desafíos Planteados
 
-### 📊 Barra de "Progreso del Relevamiento"
-- **Duda**: ¿Es realmente necesaria una barra de % fijo por barrio?
-- **Contexto**: No hay un total de luminarias real (las ~3000 actuales son ficticias).
-- **Propuesta**: 
-    - Reemplazar por **"Conteo de Luminarias Relevadas"** (valor absoluto).
-    - Usar estados visuales de "Saturación" en el mapa: a más puntos relevados, más intenso el color del barrio, sin depender de un % de "techo" desconocido.
-    - Evaluación de workflow: El progreso debería marcarse como "Terminado" manualmente por el coordinador tras una inspección visual, no solo por alcanzar un número.
+### 👥 Módulo de Equipos (Refinamiento)
+- **Realidad**: Actualmente 2 personas en horario vespertino (posibilidad de 3-4).
+- **Estrategia**: El módulo debe ser flexible para agregar empleados sin restricciones de rol rígidas inicialmente.
+- **Acción**: Simplificar el registro de "Equipos" a nombres de operarios y permitir asignaciones múltiples a un mismo barrio.
 
-### 👥 Gestión de Equipos y Operarios
-- **Actual**: 2 personas iniciales en horario vespertino.
-- **Evolución**: El sistema debe permitir asignar "Operarios" individuales a tareas, no solo "Equipos" genéricos.
-- **Acción**: Ajustar `TaskAssignmentModal` para que sea una lista de operarios activos.
+### 📊 Base de Datos y Progreso
+- **Realidad**: Los totales actuales (2.955) son ficticios. No hay una "base inicial" exacta.
+- **Estrategia**: 
+    - Cambiar la métrica de **"% de Progreso Fijo"** a **"Densidad de Relevamiento"**.
+    - Permitir que el Coordinador fije una "Estimación Sugerida" que se ajusta a medida que el relevamiento avanza.
+    - Mostrar progreso por **"Manzanas completadas"** o **"Calles recorridas"** si es posible, en lugar de un número total desconocido a priori.
 
-### 🗺️ Geometría y Polígonos (QGIS)
-- **Origen**: Base QGIS (EPSG:4326/WGS84).
-- **Necesidad**: Poder editar vértices o añadir barrios desde la UI.
-- **Workflow AI**: Si se requiere un nuevo barrio, el agente debe buscar el GeoJSON base en `src/data/barrios-chajari.json` y actualizarlo o preparar una función de importación.
+### 🗺️ Gestión de Barrios/Geometría
+- **Realidad**: Los polígonos vienen de QGIS. Se necesita alta precisión y posibilidad de añadir nuevos barrios.
+- **Estrategia**:
+    - Mantener el flujo de **Importación GeoJSON** para cambios estructurales grandes (traer de QGIS).
+    - Implementar herramienta de **Dibujo/Edición simple** en el mapa para ajustes menores (vértices).
+    - Botón **"+ Nuevo Barrio"** que permita subir un archivo .geojson específico para ese barrio o dibujar su área.
 
----
-
-## 3. Seguridad y Roles (Master Admin)
-- **Usuario Master**: `a.m.saposnik@gmail.com`
-- **Permisos**: Solo este usuario (o usuarios validados) deben ver los iconos de edición (lápiz) y botones de "Guardar".
-- **Estado**: Por implementar (Supabase Auth + RLS).
+### 🔑 Autenticación y Usuarios
+- **Admin**: Acceso completo para `a.m.saposnik@gmail.com`.
+- **Lectura**: Generar roles de "Visualizador" (Jefes/Interesados) que no puedan editar datos pero sí ver el mapa y estadísticas.
 
 ---
 
-## 4. Próximos Pasos Técnicos
-1. **Fijar base de datos real**: Eliminar datos ficticios de luminarias y empezar el conteo desde cero.
-2. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-3. **Optimización de Capas**: Leaflet puede ralentizarse con muchos puntos; evaluar `L.canvas` o clustering si el número de luminarias crece mucho.
+## 3. Plan de Acción Inmediato (Sprint Actual)
+
+### Tarea 1: Refuerzo de Identidad y Roles
+- Configurar el usuario `a.m.saposnik@gmail.com` como Master Admin en Supabase.
+- Implementar pantalla de Login simple (Supabase Auth).
+
+### Tarea 2: Flexibilidad en Relevamiento
+- Cambiar el campo `luminarias_estimadas` a opcional o "estimado ajustable".
+- Agregar visualización de "Última actividad" por barrio (quién relevó y cuándo).
+
+### Tarea 3: DevOps y Deploy
+- **Git**: Push a `main`.
+- **GitHub Pages**: Reactivar la rama `gh-pages`.
+- **CI/CD**: Verificar `deploy.yml` para asegurar que el build de Vite usa el `base` path correcto (`/mapa-relevamientos-municipales/`).
 
 ---
 
-**Nota para futuros agentes**: 
-El proyecto usa una estructura de carpetas limpia en `/src`. Los estilos son Tailwind neutros/profesionales. La lógica de negocio pesada debe residir en `barrioStore.ts`. Siempre verificar que `useMap` se use dentro de componentes hijos de `MapContainer`.
+## 4. Visión de Integración (Fase 2+)
+- **Odoo Municipal**: 
+    - Vinculación con reclamos de "Atención al Vecino".
+    - Sincronización de inventario de luminarias (compras/garantías).
+- **Testing y Calidad**: 
+    - Implementar tests unitarios para la lógica del `barrioStore`.
+    - Code review enfocado en escalabilidad de capas de GeoJSON.
+
+---
+
+**Preparado por:** Antigravity AI
+**Para:** Municipalidad de Chajarí

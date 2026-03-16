@@ -1,0 +1,18 @@
+- [x] Sincronización con cambios de la oficina (Git Pull)
+- [x] Documentar Reflexión Estratégica Incial
+- [x] Profundizar Visión Estratégica (GIS como Orquestador Táctico)
+- [x] Crear Briefing de Contexto para IA Experta
+- [x] Actualización de `ROADMAP.md` (Visión Odoo-Centric)
+- [x] Reset de Datos Ficticios (Bulk Cleanup en Supabase)
+- [x] Refinamiento de Interfaz Estratégica
+    - [x] Implementar Métricas Geométricas (Superficie Ha Persistente)
+    - [x] Calculador de Proyección por Ritmo (Agentes/Horas)
+    - [x] Importación Temporal de Puntos (Capa de Descubrimiento)
+    - [x] Registro de Jornadas Diarias (Persistencia en DB preparada)
+    - [x] Control de Acceso (RBAC) por Rol
+    - [x] Sincronización Total de Barrios desde GeoJSON (Add/Delete/Update)
+    - [x] Implementar Control de Capas (Prender/Apagar Barrios y Luminarias)
+    - [x] Corregir Crash de React (Error #300) al apagar capas de barrios
+    - [x] Oficializar Capa de Descubrimiento (Bulk Upload a Supabase)
+    - [ ] Implementar Control de Capas (Pintar calles recorridas - Futuro)
+- [ ] Integración Odoo (Investigación básica)
