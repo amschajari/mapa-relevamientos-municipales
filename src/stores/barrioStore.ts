@@ -215,7 +215,13 @@ export const useBarrioStore = create<BarrioState>()(
         if (!barrio) return
 
         const newProgress = Math.min(100, Math.max(0, progress))
-        const estado: EstadoBarrio = newProgress >= 100 ? 'completado' : newProgress > 0 ? 'progreso' : 'pendiente'
+        const currentEstado = barrio.estado
+        let estado = currentEstado
+
+        // Solo cambiar a progreso automáticamente si estaba pendiente o fue reactivado
+        if (newProgress > 0 && (currentEstado === 'pendiente' || !currentEstado)) {
+          estado = 'progreso'
+        }
 
         // Actualizar local
         set((state) => ({
@@ -437,7 +443,7 @@ export const useBarrioStore = create<BarrioState>()(
               luminariasRelevadas: nuevasRelevadas,
               luminariasEstimadas: nuevasEstimadas,
               progreso: nuevoProgreso,
-              estado: nuevoProgreso >= 100 ? 'completado' : 'progreso'
+              estado: barrio.estado === 'pendiente' ? 'progreso' : barrio.estado
             })
           }
 
@@ -504,7 +510,7 @@ export const useBarrioStore = create<BarrioState>()(
               luminariasRelevadas: nuevasRelevadas,
               luminariasEstimadas: nuevasEstimadas,
               progreso: nuevoProgreso,
-              estado: nuevoProgreso >= 100 ? 'completado' : 'progreso'
+              estado: barrio.estado === 'pendiente' ? 'progreso' : barrio.estado
             })
           }
 

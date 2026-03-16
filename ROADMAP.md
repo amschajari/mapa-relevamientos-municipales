@@ -8,7 +8,8 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 ## 1. Resumen de Implementación Actual (Checkpoint)
 - **Mapa Leaflet**: Refactorizado para usar `BarriosLayer` dentro de `MapContainer`.
 - **Interacción**: Mejorada la lógica de clusters (zoom + coverage) y popups enriquecidos.
-- **Reactividad**: Estado `selectedBarrio` centralizado en `barrioStore.ts` (Zustand).
+- **Gestión de Estados**: Sistema de cierre manual de barrios habilitado (botón "Finalizar").
+- **Auto-Inicio**: Los barrios pasan de 'Pendiente' a 'En Progreso' automáticamente al detectar actividad.
 - **Estándares**: `DEVELOPMENT.md` y `ROADMAP.md` establecidos para continuidad de contexto.
 - **Agentic Workflows**: Directorio `.agent/workflows` configurado para automatización.
 - **Calidad**: Vitest configurado para pruebas unitarias.
