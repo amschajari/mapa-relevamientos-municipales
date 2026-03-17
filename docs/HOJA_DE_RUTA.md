@@ -78,6 +78,7 @@ Este documento establece el estado actual del proyecto, los desafíos identifica
  ### A. Fase de Transición (Actual - Manual)
  - **Registro en Odoo**: Los chicos cargan los datos en Odoo como fuente oficial.
  - **Sincronización al GIS**: Al final de la jornada (o semanalmente), se exporta un listado de Odoo y se usa la herramienta **"Libro de Guardia"** en el GIS para registrar la cantidad total de luminarias cargadas por barrio.
+ - **Importación vía CSV**: Como alternativa al GeoJSON, se habilitará un importador que lea directamente el CSV de Odoo (mapeando columnas de Latitud/Longitud) para actualizar el inventario masivamente sin necesidad de digitalización manual.
  - **Auditoría Visual**: Si se dispone del archivo de puntos (KML/GeoJSON) que generan los chicos, se usa la **"Capa de Descubrimiento"** para ver *geográficamente* dónde estuvieron y oficializar esos puntos si coinciden con los totales de Odoo.
  
  ### B. Fase de Integración (Futuro - Automatizado)
