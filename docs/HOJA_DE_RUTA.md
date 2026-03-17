@@ -10,6 +10,8 @@ Este documento establece el estado actual del proyecto, los desafíos identifica
 - **Inventario Persistente**: Implementada tabla `puntos_relevamiento` en Supabase (PostGIS).
 - **Control de Capas**: UI flotante para prender/apagar Barrios y Luminarias.
 - **Visualización Pro**: Clusterización de luminarias con diseño "Luz" (Amarillo Ámbar con pulso).
+- **Enriquecimiento Geográfico**: Geocodificación inversa automática (Calles/Alturas reales) y estados de red (Encendida/Apagada).
+- **Mejoras de UX en Login**: Soporte para tecla `Esc`, cierre al clickear fuera y alternancia de visibilidad de contraseña (ojo).
 - **Gestión Admin**: Botón de **Reiniciar Relevamiento** para limpieza de datos de prueba.
 - **Seguridad RLS**: Políticas configuradas para CRUD de puntos vía JWT (Master Admin).
 - **Sincronización Inteligente**: Auditor de superficie (Ha) y estimación automática de luminarias.
