@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
+import { X, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface LoginModalProps {
@@ -9,6 +9,7 @@ interface LoginModalProps {
 export const LoginModal = ({ onClose }: LoginModalProps) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -94,13 +95,25 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm"
+                  className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-sm"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 rounded-md transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4 text-gray-500" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-gray-500" />
+                  )}
+                </button>
               </div>
             </div>
 
