@@ -182,14 +182,54 @@ const OfficialPointsLayer = () => {
           >
             <Popup 
               className="luminaria-popup"
-              minWidth={150}
+              minWidth={200}
             >
-              <div className="px-1 py-1">
-                <div className="text-sm font-black text-amber-600 border-b border-gray-100 pb-1 mb-1">{name}</div>
-                <div className="text-[10px] text-gray-400 uppercase tracking-tighter mb-2">Luminaria Relevada</div>
-                <div className="text-xs text-gray-600">
-                  <strong>ID:</strong> {point.id?.substring(0,8) || 'N/A'} <br/>
-                  <strong>Coord:</strong> {position[0].toFixed(5)}, {position[1].toFixed(5)}
+              <div className="px-2 py-2 min-w-[190px]">
+                {/* Header */}
+                <div className="flex items-center gap-1 border-b border-amber-100 pb-1 mb-2">
+                  <span className="text-base">💡</span>
+                  <div className="text-sm font-black text-amber-600 leading-tight">{name}</div>
+                </div>
+
+                {/* Campos enriquecidos */}
+                <div className="space-y-1 text-xs text-gray-700">
+                  {point.direccion && (
+                    <div className="flex items-start gap-1">
+                      <span className="text-gray-400 w-4 shrink-0">📍</span>
+                      <span>{point.direccion}</span>
+                    </div>
+                  )}
+                  {point.barrio_nombre && (
+                    <div className="flex items-start gap-1">
+                      <span className="text-gray-400 w-4 shrink-0">🏘️</span>
+                      <span>{point.barrio_nombre}</span>
+                    </div>
+                  )}
+                  {point.tipo_luminaria && (
+                    <div className="flex items-start gap-1">
+                      <span className="text-gray-400 w-4 shrink-0">⚡</span>
+                      <span>{point.tipo_luminaria}</span>
+                    </div>
+                  )}
+                  {point.estado_base && (
+                    <div className="flex items-start gap-1">
+                      <span className="text-gray-400 w-4 shrink-0">🔩</span>
+                      <span className={point.estado_base.includes('deteriorada') ? 'text-red-500 font-semibold' : 'text-green-600'}>
+                        {point.estado_base}
+                      </span>
+                    </div>
+                  )}
+                  {point.sin_luz === true && (
+                    <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
+                      <span>⚠️</span>
+                      <span className="text-red-600 font-bold">Sin luz</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer: Coordenadas */}
+                <div className="border-t border-gray-100 pt-1 mt-2 text-[10px] text-gray-400 font-mono">
+                  {position[0].toFixed(5)}, {position[1].toFixed(5)}
                 </div>
               </div>
             </Popup>
