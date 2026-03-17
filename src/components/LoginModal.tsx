@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -11,6 +11,15 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Cerrar con tecla Esc
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [onClose])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,20 +42,26 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div 
+      className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm cursor-pointer"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200 relative cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Botón de cierre en la esquina superior derecha */}
+        <button 
+          onClick={onClose}
+          className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-lg transition-colors z-10"
+        >
+          <X className="w-5 h-5 text-gray-400" />
+        </button>
+
         {/* Header */}
-        <div className="p-6 text-center border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-800">Acceso Administrador</h2>
-            <p className="text-xs text-gray-500 mt-1">Ingresa tus credenciales de Supabase</p>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-lg transition-colors absolute right-4 top-4"
-          >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
+        <div className="p-6 text-center border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-xl font-bold text-gray-800">Acceso Administrador</h2>
+          <p className="text-xs text-gray-500 mt-1">Ingresa tus credenciales de Supabase</p>
         </div>
 
         {/* Body */}
