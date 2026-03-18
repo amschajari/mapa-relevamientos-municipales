@@ -5,7 +5,10 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 
 ---
 
-## 1. Resumen de Implementación Actual (Checkpoint)
+## 1. Resumen de Implementación Actual (Checkpoint 18/03/2026)
+- **Importador Odoo (V2)**: Implementada validación geoespacial nativa (`Turf.js`). El sistema detecta automáticamente el barrio por ubicación física.
+- **Estrategia "Geometría sobre Etiqueta"**: Auditoría automática de discrepancias Odoo vs GIS (íconos ⚠️ de alerta).
+- **Campos Enriquecidos**: Soporte completo para `Medidor`, `Apagada/Encendida`, `Cableado`, `Tipología` y `Observaciones` en popups.
 - **Mapa Leaflet**: Refactorizado para usar `BarriosLayer` dentro de `MapContainer`.
 - **Interacción**: Mejorada la lógica de clusters (zoom + coverage) y popups enriquecidos.
 - **Gestión de Estados**: Sistema de cierre manual de barrios habilitado (botón "Finalizar").
@@ -14,9 +17,8 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 - **Agentic Workflows**: Directorio `.agent/workflows` configurado para automatización.
 - **Calidad**: Vitest configurado para pruebas unitarias.
 - **Persistencia**: Sincronización con Supabase.
-- **Importador Odoo (CSV/GeoJSON)**: Módulo de carga masiva con previsualización, validación de coordenadas y soporte para archivos de Excel (BOM).
 - **Selector de Mapas Base**: Alternancia entre OSM y Satelital (ESRI) con persistencia local.
-- **Popups Enriquecidos**: Visualización completa de atributos técnicos cargados vía CSV.
+- **Seguridad**: LoginModal mejorado (Esc, click outside, visibilidad pw). Usuario Master: `a.m.saposnik@gmail.com`.
 
 ---
 
@@ -24,7 +26,7 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 - **Problema**: El registro oficial se realiza en **Odoo**. El GIS no debe competir ni duplicar esa carga.
 - **Nueva Visión**: El GIS es el panel de **Hoja de Ruta/Proyección**. Sirve para que el coordinador visualice y planifique las salidas de campo que luego se registran en Odoo.
 - **Métrica Clave**: No buscamos el % final de Odoo, buscamos la **Cobertura Geográfica**. Asegurar que los equipos pasen por todas las calles.
-- **Acción Inmediata**: 
+- **Acción Inmediata**:
     - Reemplazar "Progreso %" por **"Manzanas Recorridas"** o **"Estado de Avance"**.
     - Crear vistas de **Reporte para Autoridades**: Mapas de "semáforo" para el Intendente que muestren avance real vs. proyectado de forma intuitiva.
 
@@ -34,31 +36,38 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 
 ---
 
+### 🗺️ Documentación Estratégica
+- **[Estrategia Integridad Odoo/GIS](docs/ESTRATEGIA_ODOO_GIS.md)**: Documento maestro para la integridad de datos geográficos.
+
+---
+
 ## 3. Seguridad y Roles (Master Admin)
 - **Usuario Master**: `a.m.saposnik@gmail.com`
 - **Permisos**: Solo este usuario (o usuarios validados) pueden ver los iconos de edición (lápiz) y botones de "Guardar".
 - **Estado**: **Implementado** (Supabase Auth integrado con el store. LoginModal funcional).
 
 ### 🧹 Limpieza de Datos (Completada)
-- **Acción**: Eliminados registros de `luminarias_estimadas` y `progreso` ficticios. 
+- **Acción**: Eliminados registros de `luminarias_estimadas` y `progreso` ficticios.
 - **Estado**: **Finalizado**. El sistema inicia en 0 para ser llenado con datos estratégicos reales.
 
 ---
 
-## 4. Próximos Pasos Técnicos
-1. **Refactor de Dashboard**: Quitar % de Odoo-ficticio y poner "Contadores de descubrimiento" y "Estatus de Barrio" (manual).
-2. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
-3. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-4. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
-5. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
+## 4. Próximos Pasos Técnicos (Mañana)
+1. **Sincronización de Polígonos**: Cargar GeoJSON final con límites corregidos (sin superposiciones ni claros).
+2. **Refactor de Dashboard**: Contadores basados en el nuevo "Estatus de Barrio" auditado.
+3. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
+4. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
+5. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
+6. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
+7. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
 
 ## 5. Reflexiones de Negocio y GIS
 ### Pregunta: ¿Qué pasa con los puntos fuera de los polígonos barriales?
-**Respuesta:** Actualmente, el sistema lo resuelve importándolos con `barrio_id = null`. 
+**Respuesta:** Actualmente, el sistema lo resuelve importándolos con `barrio_id = null`.
 - **Visibilidad:** Son visibles en el mapa global pero no "cuentan" para las estadísticas de ningún barrio del Dashboard.
 - **Estrategia Futura:** El GIS debe actuar como "filtro de calidad". Si un punto de Odoo cae fuera, debe marcarse para revisión de los polígonos (¿El barrio es más grande de lo que dibujamos?) o asignarse a un nuevo polígono de "Zona de Expansión".
 
 ---
 
-**Nota para futuros agentes**: 
+**Nota para futuros agentes**:
 El proyecto usa una estructura de carpetas limpia en `/src`. Los estilos son Tailwind neutros/profesionales. La lógica de negocio pesada debe residir en `barrioStore.ts`. Siempre verificar que `useMap` se use dentro de componentes hijos de `MapContainer`.
