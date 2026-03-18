@@ -1,4 +1,4 @@
-# HOJA DE RUTA Y CONTEXTO DE DESARROLLO - 12/03/2026
+# HOJA DE RUTA Y CONTEXTO DE DESARROLLO - 18/03/2026
 ## Sistema de Control de Relevamientos - Municipalidad de Chajarí
 
 Este documento sirve como guía para el desarrollo continuo y transferencia de contexto entre agentes de IA y desarrolladores.
@@ -49,6 +49,14 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 1. **Refactor de Dashboard**: Quitar % de Odoo-ficticio y poner "Contadores de descubrimiento" y "Estatus de Barrio" (manual).
 2. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
 3. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
+4. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
+5. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
+
+## 5. Reflexiones de Negocio y GIS
+### Pregunta: ¿Qué pasa con los puntos fuera de los polígonos barriales?
+**Respuesta:** Actualmente, el sistema lo resuelve importándolos con `barrio_id = null`. 
+- **Visibilidad:** Son visibles en el mapa global pero no "cuentan" para las estadísticas de ningún barrio del Dashboard.
+- **Estrategia Futura:** El GIS debe actuar como "filtro de calidad". Si un punto de Odoo cae fuera, debe marcarse para revisión de los polígonos (¿El barrio es más grande de lo que dibujamos?) o asignarse a un nuevo polígono de "Zona de Expansión".
 
 ---
 
