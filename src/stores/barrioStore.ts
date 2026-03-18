@@ -20,6 +20,7 @@ interface BarrioState {
     barrios: boolean
     luminarias: boolean
   }
+  activeBaseMap: 'osm' | 'satellite'
   officialPoints: any[]
 
   // Acciones
@@ -42,6 +43,7 @@ interface BarrioState {
   fetchOfficialPoints: () => Promise<void>
   officializeDiscoveryPoints: (barrioId: string) => Promise<void>
   resetOfficialPoints: (barrioId: string) => Promise<void>
+  setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -71,6 +73,7 @@ export const useBarrioStore = create<BarrioState>()(
         barrios: true,
         luminarias: true
       },
+      activeBaseMap: 'osm',
       officialPoints: [],
 
       setSession: (session) => {
@@ -554,7 +557,9 @@ export const useBarrioStore = create<BarrioState>()(
         } finally {
           set({ isLoading: false })
         }
-      }
+      },
+
+      setActiveBaseMap: (baseMap) => set({ activeBaseMap: baseMap }),
     }),
     {
       name: 'barrio-store',
@@ -562,6 +567,7 @@ export const useBarrioStore = create<BarrioState>()(
         barrios: state.barrios,
         tareas: state.tareas,
         discoveryPoints: state.discoveryPoints,
+        activeBaseMap: state.activeBaseMap,
       }),
     }
   )
