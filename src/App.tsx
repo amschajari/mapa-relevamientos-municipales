@@ -12,6 +12,7 @@ import barriosGeoJson from './data/barrios-chajari.json'
 import type { Barrio } from './types'
 import { Edit3 } from 'lucide-react'
 import { LoginModal } from './components/LoginModal'
+import { ImportadorDatos } from './components/ImportadorDatos'
 
 // Tipos de vista
 const VIEWS = {
@@ -213,6 +214,9 @@ function App() {
 
       case VIEWS.ESTADISTICAS:
         return <EstadisticasPanel barrios={barrios} tareas={tareas} />
+
+      case VIEWS.CONFIGURACION:
+        return <ImportadorDatos />
 
       default:
         return (

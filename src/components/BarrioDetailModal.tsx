@@ -309,28 +309,68 @@ export const BarrioDetailModal = ({
                   <div className="flex items-center gap-2">
                     <label className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium cursor-pointer transition-colors text-gray-600">
                       <UploadCloud className="w-3.5 h-3.5" />
-                      Cargar GeoJSON
+                      Cargar puntos
                       <input 
                         type="file" 
-                        accept=".geojson,.json" 
+                        accept=".csv,.geojson,.json" 
                         className="hidden" 
                         onChange={async (e) => {
                           const file = e.target.files?.[0]
-                          if (file) {
-                            const reader = new FileReader()
-                            reader.onload = (event) => {
-                              try {
-                                const json = JSON.parse(event.target?.result as string)
-                                if (json.features) {
-                                  useBarrioStore.getState().setDiscoveryPoints(json.features)
-                                  alert(`Se cargaron ${json.features.length} puntos de descubrimiento.`)
-                                }
-                              } catch (err) {
-                                alert('Error al leer el archivo GeoJSON')
+                          if (!file) return
+                          const reader = new FileReader()
+                          reader.onload = (event) => {
+                            try {
+                              const texto = (event.target?.result as string).replace(/^\ufeff/, '') // strip BOM
+                              let features: any[] = []
+
+                              if (file.name.endsWith('.csv')) {
+                                // Parsear CSV de Odoo
+                                const lineas = texto.trim().split('\n')
+                                const cabecera = lineas[0].split(',').map(h => h.replace(/^"|"$/g, '').trim())
+                                features = lineas.slice(1).flatMap(linea => {
+                                  const valores: string[] = []
+                                  let actual = '', dentroComillas = false
+                                  for (const char of linea) {
+                                    if (char === '"') dentroComillas = !dentroComillas
+                                    else if (char === ',' && !dentroComillas) { valores.push(actual.trim()); actual = '' }
+                                    else actual += char
+                                  }
+                                  valores.push(actual.trim())
+                                  const fila: Record<string, string> = {}
+                                  cabecera.forEach((h, i) => { fila[h] = valores[i] || '' })
+                                  const lat = parseFloat(fila['Latitud']?.replace(/^'/, ''))
+                                  const lng = parseFloat(fila['Longitud']?.replace(/^'/, ''))
+                                  if (!fila['ID Luminaria'] || isNaN(lat) || isNaN(lng)) return []
+                                  return [{
+                                    type: 'Feature',
+                                    geometry: { type: 'Point', coordinates: [lng, lat] },
+                                    properties: {
+                                      Nombre: fila['ID Luminaria'],
+                                      tipo: fila['Tipo Luminaria'] || '',
+                                      estado_base: fila['Estado de la base'] || '',
+                                      sin_luz: fila['Sin Luz'] || '',
+                                      direccion: fila['Dirección'] || '',
+                                      medidor: fila['Medidor'] || '',
+                                    }
+                                  }]
+                                })
+                              } else {
+                                // Parsear GeoJSON
+                                const json = JSON.parse(texto)
+                                features = json.features || (json.type === 'Feature' ? [json] : [])
                               }
+
+                              if (features.length === 0) {
+                                alert('No se encontraron puntos válidos en el archivo.')
+                                return
+                              }
+                              useBarrioStore.getState().setDiscoveryPoints(features)
+                              alert(`Se cargaron ${features.length} puntos de descubrimiento.`)
+                            } catch (err) {
+                              alert('Error al leer el archivo.')
                             }
-                            reader.readAsText(file)
                           }
+                          reader.readAsText(file, 'utf-8')
                         }}
                       />
                     </label>

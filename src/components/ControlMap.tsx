@@ -192,39 +192,55 @@ const OfficialPointsLayer = () => {
                 </div>
 
                 {/* Campos enriquecidos */}
+                {/* Campos enriquecidos */}
                 <div className="space-y-1 text-xs text-gray-700">
-                  {point.direccion && (
-                    <div className="flex items-start gap-1">
-                      <span className="text-gray-400 w-4 shrink-0">📍</span>
-                      <span>{point.direccion}</span>
-                    </div>
-                  )}
-                  {point.barrio_nombre && (
-                    <div className="flex items-start gap-1">
-                      <span className="text-gray-400 w-4 shrink-0">🏘️</span>
-                      <span>{point.barrio_nombre}</span>
-                    </div>
-                  )}
-                  {point.tipo_luminaria && (
-                    <div className="flex items-start gap-1">
-                      <span className="text-gray-400 w-4 shrink-0">⚡</span>
-                      <span>{point.tipo_luminaria}</span>
-                    </div>
-                  )}
-                  {point.estado_base && (
-                    <div className="flex items-start gap-1">
-                      <span className="text-gray-400 w-4 shrink-0">🔩</span>
-                      <span className={point.estado_base.includes('deteriorada') ? 'text-red-500 font-semibold' : 'text-green-600'}>
-                        {point.estado_base}
-                      </span>
-                    </div>
-                  )}
-                  {point.sin_luz === true && (
-                    <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
-                      <span>⚠️</span>
-                      <span className="text-red-600 font-bold">Sin luz</span>
-                    </div>
-                  )}
+                  {/* Leer de `propiedades` (JSONB) con fallback en raíz del objeto */}
+                  {(() => {
+                    const props = point.propiedades || {}
+                    const direccion = props.direccion || point.direccion || ''
+                    const barrioNombre = props.barrio || point.barrio_nombre || ''
+                    const tipo = props.tipo || props.tipo_luminaria || point.tipo_luminaria || ''
+                    const estadoBase = props.estado_base || point.estado_base || ''
+                    const sinLuzRaw = props.sin_luz ?? point.sin_luz
+                    const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
+
+                    return (
+                      <>
+                        {direccion && (
+                          <div className="flex items-start gap-1">
+                            <span className="text-gray-400 w-4 shrink-0">📍</span>
+                            <span>{direccion}</span>
+                          </div>
+                        )}
+                        {barrioNombre && (
+                          <div className="flex items-start gap-1">
+                            <span className="text-gray-400 w-4 shrink-0">🏘️</span>
+                            <span>{barrioNombre}</span>
+                          </div>
+                        )}
+                        {tipo && (
+                          <div className="flex items-start gap-1">
+                            <span className="text-gray-400 w-4 shrink-0">⚡</span>
+                            <span>{tipo}</span>
+                          </div>
+                        )}
+                        {estadoBase && (
+                          <div className="flex items-start gap-1">
+                            <span className="text-gray-400 w-4 shrink-0">🔩</span>
+                            <span className={estadoBase.toLowerCase().includes('deteriorada') ? 'text-red-500 font-semibold' : 'text-green-600'}>
+                              {estadoBase}
+                            </span>
+                          </div>
+                        )}
+                        {sinLuz && (
+                          <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
+                            <span>⚠️</span>
+                            <span className="text-red-600 font-bold">Sin luz</span>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
 
                 {/* Footer: Coordenadas */}
@@ -233,6 +249,7 @@ const OfficialPointsLayer = () => {
                 </div>
               </div>
             </Popup>
+
           </CircleMarker>
         )
       })}
