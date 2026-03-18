@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 export const LayerControl = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { visibleLayers, toggleLayer } = useBarrioStore();
+  const { visibleLayers, toggleLayer, activeBaseMap, setActiveBaseMap } = useBarrioStore();
 
   return (
     <div className="absolute bottom-8 left-4 z-[1000]">
@@ -53,6 +53,39 @@ export const LayerControl = () => {
             </div>
             {visibleLayers.luminarias && <Check className="w-4 h-4" />}
           </button>
+
+          {/* Mapas Base */}
+          <div className="px-3 py-2 border-b border-t border-gray-50 my-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mapa Base</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 p-1">
+            <button
+              onClick={() => setActiveBaseMap('osm')}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all",
+                activeBaseMap === 'osm'
+                  ? "bg-primary-50 border-primary-100 text-primary-700 shadow-sm"
+                  : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+              )}
+            >
+              <div className="w-full h-10 rounded-lg bg-[url('https://a.tile.openstreetmap.org/12/2048/1287.png')] bg-cover bg-center border border-gray-200" />
+              <span className="text-[10px] font-bold">OSM</span>
+            </button>
+
+            <button
+              onClick={() => setActiveBaseMap('satellite')}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all",
+                activeBaseMap === 'satellite'
+                  ? "bg-primary-50 border-primary-100 text-primary-700 shadow-sm"
+                  : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+              )}
+            >
+              <div className="w-full h-10 rounded-lg bg-[url('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/15/18745/12912')] bg-cover bg-center border border-gray-200" />
+              <span className="text-[10px] font-bold">Satelital</span>
+            </button>
+          </div>
         </div>
       )}
 

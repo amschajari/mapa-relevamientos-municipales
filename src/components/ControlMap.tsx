@@ -397,6 +397,7 @@ export const ControlMap = ({
   selectedBarrio,
   onEditBarrio,
 }: ControlMapProps) => {
+  const { activeBaseMap } = useBarrioStore()
   const center = useMemo(() => [-30.7516, -57.9872] as [number, number], [])
 
   return (
@@ -407,10 +408,17 @@ export const ControlMap = ({
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {activeBaseMap === 'osm' ? (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        ) : (
+          <TileLayer
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        )}
 
         <FitBounds geoJson={barriosGeoJson} />
         <CenterBarrio selectedBarrio={selectedBarrio || null} geoJson={barriosGeoJson} />
