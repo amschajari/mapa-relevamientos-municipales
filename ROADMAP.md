@@ -14,6 +14,9 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 - **Agentic Workflows**: Directorio `.agent/workflows` configurado para automatización.
 - **Calidad**: Vitest configurado para pruebas unitarias.
 - **Persistencia**: Sincronización con Supabase.
+- **Importador Odoo (CSV/GeoJSON)**: Módulo de carga masiva con previsualización, validación de coordenadas y soporte para archivos de Excel (BOM).
+- **Selector de Mapas Base**: Alternancia entre OSM y Satelital (ESRI) con persistencia local.
+- **Popups Enriquecidos**: Visualización completa de atributos técnicos cargados vía CSV.
 
 ---
 
