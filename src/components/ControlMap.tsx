@@ -70,8 +70,8 @@ const DiscoveryLayer = () => {
     const count = cluster.getChildCount();
     return L.divIcon({
       html: `
-        <div class="flex items-center justify-center w-8 h-8 bg-blue-500/20 rounded-full border-2 border-blue-500 shadow-lg backdrop-blur-sm">
-          <div class="flex items-center justify-center w-full h-full bg-blue-500 rounded-full text-white text-xs font-black">
+        <div class="flex items-center justify-center w-8 h-8 bg-cyan-500/20 rounded-full border-2 border-cyan-500 shadow-lg backdrop-blur-sm">
+          <div class="flex items-center justify-center w-full h-full bg-cyan-500 rounded-full text-white text-xs font-black">
             ${count}
           </div>
         </div>
@@ -102,7 +102,7 @@ const DiscoveryLayer = () => {
             radius={5}
             pane="markerPane"
             pathOptions={{
-              fillColor: '#3b82f6',
+              fillColor: '#22d3ee', // Cyan para descubrimiento
               color: '#ffffff',
               weight: 2,
               fillOpacity: 0.9,
@@ -145,8 +145,8 @@ const OfficialPointsLayer = () => {
 
     return L.divIcon({
       html: `
-        <div class="flex items-center justify-center ${size} bg-amber-500/20 rounded-full border-2 border-amber-500 shadow-lg backdrop-blur-sm animate-pulse-slow">
-          <div class="flex items-center justify-center w-full h-full bg-amber-500 rounded-full text-white text-xs font-black shadow-inner">
+        <div class="flex items-center justify-center ${size} bg-sky-500/20 rounded-full border-2 border-sky-500 shadow-lg backdrop-blur-sm animate-pulse-slow">
+          <div class="flex items-center justify-center w-full h-full bg-sky-500 rounded-full text-white text-xs font-black shadow-inner">
             ${count}
           </div>
         </div>
@@ -163,8 +163,7 @@ const OfficialPointsLayer = () => {
       key={`cluster-group-${officialPoints.length}`}
       chunkedLoading
       iconCreateFunction={createClusterCustomIcon}
-      maxClusterRadius={80}
-      disableClusteringAtZoom={18}
+      maxClusterRadius={40}
       showCoverageOnHover={true}
       spiderfyOnMaxZoom={true}
       zoomToBoundsOnClick={true}
@@ -193,7 +192,7 @@ const OfficialPointsLayer = () => {
             radius={5}
             pane="markerPane"
             pathOptions={{
-              fillColor: '#fbbf24', // Amarillo/Ambar para oficiales (Luz)
+              fillColor: '#0ea5e9', // Azul Cielo / Celeste para oficiales
               color: '#ffffff',
               weight: 2,
               fillOpacity: 0.9,
@@ -206,9 +205,9 @@ const OfficialPointsLayer = () => {
             >
               <div className="px-2 py-2 min-w-[190px]">
                 {/* Header */}
-                <div className="flex items-center gap-1 border-b border-amber-100 pb-1 mb-2">
+                <div className="flex items-center gap-1 border-b border-sky-100 pb-1 mb-2">
                   <span className="text-base">💡</span>
-                  <div className="text-sm font-black text-amber-600 leading-tight">{name}</div>
+                  <div className="text-sm font-black text-sky-600 leading-tight">{name}</div>
                 </div>
 
                 {/* Campos enriquecidos */}
