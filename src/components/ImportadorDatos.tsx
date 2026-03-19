@@ -40,11 +40,14 @@ function parsearCSV(texto: string): RegistroPreview[] {
     const fila: Record<string, string> = {}
     cabecera.forEach((h, i) => { fila[h] = valores[i] || '' })
     
-    // Limpiar coordenadas (el CSV de Odoo tiene prefijo ')
-    const latStr = fila['Latitud']?.replace(/^'/, '').trim()
-    const lngStr = fila['Longitud']?.replace(/^'/, '').trim()
-    const lat = parseFloat(latStr)
-    const lng = parseFloat(lngStr)
+    // Limpieza agresiva de coordenadas (Odoo antepone ')
+    const limpiarCoordenada = (str: string) => {
+      if (!str) return NaN
+      return parseFloat(str.replace(/[^0-9.\-,]/g, '').replace(',', '.'))
+    }
+    
+    const lat = limpiarCoordenada(fila['Latitud'])
+    const lng = limpiarCoordenada(fila['Longitud'])
     
     const valido = !!fila['ID Luminaria'] && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
     
@@ -59,11 +62,12 @@ function parsearCSV(texto: string): RegistroPreview[] {
         sin_luz: fila['Sin Luz'] || '',
         direccion: fila['Dirección'] || '',
         medidor: fila['Medidor'] || '',
+        cableado: fila['Cableado'] || fila['Tipo de Cableado'] || '',
       },
       valido,
-      error: !fila['ID Luminaria'] ? 'Sin ID' : isNaN(lat) || isNaN(lng) ? 'Coordenadas inválidas' : undefined
+      error: !fila['ID Luminaria'] ? 'Sin ID' : (isNaN(lat) || isNaN(lng)) ? 'Coordenadas inválidas' : undefined
     }
-  }).filter(r => r.nombre) // Excluir filas vacías
+  }).filter(r => r.nombre)
 }
 
 function parsearGeoJSON(texto: string): RegistroPreview[] {
@@ -90,8 +94,7 @@ function parsearGeoJSON(texto: string): RegistroPreview[] {
 }
 
 export const ImportadorDatos = () => {
-  const { barrios, fetchOfficialPoints } = useBarrioStore()
-  const { user } = useBarrioStore()
+  const { barrios, fetchOfficialPoints, user } = useBarrioStore()
   const [preview, setPreview] = useState<RegistroPreview[]>([])
   const [nombreArchivo, setNombreArchivo] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -120,7 +123,7 @@ export const ImportadorDatos = () => {
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const texto = (e.target?.result as string).replace(/^\ufeff/, '') // strip BOM
+        const texto = (e.target?.result as string).replace(/^\ufeff/, '')
         let registros: RegistroPreview[] = []
         
         if (file.name.endsWith('.csv')) {
@@ -157,6 +160,8 @@ export const ImportadorDatos = () => {
     if (file) procesarArchivo(file)
   }
 
+  const normalizarNombre = (n: string) => n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim()
+
   const confirmarImportacion = async () => {
     const validos = preview.filter(r => r.valido)
     if (validos.length === 0) return
@@ -166,18 +171,44 @@ export const ImportadorDatos = () => {
     let err = 0
 
     for (const registro of validos) {
-      // Buscar barrio_id por nombre
-      const barrioEncontrado = barrios.find(
-        b => b.nombre.toLowerCase() === registro.barrio.toLowerCase()
-      )
+      let barrio_id: string | null = null
+      let barrioNombreFinal: string | null = null
+
+      // Búsqueda por nombre normalizado (Label Matching)
+      if (registro.barrio) {
+        const nOdoo = normalizarNombre(registro.barrio)
+        const found = barrios.find(
+          b => normalizarNombre(b.nombre) === nOdoo || normalizarNombre(b.nombre).includes(nOdoo)
+        )
+        if (found) {
+          barrio_id = found.id
+          barrioNombreFinal = found.nombre
+        }
+      }
       
+      const propertiesFlatten = {
+        direccion: registro.propiedades.direccion || '',
+        barrio_nombre: barrioNombreFinal || registro.barrio || '',
+        estado_base: registro.propiedades.estado_base || '',
+        tipo_luminaria: registro.propiedades.tipo || '',
+        sin_luz: String(registro.propiedades.sin_luz).toLowerCase() === 'true' || (registro.propiedades.sin_luz as any) === true,
+        cableado: registro.propiedades.cableado || ''
+      }
+
+      const propiedades = {
+        ...registro.propiedades,
+        barrio_odoo: registro.barrio,
+        barrio: barrioNombreFinal || registro.barrio
+      }
+
       const { error: insertError } = await supabase
         .from('puntos_relevamiento')
         .insert({
-          barrio_id: barrioEncontrado?.id || null,
+          barrio_id,
           geom: `POINT(${registro.lng} ${registro.lat})`,
           nombre: registro.nombre,
-          propiedades: registro.propiedades,
+          ...propertiesFlatten,
+          propiedades,
           creado_por: user?.id
         })
 
@@ -203,13 +234,12 @@ export const ImportadorDatos = () => {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const validos = preview.filter(r => r.valido)
-  const invalidos = preview.filter(r => !r.valido)
+  const validosPreview = preview.filter(r => r.valido)
+  const invalidosPreview = preview.filter(r => !r.valido)
 
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header */}
         <div>
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <UploadCloud className="w-6 h-6 text-primary-600" />
@@ -220,7 +250,6 @@ export const ImportadorDatos = () => {
           </p>
         </div>
 
-        {/* Resultado */}
         {resultado && (
           <div className={`rounded-xl p-4 flex items-center gap-3 ${resultado.err === 0 ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
             <CheckCircle className={`w-5 h-5 ${resultado.err === 0 ? 'text-green-600' : 'text-amber-600'}`} />
@@ -237,7 +266,6 @@ export const ImportadorDatos = () => {
           </div>
         )}
 
-        {/* Error */}
         {error && (
           <div className="rounded-xl p-4 flex items-center gap-3 bg-red-50 border border-red-200">
             <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
@@ -248,7 +276,6 @@ export const ImportadorDatos = () => {
           </div>
         )}
 
-        {/* Drop Zone */}
         {!preview.length && (
           <div
             onDrop={onDrop}
@@ -276,10 +303,8 @@ export const ImportadorDatos = () => {
           </div>
         )}
 
-        {/* Preview */}
         {preview.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            {/* Cabecera del preview */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-gray-500" />
@@ -287,11 +312,11 @@ export const ImportadorDatos = () => {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
-                  {validos.length} válidos
+                  {validosPreview.length} válidos
                 </span>
-                {invalidos.length > 0 && (
+                {invalidosPreview.length > 0 && (
                   <span className="text-xs text-red-600 font-medium bg-red-100 px-2 py-1 rounded-full">
-                    {invalidos.length} con errores
+                    {invalidosPreview.length} con errores
                   </span>
                 )}
                 <button
@@ -307,7 +332,6 @@ export const ImportadorDatos = () => {
               </div>
             </div>
 
-            {/* Tabla de preview */}
             {showPreview && (
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-xs">
@@ -335,19 +359,11 @@ export const ImportadorDatos = () => {
                         </td>
                       </tr>
                     ))}
-                    {preview.length > 50 && (
-                      <tr>
-                        <td colSpan={5} className="p-2 text-center text-gray-400 text-xs">
-                          ... y {preview.length - 50} registros más
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
             )}
 
-            {/* Acciones */}
             <div className="p-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={limpiar}
@@ -357,7 +373,7 @@ export const ImportadorDatos = () => {
               </button>
               <button
                 onClick={confirmarImportacion}
-                disabled={isImporting || validos.length === 0}
+                disabled={isImporting || validosPreview.length === 0}
                 className="px-5 py-2 text-sm font-semibold bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 {isImporting ? (
@@ -368,7 +384,7 @@ export const ImportadorDatos = () => {
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    Importar {validos.length} puntos
+                    Importar {validosPreview.length} puntos
                   </>
                 )}
               </button>
@@ -376,14 +392,13 @@ export const ImportadorDatos = () => {
           </div>
         )}
 
-        {/* Instrucciones */}
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800 space-y-1">
           <p className="font-semibold">Formato CSV esperado (Odoo):</p>
           <p className="font-mono text-xs bg-white/60 rounded p-2">
             "ID Luminaria","Sin Luz","Tipo Luminaria","Dirección","Barrio","Estado de la base","Medidor","Latitud","Longitud"
           </p>
           <p className="text-blue-700 text-xs mt-1">
-            El importador detecta automáticamente el formato y limpia los prefijos <code>'</code> en las coordenadas exportadas desde Odoo.
+            El importador detecta automáticamente el formato y asigna el barrio por nombre.
           </p>
         </div>
       </div>

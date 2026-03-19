@@ -37,7 +37,21 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 ---
 
 ### 🗺️ Documentación Estratégica
-- **[Estrategia Integridad Odoo/GIS](docs/ESTRATEGIA_ODOO_GIS.md)**: Documento maestro para la integridad de datos geográficos.
+### 🎯 Hito actual: Importador V2 - Estrategia de Etiquetas (Label Over Geometry)
+- **Simplificación Estratégica**: Se prioriza la etiqueta `Barrio` de Odoo sobre el cálculo espacial para evitar errores de precisión iniciales.
+- **Matching Inteligente**: El sistema asocia puntos a polígonos mediante coincidencia de nombres normalizados (ignorando tildes y mayúsculas).
+- **Gestión Independiente**: El GIS muestra la realidad del terreno, mientras que el coordinador gestiona manualmente el estado del barrio (En progreso, Completo).
+- **Enriquecimiento**: Soporte para campos de `Tipo de Cableado` 🔌 y `Medidor` ⏲️.
+
+### 🛤️ Próximos Pasos Técnicos
+1. **Consolidación de Datos**: Importar masivamente los relevamientos históricos (San Clemente y otros).
+2. **Tablero de Control**: Mejorar los KPIs del dashboard basados en la carga manual de jornadas.
+3. **Auditoría Espacial (Fase 2)**: Reintroducir Turf.js solo como herramienta de auditoría (para detectar puntos que "físicamente" están en otro barrio) sin que bloquee la importación administrativa.
+3. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
+4. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
+5. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
+6. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
+7. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
 
 ---
 

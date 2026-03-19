@@ -120,7 +120,13 @@ export const useBarrioStore = create<BarrioState>()(
               fechaFin: b.fecha_fin ? new Date(b.fecha_fin) : undefined,
               observaciones: b.observaciones,
             }))
-            set({ barrios: barriosMapeados, isLoading: false })
+            set((state) => ({ 
+              barrios: barriosMapeados.map(nb => {
+                const existing = state.barrios.find(eb => eb.id === nb.id)
+                return { ...nb, geojson: existing?.geojson || null }
+              }), 
+              isLoading: false 
+            }))
           } else {
             // Si no hay datos, inicializar vacío
             set({ isLoading: false })
@@ -361,6 +367,14 @@ export const useBarrioStore = create<BarrioState>()(
 
         // 4. Refrescar todo el estado desde la DB final
         await get().fetchBarrios()
+
+        // 5. Inyectar GeoJSON en el estado local para validaciones espaciales
+        set((state) => ({
+          barrios: state.barrios.map(b => {
+            const feature = features.find(f => f.properties.Nombre === b.nombre)
+            return { ...b, geojson: feature || null }
+          })
+        }))
       },
 
       setDiscoveryPoints: (points) => set({ discoveryPoints: points }),
@@ -485,13 +499,24 @@ export const useBarrioStore = create<BarrioState>()(
         set({ isLoading: true })
         try {
           // Mapear puntos a formato Supabase/PostGIS (WKT)
-          const pointsToInsert = discoveryPoints.map(p => ({
-            barrio_id: barrioId,
-            geom: `POINT(${p.geometry.coordinates[0]} ${p.geometry.coordinates[1]})`,
-            nombre: p.properties?.Nombre || p.properties?.name || null,
-            propiedades: p.properties || {},
-            creado_por: user.id
-          }))
+          const pointsToInsert = discoveryPoints.map(p => {
+            const props = p.properties || {}
+            return {
+              barrio_id: barrioId,
+              geom: `POINT(${p.geometry.coordinates[0]} ${p.geometry.coordinates[1]})`,
+              nombre: props.Nombre || props.nombre || props.name || null,
+              direccion: props.direccion || props.Dirección || '',
+              barrio_nombre: props.barrio || props.Barrio || '',
+              estado_base: props.estado_base || props['Estado de la base'] || '',
+              tipo_luminaria: props.tipo || props['Tipo Luminaria'] || props.tipo_luminaria || '',
+              sin_luz: String(props.sin_luz).toLowerCase() === 'true' || props.sin_luz === 'True' || (props.sin_luz as any) === true,
+              propiedades: {
+                ...props,
+                cableado: props.cableado || props.Cableado || props['Tipo de Cableado'] || ''
+              },
+              creado_por: user.id
+            }
+          })
 
           const { error } = await supabase
             .from('puntos_relevamiento')
@@ -550,6 +575,7 @@ export const useBarrioStore = create<BarrioState>()(
           })
 
           await get().fetchOfficialPoints()
+          await get().fetchBarrios()
           alert('Relevamiento reiniciado. Todos los puntos han sido eliminados.')
         } catch (error: any) {
           console.error('Error resetting points:', error)

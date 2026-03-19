@@ -33,6 +33,12 @@ export const BarrioDetailModal = ({
   onViewOnMap,
 }: BarrioDetailModalProps) => {
   const { updateBarrio, user, fetchJornadas, addJornada, jornadas, resetOfficialPoints } = useBarrioStore()
+  
+  // Suscripción reactiva al store para evitar datos fantasma tras reset
+  const barrio = useBarrioStore(state => 
+    state.barrios.find(b => b.id === initialBarrio.id) || initialBarrio
+  )
+
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -49,33 +55,33 @@ export const BarrioDetailModal = ({
   })
 
   const [editData, setEditData] = useState({
-    estado: initialBarrio.estado,
-    progreso: initialBarrio.progreso,
-    observaciones: initialBarrio.observaciones || '',
-    luminariasEstimadas: initialBarrio.luminariasEstimadas || 0,
-    luminariasRelevadas: initialBarrio.luminariasRelevadas || 0,
+    estado: barrio.estado,
+    progreso: barrio.progreso,
+    observaciones: barrio.observaciones || '',
+    luminariasEstimadas: barrio.luminariasEstimadas || 0,
+    luminariasRelevadas: barrio.luminariasRelevadas || 0,
     agentes: 2,
     horasPorDia: 3,
   })
 
   useEffect(() => {
     setEditData({
-      estado: initialBarrio.estado,
-      progreso: initialBarrio.progreso,
-      observaciones: initialBarrio.observaciones || '',
-      luminariasEstimadas: initialBarrio.luminariasEstimadas || 0,
-      luminariasRelevadas: initialBarrio.luminariasRelevadas || 0,
+      estado: barrio.estado,
+      progreso: barrio.progreso,
+      observaciones: barrio.observaciones || '',
+      luminariasEstimadas: barrio.luminariasEstimadas || 0,
+      luminariasRelevadas: barrio.luminariasRelevadas || 0,
       agentes: 2,
       horasPorDia: 3,
     })
-    fetchJornadas(initialBarrio.id)
-  }, [initialBarrio, fetchJornadas])
+    fetchJornadas(barrio.id)
+  }, [barrio, fetchJornadas])
 
   const handleSave = async () => {
     setIsSaving(true)
     setError(null)
     try {
-      await updateBarrio(initialBarrio.id, {
+      await updateBarrio(barrio.id, {
         estado: editData.estado,
         progreso: editData.progreso,
         observaciones: editData.observaciones,
@@ -95,12 +101,12 @@ export const BarrioDetailModal = ({
     setIsSaving(true)
     try {
       await addJornada({
-        barrioId: initialBarrio.id,
+        barrioId: barrio.id,
         fecha: newLog.fecha,
         agentes: newLog.agentes,
         horas: newLog.horas,
         luminariasRelevadas: newLog.luminarias,
-        observaciones: newLog.observaciones
+        observaciones: newLog.observaciones,
       })
       setShowLogForm(false)
       setNewLog({
@@ -110,23 +116,23 @@ export const BarrioDetailModal = ({
         luminarias: 0,
         observaciones: ''
       })
-    } catch (err: any) {
-      setError('Error al registrar la jornada.')
+    } catch (err) {
+      console.error(err)
     } finally {
       setIsSaving(false)
     }
   }
 
-  const getEstadoColor = (estado: string) => {
+  const getEstadoColor = (estado: EstadoBarrio) => {
     switch (estado) {
-      case 'completado': return 'bg-green-100 text-green-800 border-green-200'
-      case 'progreso': return 'bg-amber-100 text-amber-800 border-amber-200'
-      case 'pausado': return 'bg-red-100 text-red-800 border-red-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'completado': return 'bg-green-100 text-green-700 border-green-200'
+      case 'progreso': return 'bg-amber-100 text-amber-700 border-amber-200'
+      case 'pausado': return 'bg-gray-100 text-gray-700 border-gray-200'
+      default: return 'bg-gray-100 text-gray-500 border-gray-200'
     }
   }
 
-  const getEstadoLabel = (estado: string) => {
+  const getEstadoLabel = (estado: EstadoBarrio) => {
     switch (estado) {
       case 'completado': return 'Completado'
       case 'progreso': return 'En Progreso'
@@ -136,22 +142,22 @@ export const BarrioDetailModal = ({
   }
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-100 rounded-lg">
-              <MapPin className="w-5 h-5 text-primary-600" />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600">
+              <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">{initialBarrio.nombre}</h2>
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-500">ID: {initialBarrio.id}</p>
-                {initialBarrio.superficie_ha && (
+              <h2 className="text-xl font-black text-gray-900 leading-tight">{barrio.nombre}</h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-sm text-gray-500">ID: {barrio.id}</p>
+                {barrio.superficie_ha && (
                   <>
                     <span className="text-gray-300">•</span>
-                    <p className="text-sm font-medium text-primary-600">{initialBarrio.superficie_ha} Ha</p>
+                    <p className="text-sm font-medium text-primary-600">{barrio.superficie_ha} Ha</p>
                   </>
                 )}
               </div>
@@ -175,8 +181,8 @@ export const BarrioDetailModal = ({
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Estado:</span>
               {!isEditing ? (
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getEstadoColor(initialBarrio.estado)}`}>
-                  {getEstadoLabel(initialBarrio.estado)}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getEstadoColor(barrio.estado)}`}>
+                  {getEstadoLabel(barrio.estado)}
                 </span>
               ) : (
                 <select
@@ -196,7 +202,7 @@ export const BarrioDetailModal = ({
           <div className="bg-gray-50 p-4 rounded-xl space-y-3">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-600 font-medium">Progreso del relevamiento</span>
-              <span className="font-bold text-gray-800">{isEditing ? editData.progreso : initialBarrio.progreso}%</span>
+              <span className="font-bold text-gray-800">{isEditing ? editData.progreso : barrio.progreso}%</span>
             </div>
             {isEditing ? (
               <input
@@ -208,10 +214,10 @@ export const BarrioDetailModal = ({
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
                   className={`h-3 rounded-full transition-all duration-500 ${
-                    initialBarrio.estado === 'completado' ? 'bg-green-500' : 
-                    initialBarrio.estado === 'progreso' ? 'bg-amber-500' : 'bg-gray-400'
+                    barrio.estado === 'completado' ? 'bg-green-500' : 
+                    barrio.estado === 'progreso' ? 'bg-amber-500' : 'bg-gray-400'
                   }`}
-                  style={{ width: `${initialBarrio.progreso}%` }}
+                  style={{ width: `${barrio.progreso}%` }}
                 />
               </div>
             )}
@@ -231,7 +237,7 @@ export const BarrioDetailModal = ({
                   className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-lg font-bold"
                 />
               ) : (
-                <p className="text-2xl font-bold text-gray-800">{initialBarrio.luminariasRelevadas || 0}</p>
+                <p className="text-2xl font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</p>
               )}
             </div>
             <div className="bg-gray-50 p-4 rounded-xl">
@@ -246,7 +252,7 @@ export const BarrioDetailModal = ({
                   className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-lg font-bold"
                 />
               ) : (
-                <p className="text-2xl font-bold text-gray-800">{initialBarrio.luminariasEstimadas || 0}</p>
+                <p className="text-2xl font-bold text-gray-800">{barrio.luminariasEstimadas || 0}</p>
               )}
             </div>
           </div>
@@ -289,7 +295,7 @@ export const BarrioDetailModal = ({
               <div className="pt-2 border-t border-primary-100 flex items-center justify-between">
                 <span className="text-xs text-primary-700">Días para completar Ha:</span>
                 <span className="text-sm font-black text-primary-900 bg-white px-2 py-0.5 rounded border border-primary-200">
-                  {calcularDiasRestantes(initialBarrio.superficie_ha || 0, {
+                  {calcularDiasRestantes(barrio.superficie_ha || 0, {
                     agentes: editData.agentes,
                     horasPorDia: editData.horasPorDia,
                     velocidadEstimadaHaHora: 0.5 // Base
@@ -347,9 +353,12 @@ export const BarrioDetailModal = ({
                                     properties: {
                                       Nombre: fila['ID Luminaria'],
                                       tipo: fila['Tipo Luminaria'] || '',
+                                      tipo_luminaria: fila['Tipo Luminaria'] || '',
                                       estado_base: fila['Estado de la base'] || '',
                                       sin_luz: fila['Sin Luz'] || '',
                                       direccion: fila['Dirección'] || '',
+                                      barrio: fila['Barrio'] || '',
+                                      cableado: fila['Cableado'] || '',
                                       medidor: fila['Medidor'] || '',
                                     }
                                   }]
@@ -377,7 +386,7 @@ export const BarrioDetailModal = ({
 
                     {useBarrioStore.getState().discoveryPoints && (
                       <button
-                        onClick={() => useBarrioStore.getState().officializeDiscoveryPoints(initialBarrio.id)}
+                        onClick={() => useBarrioStore.getState().officializeDiscoveryPoints(barrio.id)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold transition-colors border border-green-100 shadow-sm"
                         title="Guardar estos puntos permanentemente en el servidor"
                       >
@@ -401,7 +410,7 @@ export const BarrioDetailModal = ({
                   <p className="text-[10px] text-red-600/70">Borra todos los puntos oficiales del servidor.</p>
                 </div>
                 <button
-                  onClick={() => resetOfficialPoints(initialBarrio.id)}
+                  onClick={() => resetOfficialPoints(barrio.id)}
                   className="px-3 py-1.5 bg-white text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold border border-red-200 transition-colors shadow-sm"
                 >
                   Reiniciar
@@ -423,7 +432,7 @@ export const BarrioDetailModal = ({
               />
             ) : (
               <div className="p-3 bg-gray-50 rounded-xl text-sm text-gray-600 italic">
-                {initialBarrio.observaciones || 'Sin observaciones registradas'}
+                {barrio.observaciones || 'Sin observaciones registradas'}
               </div>
             )}
           </div>
@@ -515,9 +524,6 @@ export const BarrioDetailModal = ({
                             <p className="text-[10px] text-gray-500">{j.agentes} agentes • {j.horas} hs</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[10px] text-gray-400">{j.creadoPor.split('@')[0]}</p>
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -532,7 +538,7 @@ export const BarrioDetailModal = ({
           {!isEditing ? (
             <>
               <button 
-                onClick={() => onViewOnMap?.(initialBarrio)}
+                onClick={() => onViewOnMap?.(barrio)}
                 className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 text-sm font-medium hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <MapIcon className="w-4 h-4" />
@@ -548,11 +554,11 @@ export const BarrioDetailModal = ({
                       <Edit2 className="w-4 h-4" />
                       Editar
                     </button>
-                    {initialBarrio.estado !== 'completado' && (
+                    {barrio.estado !== 'completado' && (
                       <button 
                         onClick={async () => {
                           if (confirm('¿Marcar este barrio como COMPLETADO? Esto indicará que el relevamiento ha finalizado oficialmente.')) {
-                            await updateBarrio(initialBarrio.id, { estado: 'completado' })
+                            await updateBarrio(barrio.id, { estado: 'completado' })
                           }
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-bold transition-all shadow-sm"
@@ -591,7 +597,7 @@ export const BarrioDetailModal = ({
 
       {showTaskModal && (
         <TaskAssignmentModal
-          barrio={initialBarrio}
+          barrio={barrio}
           onClose={() => setShowTaskModal(false)}
         />
       )}

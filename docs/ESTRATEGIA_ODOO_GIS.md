@@ -4,17 +4,23 @@ Este documento detalla la jerarquía de datos y el flujo de trabajo para la inte
 
 ---
 
-## 1. La "Verdad Geográfica" (Geometry over Label)
+## 1. Integridad: Estrategia de Etiquetas (Label Matching)
 
-Dado que los registros manuales en Odoo pueden contener errores de asignación de barrio, el GIS actúa como **Validador de Campo**:
+En esta fase inicial, el **GIS actúa como un visor administrativo enriquecido**. La integridad se basa en la etiqueta `Barrio` proveniente de Odoo:
 
-1. **Detección por Ubicación**: El importador usa `Turf.js` para detectar en qué polígono cae cada luminaria.
-2. **Prioridad GIS**: Si un punto cae físicamente en el Barrio B, el sistema lo asocia a ese barrio, ignorando si la etiqueta de Odoo decía "Barrio A".
-3. **Alertas Visuales**: Los puntos con discrepancia (Odoo ≠ GIS) se marcan con un ícono de advertencia ⚠️ en el visor para revisión del coordinador.
+- **Matching por Nombre**: El sistema normaliza el texto (quita acentos y espacios) para asignar el `barrio_id` correcto basándose en el nombre escrito en el CSV.
+- **Detección Espacial Latente**: Los polígonos GeoJSON se usan para visualización y auditoría visual, pero no bloquean la carga de puntos si un dato administrativo difiere de la ubicación física.
+- **Verdad Administrativa**: Mandan las etiquetas de Odoo. El GIS añade la capa de visualización técnica (ubicación, cableado, estado).
+
+## 2. Gestión de Estados
+
+Para evitar dependencias complejas y errores de precisión:
+- El **Estado del Barrio** (Pendiente, Progreso, Completo) es un campo de gestión manual.
+- El coordinador actualiza el estado basándose en el reporte de jornadas, no automáticamente por la cantidad de puntos cargados.
 
 ---
 
-## 2. Mapeo de Campos Odoo (Soportados)
+## 3. Mapeo de Campos Odoo (Soportados)
 
 El importador actual (`ImportadorDatos.tsx`) captura los siguientes atributos del CSV de Odoo y los almacena en el campo `propiedades` (JSONB):
 
