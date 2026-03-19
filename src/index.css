@@ -83,3 +83,34 @@
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Marker Cluster Styles */
+.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow {
+	-webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
+	-moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in;
+	-o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in;
+	transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+}
+
+.leaflet-cluster-spider-leg {
+	/* LEAFLET.MARKERCLUSTER.FREEZABLE/DIST/MARKERCLUSTER.DEFAULT.CSS */
+	-webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in;
+	-moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in;
+	-o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in;
+	transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
+}
+
+/* Customizing the coverage polygon on hover */
+.leaflet-marker-cluster-coverage-polygon {
+  fill: #fbbf24;
+  fill-opacity: 0.15;
+  stroke: #fbbf24;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  pointer-events: none;
+}
+
+/* Discovery cluster color */
+.custom-marker-cluster-discovery .bg-blue-500 {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}

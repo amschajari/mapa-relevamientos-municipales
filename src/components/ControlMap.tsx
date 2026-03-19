@@ -66,11 +66,31 @@ const DiscoveryLayer = () => {
   
   if (!visibleLayers.luminarias || !discoveryPoints || discoveryPoints.length === 0) return null
 
+  const createDiscoveryClusterIcon = (cluster: any) => {
+    const count = cluster.getChildCount();
+    return L.divIcon({
+      html: `
+        <div class="flex items-center justify-center w-8 h-8 bg-blue-500/20 rounded-full border-2 border-blue-500 shadow-lg backdrop-blur-sm">
+          <div class="flex items-center justify-center w-full h-full bg-blue-500 rounded-full text-white text-xs font-black">
+            ${count}
+          </div>
+        </div>
+      `,
+      className: 'custom-marker-cluster-discovery',
+      iconSize: L.point(32, 32, true),
+    });
+  };
+
   return (
-    <>
+    <MarkerClusterGroup
+      chunkedLoading
+      iconCreateFunction={createDiscoveryClusterIcon}
+      showCoverageOnHover={true}
+      zoomToBoundsOnClick={true}
+      maxClusterRadius={60}
+    >
       {discoveryPoints.map((point: any, idx: number) => {
         const coords = point.geometry.coordinates
-        // GeoJSON es [lng, lat], Leaflet es [lat, lng]
         const position: [number, number] = [coords[1], coords[0]]
         const properties = point.properties || {}
         const name = properties.Nombre || properties.name || properties.Name || properties.ID || properties.id || properties.label || `Punto ${idx + 1}`
@@ -86,7 +106,7 @@ const DiscoveryLayer = () => {
               color: '#ffffff',
               weight: 2,
               fillOpacity: 0.9,
-              pane: 'markerPane' // Refuerzo para Leaflet
+              pane: 'markerPane'
             }}
           >
             <Tooltip 
@@ -105,7 +125,7 @@ const DiscoveryLayer = () => {
           </CircleMarker>
         )
       })}
-    </>
+    </MarkerClusterGroup>
   )
 }
 
@@ -197,12 +217,15 @@ const OfficialPointsLayer = () => {
                   {/* Leer de `propiedades` (JSONB) con fallback en raíz del objeto */}
                   {(() => {
                     const props = point.propiedades || {}
-                    const direccion = props.direccion || point.direccion || ''
-                    const barrioNombre = props.barrio || point.barrio_nombre || ''
-                    const tipo = props.tipo || props.tipo_luminaria || point.tipo_luminaria || ''
-                    const estadoBase = props.estado_base || point.estado_base || ''
-                    const sinLuzRaw = props.sin_luz ?? point.sin_luz
+                    const direccion = point.direccion || props.direccion || ''
+                    const barrioNombre = point.barrio_nombre || props.barrio || ''
+                    const sinLuzRaw = point.sin_luz ?? props.sin_luz
                     const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
+
+                    const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || ''
+                    const estadoBase = point.estado_base || props.estado_base || ''
+                    const cableado = props.cableado || ''
+                    const medidor = props.medidor || point.medidor || ''
 
                     return (
                       <>
@@ -212,30 +235,40 @@ const OfficialPointsLayer = () => {
                             <span>{direccion}</span>
                           </div>
                         )}
-                        {barrioNombre && (
+                        <div className="flex items-start gap-1">
+                          <span className="text-gray-400 w-4 shrink-0 font-bold text-[10px] mt-0.5">LOC</span>
+                          <span className="font-semibold text-gray-700">{barrioNombre || 'Sin barrio'}</span>
+                        </div>
+
+                        <div className="flex items-start gap-1">
+                          <span className="text-gray-400 w-4 shrink-0 text-orange-400">⚡</span>
+                          <span className="text-gray-600">{tipo || 'Luminaria'}</span>
+                        </div>
+
+                        {cableado && (
                           <div className="flex items-start gap-1">
-                            <span className="text-gray-400 w-4 shrink-0">🏘️</span>
-                            <span>{barrioNombre}</span>
+                            <span className="text-gray-400 w-4 shrink-0">🔌</span>
+                            <span className="text-gray-600">Cableado: {cableado}</span>
                           </div>
                         )}
-                        {tipo && (
+                        {medidor && (
                           <div className="flex items-start gap-1">
-                            <span className="text-gray-400 w-4 shrink-0">⚡</span>
-                            <span>{tipo}</span>
+                            <span className="text-gray-400 w-4 shrink-0 text-[10px]">⏲️</span>
+                            <span>Medidor: {medidor}</span>
                           </div>
                         )}
                         {estadoBase && (
                           <div className="flex items-start gap-1">
                             <span className="text-gray-400 w-4 shrink-0">🔩</span>
-                            <span className={estadoBase.toLowerCase().includes('deteriorada') ? 'text-red-500 font-semibold' : 'text-green-600'}>
+                            <span className={estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') ? 'text-red-500 font-semibold' : 'text-green-600'}>
                               {estadoBase}
                             </span>
                           </div>
                         )}
                         {sinLuz && (
                           <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
-                            <span>⚠️</span>
-                            <span className="text-red-600 font-bold">Sin luz</span>
+                            <span className="text-[10px] animate-pulse">🔴</span>
+                            <span className="text-red-600 font-bold uppercase text-[10px]">Punto Apagado</span>
                           </div>
                         )}
                       </>
