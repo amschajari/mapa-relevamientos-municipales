@@ -9,6 +9,9 @@ Este documento detalla la jerarquía de datos y el flujo de trabajo para la inte
 En esta fase inicial, el **GIS actúa como un visor administrativo enriquecido**. La integridad se basa en la etiqueta `Barrio` proveniente de Odoo:
 
 - **Matching por Nombre**: El sistema normaliza el texto (quita acentos y espacios) para asignar el `barrio_id` correcto basándose en el nombre escrito en el CSV.
+### 🚀 Hito: Validación Operativa (San Clemente)
+- **Resultado**: EXITO. El sistema procesó el CSV de Odoo asignando puntos correctamente por nombre de barrio y permitió la oficialización masiva a Supabase sin errores de esquema.
+- **Lección**: La independencia de la carga respecto a la geometría (`Label Over Geometry`) es el camino más rápido y estable para la fase de relevamiento masivo.
 - **Detección Espacial Latente**: Los polígonos GeoJSON se usan para visualización y auditoría visual, pero no bloquean la carga de puntos si un dato administrativo difiere de la ubicación física.
 - **Verdad Administrativa**: Mandan las etiquetas de Odoo. El GIS añade la capa de visualización técnica (ubicación, cableado, estado).
 
