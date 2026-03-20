@@ -66,14 +66,17 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 
 ---
 
-## 4. Próximos Pasos Técnicos (Mañana)
-1. **Sincronización de Polígonos**: Cargar GeoJSON final con límites corregidos (sin superposiciones ni claros).
-2. **Refactor de Dashboard**: Contadores basados en el nuevo "Estatus de Barrio" auditado.
-3. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
-4. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
-5. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-6. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
-7. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
+## 4. Próximos Pasos Técnicos (Sesión Mañana)
+1. **Desacoplamiento de Carga**: Mover la interfaz de "Cargar puntos" fuera del modal de barrios a una sección independiente (Configuración/Global). **Estado: Finalizado**.
+2. **Deduplicación de Datos**: Implementar lógica de `upsert` basada en el "ID Luminaria" de Odoo para permitir re-importaciones sin duplicar registros.
+3. **Revisión de Edición**: Auditar la funcionalidad del editor de barrios (geometría y metadatos) y la transición de estados manuales.
+3. **Sincronización de Polígonos**: Cargar GeoJSON final con límites corregidos (sin superposiciones ni claros).
+4. **Refactor de Dashboard**: Contadores basados en el nuevo "Estatus de Barrio" auditado.
+5. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
+6. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
+7. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
+8. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
+9. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
 
 ## 5. Reflexiones de Negocio y GIS
 ### Pregunta: ¿Qué pasa con los puntos fuera de los polígonos barriales?

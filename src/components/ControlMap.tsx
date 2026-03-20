@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react'
-import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Tooltip, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Popup } from 'react-leaflet'
 import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
 import type { GeoJsonObject } from 'geojson'
@@ -59,74 +59,6 @@ const CenterBarrio = ({
   }, [selectedBarrio, map, geoJson])
 
   return null
-}
-
-const DiscoveryLayer = () => {
-  const { discoveryPoints, visibleLayers } = useBarrioStore()
-  
-  if (!visibleLayers.luminarias || !discoveryPoints || discoveryPoints.length === 0) return null
-
-  const createDiscoveryClusterIcon = (cluster: any) => {
-    const count = cluster.getChildCount();
-    return L.divIcon({
-      html: `
-        <div class="flex items-center justify-center w-8 h-8 bg-cyan-500/20 rounded-full border-2 border-cyan-500 shadow-lg backdrop-blur-sm">
-          <div class="flex items-center justify-center w-full h-full bg-cyan-500 rounded-full text-white text-xs font-black">
-            ${count}
-          </div>
-        </div>
-      `,
-      className: 'custom-marker-cluster-discovery',
-      iconSize: L.point(32, 32, true),
-    });
-  };
-
-  return (
-    <MarkerClusterGroup
-      chunkedLoading
-      iconCreateFunction={createDiscoveryClusterIcon}
-      showCoverageOnHover={true}
-      zoomToBoundsOnClick={true}
-      maxClusterRadius={60}
-    >
-      {discoveryPoints.map((point: any, idx: number) => {
-        const coords = point.geometry.coordinates
-        const position: [number, number] = [coords[1], coords[0]]
-        const properties = point.properties || {}
-        const name = properties.Nombre || properties.name || properties.Name || properties.ID || properties.id || properties.label || `Punto ${idx + 1}`
-        
-        return (
-          <CircleMarker
-            key={`discovery-${idx}`}
-            center={position}
-            radius={5}
-            pane="markerPane"
-            pathOptions={{
-              fillColor: '#22d3ee', // Cyan para descubrimiento
-              color: '#ffffff',
-              weight: 2,
-              fillOpacity: 0.9,
-              pane: 'markerPane'
-            }}
-          >
-            <Tooltip 
-              direction="top" 
-              offset={[0, -10]} 
-              opacity={1}
-              permanent={false}
-              sticky={true}
-              pane="tooltipPane"
-            >
-              <div className="px-2 py-1">
-                <div className="text-sm font-black text-primary-700">{name}</div>
-                <div className="text-[9px] text-gray-400 uppercase tracking-tighter">Punto de Descubrimiento</div>
-              </div>
-            </Tooltip>
-          </CircleMarker>
-        )
-      })}
-    </MarkerClusterGroup>
-  )
 }
 
 // Capa para visualizar puntos oficiales persistentes en Supabase
@@ -221,9 +153,9 @@ const OfficialPointsLayer = () => {
                     const sinLuzRaw = point.sin_luz ?? props.sin_luz
                     const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
 
-                    const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || ''
+                    const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia || ''
                     const estadoBase = point.estado_base || props.estado_base || ''
-                    const cableado = props.cableado || ''
+                    const cableado = point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado || ''
                     const medidor = props.medidor || point.medidor || ''
 
                     return (
@@ -239,17 +171,17 @@ const OfficialPointsLayer = () => {
                           <span className="font-semibold text-gray-700">{barrioNombre || 'Sin barrio'}</span>
                         </div>
 
-                        <div className="flex items-start gap-1">
+                        <div className="flex items-center gap-1">
                           <span className="text-gray-400 w-4 shrink-0 text-orange-400">⚡</span>
-                          <span className="text-gray-600">{tipo || 'Luminaria'}</span>
+                          <span className="text-gray-600 font-medium">
+                            {tipo || 'Luminaria'}
+                            {cableado && (
+                              <span className="ml-2 px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[11px] text-gray-600 flex items-center gap-1 inline-flex align-middle">
+                                <span>🔌</span> {cableado}
+                              </span>
+                            )}
+                          </span>
                         </div>
-
-                        {cableado && (
-                          <div className="flex items-start gap-1">
-                            <span className="text-gray-400 w-4 shrink-0">🔌</span>
-                            <span className="text-gray-600">Cableado: {cableado}</span>
-                          </div>
-                        )}
                         {medidor && (
                           <div className="flex items-start gap-1">
                             <span className="text-gray-400 w-4 shrink-0 text-[10px]">⏲️</span>
@@ -463,7 +395,6 @@ export const ControlMap = ({
         />
 
         <OfficialPointsLayer />
-        <DiscoveryLayer />
 
         <LayerControl />
       </MapContainer>

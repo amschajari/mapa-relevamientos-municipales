@@ -14,11 +14,11 @@ interface RegistroPreview {
 }
 
 function parsearCSV(texto: string): RegistroPreview[] {
-  const lineas = texto.trim().split('\n')
+  const lineas = texto.replace(/\r/g, '').trim().split('\n')
   if (lineas.length < 2) return []
   
-  // Parsear cabecera quitando comillas
-  const cabecera = lineas[0].split(',').map(h => h.replace(/^"|"$/g, '').trim())
+  // Parsear cabecera quitando comillas y espacios de forma agresiva
+  const cabecera = lineas[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase())
   
   return lineas.slice(1).map(linea => {
     // Parsear CSV respetando comillas
@@ -46,26 +46,32 @@ function parsearCSV(texto: string): RegistroPreview[] {
       return parseFloat(str.replace(/[^0-9.\-,]/g, '').replace(',', '.'))
     }
     
-    const lat = limpiarCoordenada(fila['Latitud'])
-    const lng = limpiarCoordenada(fila['Longitud'])
-    
-    const valido = !!fila['ID Luminaria'] && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
-    
+    const findValueHelper = (keys: string[]) => {
+      const foundKey = Object.keys(fila).find(k => 
+        keys.some(key => k.toLowerCase().includes(key.toLowerCase()))
+      )
+      return foundKey ? fila[foundKey] : ''
+    }
+
+    const lat = limpiarCoordenada(fila['latitud'] || findValueHelper(['latitud', 'lat']))
+    const lng = limpiarCoordenada(fila['longitud'] || findValueHelper(['longitud', 'lng']))
+    const valido = !!(fila['id luminaria'] || findValueHelper(['id luminaria', 'id'])) && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
+
     return {
-      nombre: fila['ID Luminaria'] || '',
+      nombre: fila['id luminaria'] || findValueHelper(['id luminaria', 'id']),
       lat,
       lng,
-      barrio: fila['Barrio'] || '',
+      barrio: fila['barrio'] || findValueHelper(['barrio']),
       propiedades: {
-        tipo: fila['Tipo Luminaria'] || '',
-        estado_base: fila['Estado de la base'] || '',
-        sin_luz: fila['Sin Luz'] || '',
-        direccion: fila['Dirección'] || '',
-        medidor: fila['Medidor'] || '',
-        cableado: fila['Cableado'] || fila['Tipo de Cableado'] || '',
+        tipo: fila['tipo luminaria'] || findValueHelper(['tipo', 'tipología']),
+        estado_base: fila['estado de la base'] || findValueHelper(['base', 'estado base']),
+        sin_luz: fila['sin luz'] || findValueHelper(['sin luz', 'apaga']),
+        direccion: fila['dirección'] || findValueHelper(['dirección', 'calle']),
+        medidor: fila['medidor'] || findValueHelper(['medidor']),
+        cableado: fila['tipo de cableado'] || findValueHelper(['cableado', 'alimenta', 'tipo de cableado']),
       },
       valido,
-      error: !fila['ID Luminaria'] ? 'Sin ID' : (isNaN(lat) || isNaN(lng)) ? 'Coordenadas inválidas' : undefined
+      error: !fila['id luminaria'] && !findValueHelper(['id luminaria', 'id']) ? 'Sin ID' : (isNaN(lat) || isNaN(lng)) ? 'Coordenadas inválidas' : undefined
     }
   }).filter(r => r.nombre)
 }
@@ -94,7 +100,7 @@ function parsearGeoJSON(texto: string): RegistroPreview[] {
 }
 
 export const ImportadorDatos = () => {
-  const { barrios, fetchOfficialPoints, user } = useBarrioStore()
+  const { barrios, fetchOfficialPoints, recalculateBarrioStats, user } = useBarrioStore()
   const [preview, setPreview] = useState<RegistroPreview[]>([])
   const [nombreArchivo, setNombreArchivo] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -169,61 +175,135 @@ export const ImportadorDatos = () => {
     setIsImporting(true)
     let ok = 0
     let err = 0
+    const affectedBarrioIds = new Set<string>()
 
-    for (const registro of validos) {
-      let barrio_id: string | null = null
-      let barrioNombreFinal: string | null = null
+    // 1. Deduplicar validos en memoria por ID Luminaria (nombre)
+    // Esto resuelve el caso de CSVs con duplicados internos (ej. 72 cargados en UI -> 71 finales)
+    const deduplicatedValidos = Object.values(
+      validos.reduce((acc, current) => {
+        acc[current.nombre] = current
+        return acc
+      }, {} as Record<string, typeof validos[0]>)
+    )
 
-      // Búsqueda por nombre normalizado (Label Matching)
-      if (registro.barrio) {
-        const nOdoo = normalizarNombre(registro.barrio)
-        const found = barrios.find(
-          b => normalizarNombre(b.nombre) === nOdoo || normalizarNombre(b.nombre).includes(nOdoo)
-        )
-        if (found) {
-          barrio_id = found.id
-          barrioNombreFinal = found.nombre
+    const nombres = deduplicatedValidos.map(r => r.nombre)
+
+    try {
+      // 2. Buscar existentes en la DB para resolver si es Insert o Update
+      const existentesMap = new Map<string, string>()
+      const batchSize = 500 // Lotes de 500 para evitar queries gigantes
+      
+      for (let i = 0; i < nombres.length; i += batchSize) {
+        const batchNames = nombres.slice(i, i + batchSize)
+        const { data } = await supabase
+          .from('puntos_relevamiento')
+          .select('id, nombre')
+          .in('nombre', batchNames)
+        
+        if (data) {
+          data.forEach(e => existentesMap.set(e.nombre, e.id))
         }
       }
-      
-      const propertiesFlatten = {
-        direccion: registro.propiedades.direccion || '',
-        barrio_nombre: barrioNombreFinal || registro.barrio || '',
-        estado_base: registro.propiedades.estado_base || '',
-        tipo_luminaria: registro.propiedades.tipo || '',
-        sin_luz: String(registro.propiedades.sin_luz).toLowerCase() === 'true' || (registro.propiedades.sin_luz as any) === true,
-        cableado: registro.propiedades.cableado || ''
-      }
 
-      const propiedades = {
-        ...registro.propiedades,
-        barrio_odoo: registro.barrio,
-        barrio: barrioNombreFinal || registro.barrio
-      }
+      // 3. Separar registros en Updates e Inserts para mantener homogeneidad de columnas en los lotes
+      const toInsert: any[] = []
+      const toUpdate: any[] = []
 
-      const { error: insertError } = await supabase
-        .from('puntos_relevamiento')
-        .insert({
+      deduplicatedValidos.forEach(registro => {
+        let barrio_id: string | null = null
+        let barrioNombreFinal: string | null = null
+
+        if (registro.barrio) {
+          const nOdoo = normalizarNombre(registro.barrio)
+          const found = barrios.find(
+            b => normalizarNombre(b.nombre) === nOdoo || normalizarNombre(b.nombre).includes(nOdoo)
+          )
+          if (found) {
+            barrio_id = found.id
+            barrioNombreFinal = found.nombre
+            affectedBarrioIds.add(found.id)
+          }
+        }
+
+        // Si no se pudo asociar a un barrio, la DB lo va a rechazar (not-null constraint).
+        // Lo sumamos a los errores y saltamos al siguiente registro sin enviarlo en el lote.
+        if (!barrio_id) {
+          console.warn(`Punto omitido - Barrio "${registro.barrio}" no encontrado para: ${registro.nombre}`)
+          err++
+          return
+        }
+        
+        const propertiesFlatten = {
+          direccion: registro.propiedades.direccion || '',
+          barrio_nombre: barrioNombreFinal || registro.barrio || '',
+          estado_base: registro.propiedades.estado_base || '',
+          tipo_luminaria: registro.propiedades.tipo || '',
+          sin_luz: String(registro.propiedades.sin_luz).toLowerCase() === 'true' || (registro.propiedades.sin_luz as any) === true,
+          cableado: registro.propiedades.cableado || ''
+        }
+
+        const propiedades = {
+          ...registro.propiedades,
+          barrio_odoo: registro.barrio,
+          barrio: barrioNombreFinal || registro.barrio
+        }
+
+        const pointData = {
           barrio_id,
           geom: `POINT(${registro.lng} ${registro.lat})`,
           nombre: registro.nombre,
           ...propertiesFlatten,
           propiedades,
           creado_por: user?.id
-        })
+        }
 
-      if (insertError) {
-        err++
-      } else {
-        ok++
+        const existingId = existentesMap.get(registro.nombre)
+        if (existingId) {
+          toUpdate.push({ id: existingId, ...pointData })
+        } else {
+          toInsert.push(pointData)
+        }
+      })
+
+      // 4. Ejecutar Bulk Insert y Bulk Update por separado para no mezclar esquemas de objetos
+      for (let i = 0; i < toInsert.length; i += batchSize) {
+        const batch = toInsert.slice(i, i + batchSize)
+        const { error } = await supabase.from('puntos_relevamiento').insert(batch)
+        if (error) { 
+          console.error('Bulk insert error:', error); 
+          alert("Error de Insert:\nMensaje: " + error.message + "\nDetalles: " + error.details + "\nHint: " + error.hint);
+          err += batch.length 
+        }
+        else ok += batch.length
       }
-    }
 
-    await fetchOfficialPoints()
-    setIsImporting(false)
-    setResultado({ ok, err })
-    setPreview([])
-    setNombreArchivo(null)
+      for (let i = 0; i < toUpdate.length; i += batchSize) {
+        const batch = toUpdate.slice(i, i + batchSize)
+        const { error } = await supabase.from('puntos_relevamiento').upsert(batch)
+        if (error) { 
+          console.error('Bulk update error:', error); 
+          alert("Error de Upsert:\nMensaje: " + error.message + "\nDetalles: " + error.details + "\nHint: " + error.hint);
+          err += batch.length 
+        }
+        else ok += batch.length
+      }
+
+      // Recalcular estadísticas
+      if (affectedBarrioIds.size > 0) {
+        await recalculateBarrioStats(Array.from(affectedBarrioIds))
+      }
+      await fetchOfficialPoints()
+      
+    } catch (error) {
+      console.error("Error fatal en importación:", error)
+      setError("Error crítico durante la importación.")
+    } finally {
+      setIsImporting(false)
+      // Mostramos la cantidad de deductados como OK. Si la UI decía 72 y cargó 71, acá aparecerá 71 OK.
+      setResultado({ ok, err })
+      setPreview([])
+      setNombreArchivo(null)
+    }
   }
 
   const limpiar = () => {
@@ -394,13 +474,45 @@ export const ImportadorDatos = () => {
 
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800 space-y-1">
           <p className="font-semibold">Formato CSV esperado (Odoo):</p>
-          <p className="font-mono text-xs bg-white/60 rounded p-2">
-            "ID Luminaria","Sin Luz","Tipo Luminaria","Dirección","Barrio","Estado de la base","Medidor","Latitud","Longitud"
+          <p className="font-mono text-[10px] bg-white/60 rounded p-2">
+            "ID Luminaria","Sin Luz","Tipo Luminaria","Dirección","Barrio","Estado de la base","Medidor","Latitud","Longitud","Tipo de Cableado"
           </p>
           <p className="text-blue-700 text-xs mt-1">
             El importador detecta automáticamente el formato y asigna el barrio por nombre.
           </p>
         </div>
+
+        {user?.role === 'admin' && (
+          <div className="bg-red-50 border border-red-100 rounded-xl p-6 mt-8 space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-red-800 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                Zona de Peligro: Reiniciar Datos
+              </h3>
+              <p className="text-sm text-red-700 mt-1">
+                Esto eliminará permanentemente todos los puntos oficiales del servidor para el barrio seleccionado.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <select 
+                className="flex-1 px-3 py-2 border border-red-200 rounded-lg text-sm bg-white text-gray-800 focus:ring-2 focus:ring-red-500 outline-none"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    useBarrioStore.getState().resetOfficialPoints(e.target.value)
+                    e.target.value = ''
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="" disabled>Seleccionar barrio a reiniciar...</option>
+                {barrios.map(b => (
+                  <option key={b.id} value={b.id}>{b.nombre}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
