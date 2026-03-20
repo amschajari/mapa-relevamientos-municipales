@@ -19,7 +19,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ barrios }: DashboardViewProps) => {
-  const { discoveryPoints } = useBarrioStore()
+  const { officialPoints } = useBarrioStore()
   
   const stats = useMemo(() => {
     const total = barrios.length
@@ -46,14 +46,14 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
       superficieTotal,
       superficieRelevada,
       progresoSuperficie,
-      puntosDescubiertos: discoveryPoints?.length || 0,
+      puntosTotales: officialPoints?.length || 0,
       diasRestantes: calcularDiasRestantes(superficieTotal - superficieRelevada, {
         agentes: 2,
         horasPorDia: 3,
         velocidadEstimadaHaHora: 0.5
       })
     }
-  }, [barrios, discoveryPoints])
+  }, [barrios, officialPoints])
 
   const barriosRecientes = useMemo(() => {
     return [...barrios]
@@ -128,11 +128,11 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
           />
           <StatCard
             icon={MapPin}
-            label="Puntos Discovery"
-            value={stats.puntosDescubiertos}
-            subValue="Cargados vía GeoJSON"
+            label="Luminarias Cargadas (Puntos)"
+            value={stats.puntosTotales}
+            subValue="Cargados vía CSV / GeoJSON"
             color="bg-purple-500"
-            trend={stats.puntosDescubiertos > 0 ? "¡Nuevos datos!" : undefined}
+            trend={stats.puntosTotales > 0 ? "¡Nuevos datos!" : undefined}
           />
           <StatCard
             icon={Clock}

@@ -1,0 +1,65 @@
+Contexto del Proyecto
+Herramienta GIS para relevamiento de luminarias.
+
+Tech Stack: React, TypeScript, Vite, Supabase (PostGIS), Leaflet.
+Base de Datos: Tabla puntos_relevamiento. Campos conocidos:
+
+id
+: UUID (Primary Key)
+geom: GEOMETRY (Point, 4326)
+nombre: TEXT (ID Luminaria de Odoo)
+barrio_id: UUID (FK a barrios)
+barrio_nombre: TEXT (Nombre del barrio para redundancia)
+tipo_luminaria: TEXT (Ej: LED 150W)
+direccion: TEXT (Calle y altura)
+estado_base: TEXT (Estado físico)
+sin_luz: BOOLEAN (Status de funcionamiento)
+cableado: TEXT (Campo agregado recientemente para Aéreo/Subterráneo)
+medidor: TEXT (Número de medidor)
+propiedades: JSONB (Objeto con todos los campos originales de Odoo)
+creado_por: UUID (FK a usuarios)
+fecha_relevamiento: TIMESTAMP
+Estrategia de Mapeo
+Label Matching: Los puntos se vinculan a los barrios mediante normalize(fila['barrio']) === normalize(poligono.nombre). Si hay coincidencia, se asigna el barrio_id.
+Smart Search (Headers): El importador normaliza las cabeceras a minúsculas y busca términos clave (alimenta, cableado, tipo) para manejar variaciones en el CSV de Odoo.
+Muestra de Datos (CSV de Referencia)
+csv
+"ID Luminaria","Sin Luz","Tipo Luminaria","Dirección","Barrio","Estado de la base","Medidor","Latitud","Longitud","Tipo de Cableado"
+"LedSantaFe 1425","","LED 150W","Santa Fe 1425","San Clemente","Con base en buenas condiciones","","'-30.7634017","'-57.9899919","Aéreo"
+El Misterio Actual
+A pesar de que el código de importación y el de visualización parecen correctos y manejan fallbacks, el campo cableado ("Aéreo") no se renderiza en el popup.
+
+Posibilidad: El replace de coordenadas '-30.7634... podría estar afectando colateralmente la lectura de la fila si hay algún carácter invisible no detectado.
+Posibilidad: Desfase entre la versión de cliente enviada y la recibida de Supabase.
+Auditoría Realizada
+CSV: Las cabeceras son correctas ("Tipo de Cableado"). Los datos están ahí.
+Importador (
+
+ImportadorDatos.tsx
+):
+Normaliza cabeceras a minúsculas.
+Usa un 
+
+findValueHelper
+ para buscar columnas de forma flexible (cableado, alimentación, tipo de cableado).
+Guarda el dato tanto en el objeto principal (para la columna de la DB) como dentro del campo JSONB propiedades.
+Mapa (
+
+ControlMap.tsx
+):
+El popup extrae el cableado con fallbacks: point.cableado || props.cableado || props.alimentacion || ....
+props es point.propiedades.
+Hipótesis a Validar
+Esquema de DB: ¿Existe realmente la columna cableado en puntos_relevamiento? Si no existe, Supabase podría estar descartando el campo silenciosamente en el insert, pero debería estar en el JSONB propiedades.
+Persistencia JSONB: Verificar si el objeto propiedades en la DB tiene la clave cableado para los registros de 72 puntos.
+Deduplicación: El usuario está re-importando sobre los mismos puntos. Sin lógica de upsert, puede que esté viendo registros viejos/sucios.
+Archivos Relevantes
+
+src/components/ImportadorDatos.tsx
+: Lógica de parseo e inserción.
+
+src/components/ControlMap.tsx
+: Lógica de renderizado de popups.
+
+docs/odoo-csv/Luminarias_190326_1.csv
+: Archivo de datos.

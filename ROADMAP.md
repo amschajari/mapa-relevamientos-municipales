@@ -67,8 +67,9 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 ---
 
 ## 4. Próximos Pasos Técnicos (Sesión Mañana)
-1. **Desacoplamiento de Carga**: Mover la interfaz de "Cargar puntos" fuera del modal de barrios a una sección independiente (Configuración/Global), dado que el mapeo ahora es por etiquetas administrativas.
-2. **Revisión de Edición**: Auditar la funcionalidad del editor de barrios (geometría y metadatos) y la transición de estados manuales.
+1. **Desacoplamiento de Carga**: Mover la interfaz de "Cargar puntos" fuera del modal de barrios a una sección independiente (Configuración/Global). **Estado: Finalizado**.
+2. **Deduplicación de Datos**: Implementar lógica de `upsert` basada en el "ID Luminaria" de Odoo para permitir re-importaciones sin duplicar registros.
+3. **Revisión de Edición**: Auditar la funcionalidad del editor de barrios (geometría y metadatos) y la transición de estados manuales.
 3. **Sincronización de Polígonos**: Cargar GeoJSON final con límites corregidos (sin superposiciones ni claros).
 4. **Refactor de Dashboard**: Contadores basados en el nuevo "Estatus de Barrio" auditado.
 5. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
