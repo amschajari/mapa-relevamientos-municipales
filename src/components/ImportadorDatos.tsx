@@ -271,7 +271,6 @@ export const ImportadorDatos = () => {
         const { error } = await supabase.from('puntos_relevamiento').insert(batch)
         if (error) { 
           console.error('Bulk insert error:', error); 
-          alert("Error de Insert:\nMensaje: " + error.message + "\nDetalles: " + error.details + "\nHint: " + error.hint);
           err += batch.length 
         }
         else ok += batch.length
@@ -282,7 +281,6 @@ export const ImportadorDatos = () => {
         const { error } = await supabase.from('puntos_relevamiento').upsert(batch)
         if (error) { 
           console.error('Bulk update error:', error); 
-          alert("Error de Upsert:\nMensaje: " + error.message + "\nDetalles: " + error.details + "\nHint: " + error.hint);
           err += batch.length 
         }
         else ok += batch.length
