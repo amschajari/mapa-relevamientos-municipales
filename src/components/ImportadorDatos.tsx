@@ -73,7 +73,8 @@ function parsearCSV(texto: string): RegistroPreview[] {
       valido,
       error: !fila['id luminaria'] && !findValueHelper(['id luminaria', 'id']) ? 'Sin ID' : (isNaN(lat) || isNaN(lng)) ? 'Coordenadas inválidas' : undefined
     }
-  }).filter(r => r.nombre)
+  }).filter(r => r.nombre || r.propiedades.direccion || r.barrio) // Solo ignorar filas que estén completamente en blanco
+    .map(r => ({ ...r, nombre: r.nombre || '(Sin ID)' }))
 }
 
 function parsearGeoJSON(texto: string): RegistroPreview[] {
@@ -314,6 +315,7 @@ export const ImportadorDatos = () => {
 
   const validosPreview = preview.filter(r => r.valido)
   const invalidosPreview = preview.filter(r => !r.valido)
+  const previewParaMostrar = [...invalidosPreview, ...validosPreview].slice(0, 50)
 
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -423,7 +425,7 @@ export const ImportadorDatos = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {preview.slice(0, 50).map((r, i) => (
+                    {previewParaMostrar.map((r, i) => (
                       <tr key={i} className={r.valido ? '' : 'bg-red-50'}>
                         <td className="p-2 font-mono text-gray-800">{r.nombre}</td>
                         <td className="p-2 text-gray-600">{r.barrio || <span className="text-gray-400">—</span>}</td>
@@ -432,7 +434,7 @@ export const ImportadorDatos = () => {
                         <td className="p-2">
                           {r.valido 
                             ? <span className="text-green-600">✔</span>
-                            : <span className="text-red-500" title={r.error}>✘ {r.error}</span>
+                            : <span className="text-red-500 font-medium" title={r.error}>✘ {r.error}</span>
                           }
                         </td>
                       </tr>

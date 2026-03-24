@@ -1,0 +1,48 @@
+CONTEXTO OFICINA 20-03_11.30
+
+YO
+Solamente para charlar e ir tomando contexto de futuras mejoras:
+. hoy tenemos tantos barrio igual a tantos poligonos igual a registros de barrios en supabase (si/no?)
+. cuando en Configuracion aparece Seleccionar barrio a reiniciar que lógica usa? eliminar todos los puntos con un label 'barrio'. Ese label coincide con nuestros poligonos? Elimina todos los puntos dentro del poligono del barrio elegido?
+. debemos contemplar una zona 'no poligonal cerrada' "sin barrio"
+preguntas al aire para pensar y revisar logicas actuales. no escribas nada de codigo. solo analicemos y en todo caso luego probemos
+
+AGENTE
+Analyzed
+supabase-nuevo-schema.sql#L1-159
+
+
+¡Qué buenas preguntas! Vamos a desglosar la lógica actual "bajo el capó" para ver dónde estamos parados:
+
+1. ¿Tantos barrios = tantos polígonos = tantos registros?
+Hoy la respuesta es SÍ. El sistema funciona bajo una correspondencia 1-a-1 por Nombre:
+
+Supabase: La tabla barrios tiene el registro maestro (ID, Nombre, Estado).
+GeoJSON: El archivo barrios-chajari.json tiene la "forma" (el dibujo).
+La Unión: Cuando el sistema arranca, ejecuta
+
+initializeFromGeoJSON
+. Esta función es la que "cose" ambos mundos: busca que el
+
+Nombre
+ en el GeoJSON coincida exactamente con el nombre en la base de datos.
+El riesgo: Si hay un barrio en la base de datos que no está en el GeoJSON, administrativamente existe pero en el mapa es un "fantasma" (no tiene zona de clic ni color).
+2. Lógica de "Reiniciar Barrio"
+Aquí es donde la lógica es Administrativa y no Espacial:
+
+Por ID, no por Dibujo: Cuando elegís "Reiniciar Barrio", el sistema ejecuta un DELETE en la tabla puntos_relevamiento filtrando por barrio_id.
+Etiquetas: El punto "sabe" a qué barrio pertenece porque al importarlo desde Odoo, el sistema leyó la columna "Barrio" del CSV y le clavó el ID de ese barrio.
+Conclusión: Borra todos los puntos que tengan esa "etiqueta" (ID). Si tenés un punto que físicamente está en el medio de la plaza central pero en el CSV pusiste "Barrio: San Clemente", al reiniciar San Clemente ese punto va a desaparecer aunque esté lejos del polígono. Manda el dato administrativo sobre el mapa.
+3. La zona "Sin Barrio" (Outliers)
+Este es el punto más interesante para la "Fase 2":
+
+Hoy: Si un punto en el CSV de Odoo no coincide con ningún nombre de barrio de nuestra lista, el sistema lo omite (err++) para evitar inconsistencias.
+Tu idea: Deberíamos contemplar una zona "no poligonal cerrada".
+Propuesta de Solución: Crear un barrio "virtual" en la base de datos llamado "Outliers" o "Sin Clasificar".
+Todo lo que no coincida en la importación cae ahí.
+En el mapa, esos puntos aparecerían (quizás en un color gris o rojo de alerta).
+Esto te permitiría ver qué puntos están "huérfanos" y decidir si es que falta un polígono nuevo o si el dato de Odoo estaba mal.
+Resumen del análisis:
+Estamos siendo muy "Label Driven" (mandan las etiquetas de Odoo). Esto es genial para que tus números cierren con los de la oficina, pero el desafío es que el mapa (los polígonos) sea lo suficientemente preciso para "contener" esos puntos sin que parezca que están volando fuera del dibujo.
+
+¿Te parece que mañana probemos creando ese barrio "Sin Clasificar" para atrapar los puntos que hoy se están perdiendo por no tener barrio?
