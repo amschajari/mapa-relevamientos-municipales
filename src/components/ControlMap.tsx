@@ -8,6 +8,7 @@ import { useBarrioStore } from '@/stores/barrioStore'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { BarrioPopup } from './BarrioPopup'
 import { LayerControl } from './LayerControl'
+import { MobileMapControls } from './MobileMapControls'
 
 interface ControlMapProps {
   barriosGeoJson: GeoJsonObject
@@ -25,7 +26,8 @@ const FitBounds = ({ geoJson }: { geoJson: GeoJsonObject }) => {
     const layer = L.geoJSON(geoJson)
     const bounds = layer.getBounds()
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50] })
+      const padding = window.innerWidth < 640 ? [16, 16] : [50, 50]
+      map.fitBounds(bounds, { padding: padding as [number, number] })
     }
   }, [map, geoJson])
 
@@ -393,12 +395,13 @@ export const ControlMap = ({
 }: ControlMapProps) => {
   const { activeBaseMap } = useBarrioStore()
   const center = useMemo(() => [-30.7516, -57.9872] as [number, number], [])
+  const defaultZoom = typeof window !== 'undefined' && window.innerWidth < 640 ? 15 : 14
 
   return (
     <div className="h-full w-full relative">
       <MapContainer
         center={center}
-        zoom={14}
+        zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
@@ -427,6 +430,7 @@ export const ControlMap = ({
         <OfficialPointsLayer />
 
         <LayerControl />
+        <MobileMapControls />
       </MapContainer>
     </div>
   )
