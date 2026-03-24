@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Layers, Check } from 'lucide-react';
 import { useBarrioStore } from '@/stores/barrioStore';
 import { cn } from '@/lib/utils';
@@ -6,9 +6,34 @@ import { cn } from '@/lib/utils';
 export const LayerControl = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { visibleLayers, toggleLayer, activeBaseMap, setActiveBaseMap } = useBarrioStore();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (isOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
 
   return (
-    <div className="absolute bottom-8 left-4 z-[1000]">
+    <div ref={menuRef} className="absolute bottom-8 left-4 z-[1000]">
       {/* Menu */}
       {isOpen && (
         <div className="mb-3 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 min-w-[180px] animate-in fade-in slide-in-from-bottom-4 duration-300">

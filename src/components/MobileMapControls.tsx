@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Menu, X, Check, Navigation2, Info } from 'lucide-react'
 import { useMap, CircleMarker, Popup } from 'react-leaflet'
 import { useBarrioStore } from '@/stores/barrioStore'
@@ -102,13 +102,44 @@ export const MobileMapControls = () => {
     { value: 'sin_base', label: 'Sin base' },
   ]
 
+  const menuRef = useRef<HTMLDivElement>(null)
+  const infoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (isOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+      if (showInfo && infoRef.current && !infoRef.current.contains(event.target as Node)) {
+        setShowInfo(false)
+      }
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+        setShowInfo(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen, showInfo])
+
   return (
     <>
       {/* Marcador de ubicación en el mapa */}
       {userLocation && <UserLocationMarker position={userLocation} />}
 
       {/* Menú Hamburguesa — arriba a la derecha */}
-      <div className="absolute top-4 right-4 z-[1000] flex flex-col items-end gap-2">
+      <div ref={menuRef} className="absolute top-4 right-4 z-[1000] flex flex-col items-end gap-2">
         {isOpen && (
           <div className="mt-1 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 w-56 animate-in fade-in slide-in-from-top-4 duration-200">
             <div className="px-2 py-1.5 border-b border-gray-50 mb-2">
@@ -193,7 +224,7 @@ export const MobileMapControls = () => {
       <div className="absolute bottom-8 right-4 z-[1000] sm:hidden flex flex-col items-center gap-2">
 
         {/* Botón Info con panel flotante absoluto */}
-        <div className="relative">
+        <div ref={infoRef} className="relative">
           {showInfo && (
             <div className="absolute bottom-full right-0 mb-2 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 w-64 animate-in fade-in slide-in-from-bottom-4 duration-200">
               <div className="flex items-center gap-3 mb-3">

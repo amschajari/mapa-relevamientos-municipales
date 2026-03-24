@@ -124,7 +124,7 @@ function App() {
             </div>
 
             {/* Panel lateral derecho - Leyenda + Detalles */}
-            <div className="absolute top-4 right-4 w-80 space-y-4 z-[1000] pointer-events-none">
+            <div className="hidden sm:block absolute top-4 right-4 w-80 space-y-4 z-[1000] pointer-events-none">
               <div className="pointer-events-auto">
                 <LeyendaMapa />
               </div>
