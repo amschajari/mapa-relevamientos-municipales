@@ -71,7 +71,7 @@ export const useBarrioStore = create<BarrioState>()(
       session: null,
       jornadas: [],
       visibleLayers: {
-        barrios: true,
+        barrios: typeof window !== 'undefined' ? window.innerWidth >= 640 : true,
         luminarias: true
       },
       activeBaseMap: 'osm',
