@@ -153,12 +153,12 @@ const OfficialPointsLayer = () => {
           <CircleMarker
             key={`official-${point.id}`}
             center={position}
-            radius={isBadBase ? 6 : 5}
+            radius={6}
             pane="markerPane"
             pathOptions={{
               fillColor: pinColor,
               color: '#ffffff',
-              weight: isBadBase ? 2 : 1,
+              weight: 2,
               fillOpacity: 0.9,
               pane: 'markerPane'
             }}
