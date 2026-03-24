@@ -61,13 +61,38 @@ const CenterBarrio = ({
   return null
 }
 
-// Capa para visualizar puntos oficiales persistentes en Supabase
 const OfficialPointsLayer = () => {
-  const { officialPoints, visibleLayers, fetchOfficialPoints } = useBarrioStore()
+  const { officialPoints, visibleLayers, fetchOfficialPoints, mapFilters } = useBarrioStore()
 
   useEffect(() => {
     fetchOfficialPoints()
   }, [fetchOfficialPoints])
+
+  const filteredPoints = useMemo(() => {
+    if (!officialPoints) return []
+    return officialPoints.filter((point) => {
+      const props = point.propiedades || {}
+      
+      // Filtrar por Barrio ID
+      if (mapFilters.barrio && point.barrio_id !== mapFilters.barrio) {
+        return false
+      }
+
+      // Filtrar por Estado de Base
+      if (mapFilters.estadoBase) {
+        const estadoBaseStr = (point.estado_base || props.estado_base || '').toLowerCase()
+        const isSinBase = estadoBaseStr.includes('sin base')
+        const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
+        const isOk = !isSinBase && !isMala && estadoBaseStr !== ''
+
+        if (mapFilters.estadoBase === 'ok' && !isOk) return false
+        if (mapFilters.estadoBase === 'malas' && !isMala) return false
+        if (mapFilters.estadoBase === 'sin_base' && !isSinBase) return false
+      }
+
+      return true
+    })
+  }, [officialPoints, mapFilters])
 
   const createClusterCustomIcon = (cluster: any) => {
     const count = cluster.getChildCount();
@@ -88,11 +113,11 @@ const OfficialPointsLayer = () => {
     });
   };
   
-  if (!visibleLayers.luminarias || !officialPoints || officialPoints.length === 0) return null
+  if (!visibleLayers.luminarias || !filteredPoints || filteredPoints.length === 0) return null
 
   return (
     <MarkerClusterGroup
-      key={`cluster-group-${officialPoints.length}`}
+      key={`cluster-group-${filteredPoints.length}-${mapFilters.estadoBase}-${mapFilters.barrio}`}
       chunkedLoading
       iconCreateFunction={createClusterCustomIcon}
       maxClusterRadius={40}
@@ -100,7 +125,7 @@ const OfficialPointsLayer = () => {
       spiderfyOnMaxZoom={true}
       zoomToBoundsOnClick={true}
     >
-      {officialPoints.map((point: any, idx: number) => {
+      {filteredPoints.map((point: any, idx: number) => {
         if (!point.geom) return null;
         
         let position: [number, number] = [0, 0]
@@ -117,16 +142,21 @@ const OfficialPointsLayer = () => {
 
         const name = point.nombre || `L-${idx + 1}`
         
+        // Determinar si poner el pin en rojo
+        const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase()
+        const isBadBase = estadoBaseStr.includes('sin base') || estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
+        const pinColor = isBadBase ? '#ef4444' : '#0ea5e9' // Rojo para malas/sin base, Azul para normales
+        
         return (
           <CircleMarker
             key={`official-${point.id}`}
             center={position}
-            radius={5}
+            radius={isBadBase ? 6 : 5}
             pane="markerPane"
             pathOptions={{
-              fillColor: '#0ea5e9', // Azul Cielo / Celeste para oficiales
+              fillColor: pinColor,
               color: '#ffffff',
-              weight: 2,
+              weight: isBadBase ? 2 : 1,
               fillOpacity: 0.9,
               pane: 'markerPane'
             }}

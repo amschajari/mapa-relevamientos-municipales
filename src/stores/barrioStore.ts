@@ -21,6 +21,10 @@ interface BarrioState {
   }
   activeBaseMap: 'osm' | 'satellite'
   officialPoints: any[]
+  mapFilters: {
+    barrio: string
+    estadoBase: string
+  }
 
   // Acciones
   fetchBarrios: () => Promise<void>
@@ -41,6 +45,7 @@ interface BarrioState {
   resetOfficialPoints: (barrioId: string) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
+  setMapFilter: (filter: 'barrio' | 'estadoBase', value: string) => void
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -71,6 +76,10 @@ export const useBarrioStore = create<BarrioState>()(
       },
       activeBaseMap: 'osm',
       officialPoints: [],
+      mapFilters: {
+        barrio: '',
+        estadoBase: ''
+      },
 
       setSession: (session) => {
         const userEmail = session?.user?.email
@@ -517,6 +526,13 @@ export const useBarrioStore = create<BarrioState>()(
       },
 
       setActiveBaseMap: (baseMap) => set({ activeBaseMap: baseMap }),
+
+      setMapFilter: (filter, value) => set((state) => ({
+        mapFilters: {
+          ...state.mapFilters,
+          [filter]: value
+        }
+      })),
 
       recalculateBarrioStats: async (barrioIds) => {
         if (!barrioIds || barrioIds.length === 0) return

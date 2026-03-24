@@ -13,6 +13,10 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Data exports (sensitive)
+*.csv
+*.xlsx
+
 # IDE
 .vscode/*
 !.vscode/extensions.json

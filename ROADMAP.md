@@ -66,17 +66,18 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 
 ---
 
-## 4. Próximos Pasos Técnicos (Sesión Mañana)
+## 4. Hitos Logrados (Sesión 19/03)
 1. **Desacoplamiento de Carga**: Mover la interfaz de "Cargar puntos" fuera del modal de barrios a una sección independiente (Configuración/Global). **Estado: Finalizado**.
-2. **Deduplicación de Datos**: Implementar lógica de `upsert` basada en el "ID Luminaria" de Odoo para permitir re-importaciones sin duplicar registros.
-3. **Revisión de Edición**: Auditar la funcionalidad del editor de barrios (geometría y metadatos) y la transición de estados manuales.
-3. **Sincronización de Polígonos**: Cargar GeoJSON final con límites corregidos (sin superposiciones ni claros).
-4. **Refactor de Dashboard**: Contadores basados en el nuevo "Estatus de Barrio" auditado.
-5. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
-6. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
-7. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-8. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
-9. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
+2. **Motor de Importación (Bulk Upsert)**: Reemplazada carga secuencial por carga masiva. **Estado: Finalizado**.
+3. **Deduplicación de Datos**: Implementada lógica de `upsert` basada en "ID Luminaria". **Estado: Finalizado**.
+4. **Resiliencia de Carga**: Escudo contra barrios mal escritos (ej: "Sam Clemente") para evitar bloqueos del lote. **Estado: Finalizado**.
+5. **Limpieza de UI**: Remoción de botones obsoletos y reubicación de "Reiniciar Barrio" a la zona de peligro. **Estado: Finalizado**.
+6. **Validación de Build**: Proyecto 100% verificado con `npm run build`. **Estado: Finalizado**.
+
+## 5. Próximos Pasos (Pendientes)
+1. **Auditoría Espacial (Fase 2)**: Reintroducir Turf.js solo como herramienta de auditoría (para detectar puntos que "físicamente" están en otro barrio) sin que bloquee la importación administrativa.
+2. **Dashboard de Reportes**: Crear vistas de "semáforo" para el Intendente.
+3. **Exportación PDF**: Generar resúmenes por barrio.
 
 ## 5. Reflexiones de Negocio y GIS
 ### Pregunta: ¿Qué pasa con los puntos fuera de los polígonos barriales?

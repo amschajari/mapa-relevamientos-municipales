@@ -34,7 +34,15 @@ interface SidebarProps {
 
 export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, logout } = useBarrioStore()
+  const { user, logout, barrios, mapFilters, setMapFilter } = useBarrioStore()
+
+  // Opciones únicas de estado_base extraídas de los puntos oficiales (o hardcodeadas por ahora)
+  const estadoBaseOptions = [
+    { value: '', label: 'Todos' },
+    { value: 'ok', label: 'En buenas condiciones' },
+    { value: 'malas', label: 'Malas condiciones / Deteriorada' },
+    { value: 'sin_base', label: 'Sin base' }
+  ]
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard },
@@ -119,6 +127,42 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
             )
           })}
         </ul>
+
+        {!collapsed && activeTab === 'Mapa' && (
+          <div className="mt-8 px-3 animate-in fade-in slide-in-from-left-4 duration-300">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
+              Filtros de Mapa
+            </h3>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600 block">Barrio</label>
+                <select
+                  value={mapFilters.barrio}
+                  onChange={(e) => setMapFilter('barrio', e.target.value)}
+                  className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
+                >
+                  <option value="">Todos los barrios</option>
+                  {barrios.map(b => (
+                    <option key={b.id} value={b.id}>{b.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600 block">Estado de Base</label>
+                <select
+                  value={mapFilters.estadoBase}
+                  onChange={(e) => setMapFilter('estadoBase', e.target.value)}
+                  className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
+                >
+                  {estadoBaseOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Footer */}
