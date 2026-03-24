@@ -231,12 +231,14 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex overflow-hidden bg-gray-50">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-        onLoginClick={() => setShowLoginModal(true)}
-      />
+    <div className="h-[100dvh] w-screen flex overflow-hidden bg-gray-50">
+      <div className="hidden sm:flex">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          onLoginClick={() => setShowLoginModal(true)}
+        />
+      </div>
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {renderContent()}
       </main>

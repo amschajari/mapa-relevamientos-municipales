@@ -31,7 +31,7 @@ const items: LeyendaItem[] = [
 
 export const LeyendaMapa = () => {
   return (
-    <div className="bg-white/95 backdrop-blur p-4 rounded-xl shadow-lg border border-gray-200">
+    <div className="hidden sm:block bg-white/95 backdrop-blur p-4 rounded-xl shadow-lg border border-gray-200">
       <div className="flex items-center gap-2 mb-3">
         <MapPin className="w-4 h-4 text-gray-600" />
         <span className="font-semibold text-gray-800 text-sm">Estado de Barrios</span>
