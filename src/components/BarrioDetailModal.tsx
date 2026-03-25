@@ -30,14 +30,16 @@ export const BarrioDetailModal = ({
   onClose,
   onViewOnMap,
 }: BarrioDetailModalProps) => {
-  const { updateBarrio, user, fetchJornadas, addJornada, jornadas } = useBarrioStore()
+  const { updateBarrio, addBarrio, user, fetchJornadas, addJornada, jornadas } = useBarrioStore()
+  
+  const isNew = !initialBarrio.id
   
   // Suscripción reactiva al store para evitar datos fantasma tras reset
   const barrio = useBarrioStore(state => 
     state.barrios.find(b => b.id === initialBarrio.id) || initialBarrio
   )
 
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(isNew)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
@@ -53,6 +55,7 @@ export const BarrioDetailModal = ({
   })
 
   const [editData, setEditData] = useState({
+    nombre: barrio.nombre,
     estado: barrio.estado,
     progreso: barrio.progreso,
     observaciones: barrio.observaciones || '',
@@ -64,6 +67,7 @@ export const BarrioDetailModal = ({
 
   useEffect(() => {
     setEditData({
+      nombre: barrio.nombre,
       estado: barrio.estado,
       progreso: barrio.progreso,
       observaciones: barrio.observaciones || '',
@@ -72,21 +76,39 @@ export const BarrioDetailModal = ({
       agentes: 2,
       horasPorDia: 3,
     })
-    fetchJornadas(barrio.id)
+    if (barrio.id) fetchJornadas(barrio.id)
   }, [barrio, fetchJornadas])
 
   const handleSave = async () => {
+    if (isNew && !editData.nombre.trim()) {
+      setError('El nombre del barrio es obligatorio')
+      return
+    }
+
     setIsSaving(true)
     setError(null)
     try {
-      await updateBarrio(barrio.id, {
-        estado: editData.estado,
-        progreso: editData.progreso,
-        observaciones: editData.observaciones,
-        luminariasEstimadas: editData.luminariasEstimadas,
-        luminariasRelevadas: editData.luminariasRelevadas,
-      })
+      if (isNew) {
+        await addBarrio({
+          nombre: editData.nombre,
+          estado: editData.estado,
+          progreso: editData.progreso,
+          observaciones: editData.observaciones,
+          luminariasEstimadas: editData.luminariasEstimadas,
+          luminariasRelevadas: editData.luminariasRelevadas,
+        })
+      } else {
+        await updateBarrio(barrio.id, {
+          nombre: editData.nombre,
+          estado: editData.estado,
+          progreso: editData.progreso,
+          observaciones: editData.observaciones,
+          luminariasEstimadas: editData.luminariasEstimadas,
+          luminariasRelevadas: editData.luminariasRelevadas,
+        })
+      }
       setIsEditing(false)
+      if (isNew) onClose()
     } catch (err: any) {
       setError('Error al guardar los cambios. Intente nuevamente.')
       console.error(err)
@@ -149,9 +171,20 @@ export const BarrioDetailModal = ({
               <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-gray-900 leading-tight">{barrio.nombre}</h2>
+              {isEditing && isNew ? (
+                <input
+                  type="text"
+                  value={editData.nombre}
+                  onChange={(e) => setEditData({ ...editData, nombre: e.target.value })}
+                  placeholder="Nombre del nuevo barrio"
+                  className="text-xl font-black text-gray-900 leading-tight border-b-2 border-primary-500 focus:outline-none w-full"
+                  autoFocus
+                />
+              ) : (
+                <h2 className="text-xl font-black text-gray-900 leading-tight">{barrio.nombre}</h2>
+              )}
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm text-gray-500">ID: {barrio.id}</p>
+                <p className="text-sm text-gray-500">{isNew ? 'Nuevo Registro' : `ID: ${barrio.id}`}</p>
                 {barrio.superficie_ha && (
                   <>
                     <span className="text-gray-300">•</span>

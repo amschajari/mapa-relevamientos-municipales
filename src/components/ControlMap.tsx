@@ -7,6 +7,7 @@ import type { Barrio, TareaRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { BarrioPopup } from './BarrioPopup'
+import { cn } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
 
@@ -144,10 +145,12 @@ const OfficialPointsLayer = () => {
 
         const name = point.nombre || `L-${idx + 1}`
         
-        // Determinar si poner el pin en rojo
+        // Determinar si poner el pin en rojo (mala) o naranja (sin base)
         const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase()
-        const isBadBase = estadoBaseStr.includes('sin base') || estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
-        const pinColor = isBadBase ? '#ef4444' : '#0ea5e9' // Rojo para malas/sin base, Azul para normales
+        const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
+        const isSinBase = estadoBaseStr.includes('sin base')
+        
+        const pinColor = isMala ? '#ef4444' : (isSinBase ? '#f97316' : '#0ea5e9')
         
         return (
           <CircleMarker
@@ -223,7 +226,14 @@ const OfficialPointsLayer = () => {
                         {estadoBase && (
                           <div className="flex items-start gap-1">
                             <span className="text-gray-400 w-4 shrink-0">🔩</span>
-                            <span className={estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') ? 'text-red-500 font-semibold' : 'text-green-600'}>
+                            <span className={cn(
+                              "font-semibold",
+                              estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') 
+                                ? 'text-red-500' 
+                                : estadoBase.toLowerCase().includes('sin base')
+                                  ? 'text-orange-500'
+                                  : 'text-green-600'
+                            )}>
                               {estadoBase}
                             </span>
                           </div>

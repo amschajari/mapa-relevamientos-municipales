@@ -32,7 +32,6 @@ interface BarrioState {
   setBarrios: (barrios: Barrio[]) => void
   setTareas: (tareas: TareaRelevamiento[]) => void
   setSelectedBarrio: (barrio: Barrio | null) => void
-  addBarrio: (barrio: Barrio) => void
   updateBarrio: (id: string, updates: Partial<Barrio>) => Promise<void>
   addTarea: (tarea: TareaRelevamiento) => Promise<void>
   setSession: (session: any) => void
@@ -47,6 +46,7 @@ interface BarrioState {
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
   setMapFilter: (key: 'barrio' | 'estadoBase', value: string) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
+  addBarrio: (barrio: Omit<Barrio, 'id'>) => Promise<Barrio>
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -150,10 +150,48 @@ export const useBarrioStore = create<BarrioState>()(
 
       setSelectedBarrio: (barrio) => set({ selectedBarrio: barrio }),
 
-      addBarrio: (barrio) =>
-        set((state) => ({
-          barrios: [...state.barrios, barrio],
-        })),
+      addBarrio: async (barrioData) => {
+        try {
+          const { data, error } = await supabase
+            .from('barrios')
+            .insert({
+              nombre: barrioData.nombre,
+              estado: barrioData.estado || 'pendiente',
+              progreso: barrioData.progreso || 0,
+              luminarias_estimadas: barrioData.luminariasEstimadas || 0,
+              luminarias_relevadas: barrioData.luminariasRelevadas || 0,
+              observaciones: barrioData.observaciones || ''
+            })
+            .select()
+            .single()
+
+          if (error) throw error
+
+          const nuevoBarrio: Barrio = {
+            id: data.id,
+            nombre: data.nombre,
+            estado: data.estado as EstadoBarrio,
+            progreso: Number(data.progreso),
+            luminariasEstimadas: data.luminarias_estimadas,
+            luminariasRelevadas: data.luminarias_relevadas,
+            observaciones: data.observaciones,
+            superficie_ha: data.superficie_ha,
+            created_at: data.created_at,
+            updated_at: data.updated_at
+          }
+
+          set((state) => ({
+            barrios: [nuevoBarrio, ...state.barrios],
+            selectedBarrio: nuevoBarrio
+          }))
+
+          return nuevoBarrio
+        } catch (error: any) {
+          console.error('Error adding barrio:', error)
+          set({ error: error.message })
+          throw error
+        }
+      },
 
       updateBarrio: async (id, updates) => {
         // Actualizar local
