@@ -5,20 +5,16 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 
 ---
 
-## 1. Resumen de Implementación Actual (Checkpoint 18/03/2026)
-- **Importador Odoo (V2)**: Implementada validación geoespacial nativa (`Turf.js`). El sistema detecta automáticamente el barrio por ubicación física.
-- **Estrategia "Geometría sobre Etiqueta"**: Auditoría automática de discrepancias Odoo vs GIS (íconos ⚠️ de alerta).
-- **Campos Enriquecidos**: Soporte completo para `Medidor`, `Apagada/Encendida`, `Cableado`, `Tipología` y `Observaciones` en popups.
-- **Mapa Leaflet**: Refactorizado para usar `BarriosLayer` dentro de `MapContainer`.
-- **Interacción**: Mejorada la lógica de clusters (zoom + coverage) y popups enriquecidos.
-- **Gestión de Estados**: Sistema de cierre manual de barrios habilitado (botón "Finalizar").
-- **Auto-Inicio**: Los barrios pasan de 'Pendiente' a 'En Progreso' automáticamente al detectar actividad.
-- **Estándares**: `DEVELOPMENT.md` y `ROADMAP.md` establecidos para continuidad de contexto.
-- **Agentic Workflows**: Directorio `.agent/workflows` configurado para automatización.
-- **Calidad**: Vitest configurado para pruebas unitarias.
-- **Persistencia**: Sincronización con Supabase.
+## 1. Resumen de Implementación Actual (Checkpoint 25/03/2026)
+- **Importador Odoo (V2)**: Estrategia de etiquetas validada operativamente. Bulk upsert con deduplicación.
+- **Mapa Responsive (Mobile)**: Menú hamburguesa, marcador GPS, panel de info y layout responsive.
+- **Clusters (Celeste/Cyan)**: Zoom automático al click, cobertura visual y paleta diferenciada.
+- **Seguridad (Hardening)**: `search_path` fijo en funciones SQL. RLS endurecido (lectura pública / escritura admin).
+- **Estándares**: `AGENT_WORKFLOW.md`, `DEVELOPMENT.md`, `ROADMAP.md` establecidos.
+- **Agentic Workflows**: Directorio `.agent/workflows` configurado.
+- **Persistencia**: Sincronización total con Supabase (puntos, barrios, jornadas).
 - **Selector de Mapas Base**: Alternancia entre OSM y Satelital (ESRI) con persistencia local.
-- **Seguridad**: LoginModal mejorado (Esc, click outside, visibilidad pw). Usuario Master: `a.m.saposnik@gmail.com`.
+- **Seguridad Auth**: LoginModal mejorado. Usuario Master: `a.m.saposnik@gmail.com`.
 
 ---
 
