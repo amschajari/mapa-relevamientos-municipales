@@ -1,19 +1,21 @@
+import { useState, useMemo } from 'react'
 import {
   LayoutDashboard,
   Map,
   Users,
   BarChart3,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Building2,
   LogIn,
   LogOut,
+  UploadCloud,
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { useState } from 'react'
 import { useBarrioStore } from '@/stores'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -34,7 +36,18 @@ interface SidebarProps {
 
 export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, logout, barrios, mapFilters, setMapFilter } = useBarrioStore()
+  const { user, logout, barrios, mapFilters, setMapFilter, officialPoints } = useBarrioStore()
+
+  // Calcular última actualización basada en los puntos
+  const lastUpdate = useMemo(() => {
+    if (!officialPoints || officialPoints.length === 0) return null
+    const dates = officialPoints
+      .map((p: any) => p.created_at || p.updated_at)
+      .filter(Boolean)
+      .map((d: string) => new Date(d).getTime())
+    if (dates.length === 0) return null
+    return new Date(Math.max(...dates))
+  }, [officialPoints])
 
   // Opciones únicas de estado_base extraídas de los puntos oficiales (o hardcodeadas por ahora)
   const estadoBaseOptions = [
@@ -50,7 +63,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
     { label: 'Barrios', icon: Building2 },
     { label: 'Equipos', icon: Users },
     { label: 'Estadísticas', icon: BarChart3 },
-    { label: 'Configuración', icon: Settings },
+    { label: 'Importar Datos', icon: UploadCloud },
   ]
 
   return (
@@ -71,9 +84,16 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
               <h1 className="text-sm font-black text-gray-900 leading-[1.1] mb-0.5 break-words">
                 Gestión de Relevamientos Municipales
               </h1>
-              <p className="text-[10px] font-bold text-primary-600 truncate">
-                Alejandro Saposnik
-              </p>
+              <div className="flex flex-col">
+                <p className="text-[10px] font-bold text-primary-600 truncate">
+                  Alejandro Saposnik
+                </p>
+                {lastUpdate && (
+                  <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">
+                    Act: {format(lastUpdate, "dd/MM/yy HH:mm", { locale: es })}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -21,7 +21,7 @@ const VIEWS = {
   BARRIOS: 'Barrios',
   EQUIPOS: 'Equipos',
   ESTADISTICAS: 'Estadísticas',
-  CONFIGURACION: 'Configuración',
+  IMPORTAR_DATOS: 'Importar Datos',
 } as const
 
 function App() {
@@ -38,7 +38,8 @@ function App() {
     user, 
     setSession,
     initializeFromGeoJSON, 
-    fetchBarrios 
+    fetchBarrios,
+    fetchOfficialPoints
   } = useBarrioStore()
 
   // Cargar barrios y auth desde Supabase
@@ -48,6 +49,7 @@ function App() {
       if (barriosGeoJson?.features) {
         initializeFromGeoJSON(barriosGeoJson.features as any)
       }
+      fetchOfficialPoints()
       setIsLoading(false)
     })
 
@@ -215,7 +217,7 @@ function App() {
       case VIEWS.ESTADISTICAS:
         return <EstadisticasPanel barrios={barrios} tareas={tareas} />
 
-      case VIEWS.CONFIGURACION:
+      case VIEWS.IMPORTAR_DATOS:
         return <ImportadorDatos />
 
       default:

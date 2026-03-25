@@ -14,6 +14,8 @@ export interface Barrio {
   fechaFin?: Date
   observaciones?: string
   geojson?: any
+  created_at?: string
+  updated_at?: string
 }
 
 export type TipoTarea = 'Barrio' | 'Calle' | 'Zona'

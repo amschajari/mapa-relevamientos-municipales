@@ -7,6 +7,8 @@ import {
   Clock,
   AlertCircle,
   MoreHorizontal,
+  Plus,
+  Edit3,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react'
@@ -129,8 +131,21 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
               {barrios.filter(b => b.estado === 'completado').length} completados
             </p>
           </div>
-          <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
-            + Nuevo Barrio
+          <button 
+            onClick={() => {
+              setSelectedBarrio({
+                id: '',
+                nombre: '',
+                estado: 'pendiente',
+                progreso: 0,
+                luminariasEstimadas: 0,
+                luminariasRelevadas: 0
+              } as Barrio)
+            }}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Barrio
           </button>
         </div>
 
@@ -182,8 +197,8 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
             {filteredBarrios.map((barrio) => (
               <tr
                 key={barrio.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => setSelectedBarrio(barrio)}
+                className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                onClick={() => onViewOnMap?.(barrio)}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
@@ -235,9 +250,21 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-gray-400 hover:text-gray-600 p-1">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedBarrio(barrio)
+                      }}
+                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                      title="Editar barrio"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
