@@ -21,6 +21,7 @@ interface BarrioState {
   }
   activeBaseMap: 'osm' | 'satellite'
   officialPoints: any[]
+  discoveryPoints: any[]
   mapFilters: {
     barrio: string
     estadoBase: string
@@ -44,8 +45,8 @@ interface BarrioState {
   fetchOfficialPoints: () => Promise<void>
   resetOfficialPoints: (barrioId: string) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
+  setMapFilter: (key: 'barrio' | 'estadoBase', value: string) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
-  setMapFilter: (filter: 'barrio' | 'estadoBase', value: string) => void
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -71,11 +72,12 @@ export const useBarrioStore = create<BarrioState>()(
       session: null,
       jornadas: [],
       visibleLayers: {
-        barrios: typeof window !== 'undefined' ? window.innerWidth >= 640 : true,
+        barrios: true,
         luminarias: true
       },
       activeBaseMap: 'osm',
       officialPoints: [],
+      discoveryPoints: [],
       mapFilters: {
         barrio: '',
         estadoBase: ''
