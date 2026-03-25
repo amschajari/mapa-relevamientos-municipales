@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Menu, X, Check, Navigation2, Info } from 'lucide-react'
+import { Menu, X, Check, Navigation2, Info, Map } from 'lucide-react'
 import { useMap, CircleMarker, Popup } from 'react-leaflet'
 import { useBarrioStore } from '@/stores/barrioStore'
 import { cn } from '@/lib/utils'
@@ -229,7 +229,7 @@ export const MobileMapControls = () => {
             <div className="absolute bottom-full right-0 mb-2 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 w-64 animate-in fade-in slide-in-from-bottom-4 duration-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xs font-black">GIS</span>
+                  <Map className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800 leading-snug">Gestión de Relevamientos Municipales</p>
