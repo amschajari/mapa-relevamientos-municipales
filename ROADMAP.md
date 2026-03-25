@@ -43,11 +43,18 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 1. **Consolidación de Datos**: Importar masivamente los relevamientos históricos (San Clemente y otros).
 2. **Tablero de Control**: Mejorar los KPIs del dashboard basados en la carga manual de jornadas.
 3. **Auditoría Espacial (Fase 2)**: Reintroducir Turf.js solo como herramienta de auditoría (para detectar puntos que "físicamente" están en otro barrio) sin que bloquee la importación administrativa.
-3. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
-4. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
-5. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-6. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
-7. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
+## Hitos Completados (25/03/2026) ✅
+- **Hardening de Seguridad**: search_path corregido en funciones críticas y RLS habilitado en tablas sensibles.
+- **Diferenciación Visual**: Código de colores en mapa (Rojo: Mala, Naranja: Sin base, Celeste: Ok).
+- **UX Desktop**: Fecha de última actualización integrada en Sidebar.
+- **Navegación**: Renombrado "Configuración" a "Importar Datos".
+- **Gestión Administrativa**: Implementado CRUD básico de barrios (edición y creación) desde la UI.
+- **Mobile Map Controls**: Refactor de menús y cierre por eventos.
+4. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
+5. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
+6. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
+7. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
+8. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
 
 ---
 

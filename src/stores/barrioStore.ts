@@ -72,7 +72,7 @@ export const useBarrioStore = create<BarrioState>()(
       session: null,
       jornadas: [],
       visibleLayers: {
-        barrios: true,
+        barrios: typeof window !== 'undefined' ? window.innerWidth >= 640 : true,
         luminarias: true
       },
       activeBaseMap: 'osm',
@@ -83,7 +83,7 @@ export const useBarrioStore = create<BarrioState>()(
         estadoBase: ''
       },
 
-      setSession: (session) => {
+      setSession: (session: any) => {
         const userEmail = session?.user?.email
         const isAdmin = userEmail === 'a.m.saposnik@gmail.com'
         
@@ -127,9 +127,9 @@ export const useBarrioStore = create<BarrioState>()(
               fechaFin: b.fecha_fin ? new Date(b.fecha_fin) : undefined,
               observaciones: b.observaciones,
             }))
-            set((state) => ({ 
-              barrios: barriosMapeados.map(nb => {
-                const existing = state.barrios.find(eb => eb.id === nb.id)
+            set((state: BarrioState) => ({ 
+              barrios: barriosMapeados.map((nb: Barrio) => {
+                const existing = state.barrios.find((eb: Barrio) => eb.id === nb.id)
                 return { ...nb, geojson: existing?.geojson || null }
               }), 
               isLoading: false 
@@ -144,13 +144,13 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      setBarrios: (barrios) => set({ barrios }),
+      setBarrios: (barrios: Barrio[]) => set({ barrios }),
 
-      setTareas: (tareas) => set({ tareas }),
+      setTareas: (tareas: TareaRelevamiento[]) => set({ tareas }),
 
-      setSelectedBarrio: (barrio) => set({ selectedBarrio: barrio }),
+      setSelectedBarrio: (barrio: Barrio | null) => set({ selectedBarrio: barrio }),
 
-      addBarrio: async (barrioData) => {
+      addBarrio: async (barrioData: Omit<Barrio, 'id'>) => {
         try {
           const { data, error } = await supabase
             .from('barrios')
@@ -180,7 +180,7 @@ export const useBarrioStore = create<BarrioState>()(
             updated_at: data.updated_at
           }
 
-          set((state) => ({
+          set((state: BarrioState) => ({
             barrios: [nuevoBarrio, ...state.barrios],
             selectedBarrio: nuevoBarrio
           }))
@@ -193,10 +193,10 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      updateBarrio: async (id, updates) => {
+      updateBarrio: async (id: string, updates: Partial<Barrio>) => {
         // Actualizar local
-        set((state) => {
-          const updatedBarrios = state.barrios.map((b) =>
+        set((state: BarrioState) => {
+          const updatedBarrios = state.barrios.map((b: Barrio) =>
             b.id === id ? { ...b, ...updates } : b
           )
           const updatedSelected = state.selectedBarrio?.id === id 
@@ -235,9 +235,9 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      addTarea: async (tarea) => {
+      addTarea: async (tarea: TareaRelevamiento) => {
         // Actualizar local
-        set((state) => ({
+        set((state: BarrioState) => ({
           tareas: [...state.tareas, tarea],
         }))
 
@@ -264,8 +264,8 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      updateBarrioProgress: async (nombre, progress) => {
-        const barrio = get().barrios.find((b) => b.nombre === nombre)
+      updateBarrioProgress: async (nombre: string, progress: number) => {
+        const barrio = get().barrios.find((b: Barrio) => b.nombre === nombre)
         if (!barrio) return
 
         const newProgress = Math.min(100, Math.max(0, progress))
@@ -278,8 +278,8 @@ export const useBarrioStore = create<BarrioState>()(
         }
 
         // Actualizar local
-        set((state) => ({
-          barrios: state.barrios.map((b) =>
+        set((state: BarrioState) => ({
+          barrios: state.barrios.map((b: Barrio) =>
             b.nombre === nombre
               ? { ...b, progreso: newProgress, estado }
               : b
@@ -303,14 +303,13 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      setBarrioStatus: async (nombre, status) => {
+      setBarrioStatus: async (nombre: string, status: EstadoBarrio) => {
         // Actualizar local
-        set((state) => ({
-          barrios: state.barrios.map((b) =>
+        set((state: BarrioState) => ({
+          barrios: state.barrios.map((b: Barrio) =>
             b.nombre === nombre ? { ...b, estado: status } : b
           ),
         }))
-
         // Sincronizar con Supabase
         try {
           const { error } = await supabase
@@ -328,37 +327,38 @@ export const useBarrioStore = create<BarrioState>()(
       },
 
       // Selectores
-      getBarrioByNombre: (nombre) =>
-        get().barrios.find((b) => b.nombre === nombre),
-
-      getBarrioStatus: (nombre) => {
-        const barrio = get().barrios.find((b) => b.nombre === nombre)
+      getBarrioByNombre: (nombre: string) => get().barrios.find((b: Barrio) => b.nombre === nombre),
+      getBarrioStatus: (nombre: string) => {
+        const barrio = get().barrios.find((b: Barrio) => b.nombre === nombre)
         return barrio?.estado || 'pendiente'
       },
-
-      getBarrioProgress: (nombre) => {
-        const barrio = get().barrios.find((b) => b.nombre === nombre)
+      getBarrioProgress: (nombre: string) => {
+        const barrio = get().barrios.find((b: Barrio) => b.nombre === nombre)
         return barrio?.progreso || 0
       },
-
-      getBarriosByEstado: (estado) =>
-        get().barrios.filter((b) => b.estado === estado),
-
+      getBarriosByEstado: (estado: EstadoBarrio) =>
+        get().barrios.filter((b: Barrio) => b.estado === estado),
       getBarriosConTareas: () => {
-        const barrioIds = new Set(get().tareas.map((t) => t.barrioId))
-        return get().barrios.filter((b) => barrioIds.has(b.id))
+        const tareas = get().tareas
+        return get().barrios.filter((b: Barrio) => 
+          tareas.some((t: TareaRelevamiento) => t.barrioId === b.id)
+        )
       },
 
       // Inicialización desde GeoJSON: Sincronización Total
-      initializeFromGeoJSON: async (features) => {
+      initializeFromGeoJSON: async (features: BarrioFeature[]) => {
+        // En lugar de resetear todo, vamos a actualizar los datos base de los barrios existentes
         const { barrios, updateBarrio } = get()
-        const geojsonNames = features.map(f => f.properties.Nombre).filter(Boolean)
-        const dbNames = barrios.map(b => b.nombre)
+        
+        // Actualización de datos base si es necesario...
+
+        const geojsonNames = features.map((f: BarrioFeature) => f.properties.Nombre).filter(Boolean)
+        const dbNames = barrios.map((b: Barrio) => b.nombre)
 
         console.log(`Sincronizando GeoJSON: ${geojsonNames.length} barrios encontrados.`)
 
         // 1. Barrios para ELIMINAR (Están en DB pero NO en GeoJSON)
-        const toDelete = barrios.filter(b => !geojsonNames.includes(b.nombre))
+        const toDelete = barrios.filter((b: Barrio) => !geojsonNames.includes(b.nombre))
         for (const barrio of toDelete) {
           console.log(`Eliminando barrio obsoleto: ${barrio.nombre}`)
           try {
@@ -394,7 +394,7 @@ export const useBarrioStore = create<BarrioState>()(
         // 3. Barrios para ACTUALIZAR (Están en ambos)
         // Ya que el fetchBarrios refrescará todo, solo nos aseguramos de actualizar superficie si cambió
         for (const barrio of barrios) {
-          const feature = features.find(f => f.properties.Nombre === barrio.nombre)
+          const feature = features.find((f: BarrioFeature) => f.properties.Nombre === barrio.nombre)
           if (feature) {
             const areaM2 = area(feature)
             const areaHa = Math.round((areaM2 / 10000) * 100) / 100
@@ -414,15 +414,15 @@ export const useBarrioStore = create<BarrioState>()(
         await get().fetchBarrios()
 
         // 5. Inyectar GeoJSON en el estado local para validaciones espaciales
-        set((state) => ({
-          barrios: state.barrios.map(b => {
-            const feature = features.find(f => f.properties.Nombre === b.nombre)
+        set((state: BarrioState) => ({
+          barrios: state.barrios.map((b: Barrio) => {
+            const feature = features.find((f: BarrioFeature) => f.properties.Nombre === b.nombre)
             return { ...b, geojson: feature || null }
           })
         }))
       },
 
-      fetchJornadas: async (barrioId) => {
+      fetchJornadas: async (barrioId: string) => {
         const { data, error } = await supabase
           .from('jornadas_relevamiento')
           .select('*')
@@ -448,7 +448,7 @@ export const useBarrioStore = create<BarrioState>()(
         set({ jornadas: jornadasMapeadas })
       },
 
-      addJornada: async (jornada) => {
+      addJornada: async (jornada: Omit<JornadaRelevamiento, 'id' | 'creadoPor'>) => {
         const { user } = get()
         if (!user) return
 
@@ -481,10 +481,10 @@ export const useBarrioStore = create<BarrioState>()(
             creadoPor: data.creado_por
           }
 
-          set((state) => ({ jornadas: [nuevaJornada, ...state.jornadas] }))
+          set((state: BarrioState) => ({ jornadas: [nuevaJornada, ...state.jornadas] }))
 
           // Recalcular progreso del barrio de forma adaptativa
-          const barrio = get().barrios.find(b => b.id === jornada.barrioId)
+          const barrio = get().barrios.find((b: Barrio) => b.id === jornada.barrioId)
           if (barrio) {
             const nuevasRelevadas = (barrio.luminariasRelevadas || 0) + jornada.luminariasRelevadas
             const superficieCubiertaEstimada = barrio.superficie_ha ? (barrio.superficie_ha * (barrio.progreso / 100)) : 0
@@ -512,8 +512,8 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      toggleLayer: (layer) => {
-        set((state) => ({
+      toggleLayer: (layer: 'barrios' | 'luminarias') => {
+        set((state: BarrioState) => ({
           visibleLayers: {
             ...state.visibleLayers,
             [layer]: !state.visibleLayers[layer]
@@ -534,7 +534,7 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      resetOfficialPoints: async (barrioId) => {
+      resetOfficialPoints: async (barrioId: string) => {
         if (!confirm('¿Estás seguro de que deseas eliminar TODOS los puntos oficiales de este barrio? Esta acción no se puede deshacer.')) return
 
         set({ isLoading: true })
@@ -565,16 +565,16 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      setActiveBaseMap: (baseMap) => set({ activeBaseMap: baseMap }),
+      setActiveBaseMap: (baseMap: 'osm' | 'satellite') => set({ activeBaseMap: baseMap }),
 
-      setMapFilter: (filter, value) => set((state) => ({
+      setMapFilter: (filter: 'barrio' | 'estadoBase', value: string) => set((state: BarrioState) => ({
         mapFilters: {
           ...state.mapFilters,
           [filter]: value
         }
       })),
 
-      recalculateBarrioStats: async (barrioIds) => {
+      recalculateBarrioStats: async (barrioIds: string[]) => {
         if (!barrioIds || barrioIds.length === 0) return
         
         set({ isLoading: true })
@@ -618,10 +618,11 @@ export const useBarrioStore = create<BarrioState>()(
     }),
     {
       name: 'barrio-store',
-      partialize: (state) => ({
+      partialize: (state: any) => ({
         barrios: state.barrios,
         tareas: state.tareas,
         activeBaseMap: state.activeBaseMap,
+        mapFilters: state.mapFilters,
       }),
     }
   )
