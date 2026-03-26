@@ -5,6 +5,13 @@ import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento, JornadaRel
 import area from '@turf/area'
 import { calcularEstimadoAdaptive } from '@/lib/projectionUtils'
 
+interface AppConfig {
+  agentesActuales: number
+  horasPorSalida: number
+  luminariasPorSalida: number
+  salidasPorSemana: number
+}
+
 interface BarrioState {
   // Estado
   barrios: Barrio[]
@@ -26,6 +33,15 @@ interface BarrioState {
     barrio: string
     estadoBase: string
   }
+  config: {
+    agentesActuales: number
+    horasPorSalida: number
+    luminariasPorSalida: number  // ritmo observado (ej: 85 con 2 agentes)
+    salidasPorSemana: number
+  }
+  // Nuevos estados para configuración desde Supabase
+  appConfigLoaded: boolean
+  appConfigError: string | null
 
   // Acciones
   fetchBarrios: () => Promise<void>
@@ -47,6 +63,9 @@ interface BarrioState {
   setMapFilter: (key: 'barrio' | 'estadoBase', value: string) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
   addBarrio: (barrio: Omit<Barrio, 'id'>) => Promise<Barrio>
+  setConfig: (configUpdate: Partial<BarrioState['config']>) => void
+  fetchAppConfig: () => Promise<void>
+  updateAppConfig: (updates: Partial<AppConfig>) => Promise<void>
 
   // Selectores
   getBarrioByNombre: (nombre: string) => Barrio | undefined
@@ -82,6 +101,15 @@ export const useBarrioStore = create<BarrioState>()(
         barrio: '',
         estadoBase: ''
       },
+      config: {
+        agentesActuales: 2,
+        horasPorSalida: 3,
+        luminariasPorSalida: 85,  // ritmo observado: 170 luminarias / 2 salidas
+        salidasPorSemana: 2
+      },
+      // Nuevos estados para configuración desde Supabase
+      appConfigLoaded: false,
+      appConfigError: null,
 
       setSession: (session: any) => {
         const userEmail = session?.user?.email
@@ -145,9 +173,7 @@ export const useBarrioStore = create<BarrioState>()(
       },
 
       setBarrios: (barrios: Barrio[]) => set({ barrios }),
-
       setTareas: (tareas: TareaRelevamiento[]) => set({ tareas }),
-
       setSelectedBarrio: (barrio: Barrio | null) => set({ selectedBarrio: barrio }),
 
       addBarrio: async (barrioData: Omit<Barrio, 'id'>) => {
@@ -300,6 +326,7 @@ export const useBarrioStore = create<BarrioState>()(
           if (error) throw error
         } catch (error: any) {
           console.error('Error updating progress:', error)
+          set({ error: error.message })
         }
       },
 
@@ -310,6 +337,7 @@ export const useBarrioStore = create<BarrioState>()(
             b.nombre === nombre ? { ...b, estado: status } : b
           ),
         }))
+
         // Sincronizar con Supabase
         try {
           const { error } = await supabase
@@ -323,6 +351,7 @@ export const useBarrioStore = create<BarrioState>()(
           if (error) throw error
         } catch (error: any) {
           console.error('Error updating status:', error)
+          set({ error: error.message })
         }
       },
 
@@ -505,7 +534,6 @@ export const useBarrioStore = create<BarrioState>()(
               estado: barrio.estado === 'pendiente' ? 'progreso' : barrio.estado
             })
           }
-
         } catch (error: any) {
           console.error('Error adding jornada:', error)
           set({ error: error.message })
@@ -576,7 +604,7 @@ export const useBarrioStore = create<BarrioState>()(
 
       recalculateBarrioStats: async (barrioIds: string[]) => {
         if (!barrioIds || barrioIds.length === 0) return
-        
+
         set({ isLoading: true })
         try {
           // Procesar cada barrio afectado
@@ -591,7 +619,7 @@ export const useBarrioStore = create<BarrioState>()(
 
             const nuevasRelevadas = count || 0
             const barrio = get().barrios.find((b: any) => b.id === id)
-            
+
             if (barrio) {
               const nuevasEstimadas = Math.max(barrio.luminariasEstimadas || 0, nuevasRelevadas)
               const nuevoProgreso = nuevasEstimadas > 0 ? Math.min(100, Math.round((nuevasRelevadas / nuevasEstimadas) * 100)) : 0
@@ -615,15 +643,151 @@ export const useBarrioStore = create<BarrioState>()(
           set({ isLoading: false })
         }
       },
+
+      setConfig: (configUpdate: Partial<BarrioState['config']>) => {
+        set((state: BarrioState) => ({
+          config: { ...state.config, ...configUpdate }
+        }))
+        
+        // Also update in Supabase (fire and forget)
+        get().updateAppConfig(configUpdate).catch((err: any) => {
+          console.warn('Failed to persist config update to Supabase:', err)
+        })
+      },
+
+      // Nueva acción: obtener configuración desde Supabase
+      fetchAppConfig: async () => {
+        set({ appConfigLoaded: false, appConfigError: null })
+        try {
+          const { data, error } = await supabase
+            .from('app_config')
+            .select('*')
+            .order('updated_at', { ascending: false })
+            .limit(1)
+          
+          if (error) throw error
+          
+          if (data && data.length > 0) {
+            const configData = data[0];
+            set({
+              appConfigLoaded: true,
+              appConfigError: null,
+              config: {
+                agentesActuales: configData.agentes_actuales,
+                horasPorSalida: configData.horas_por_salida,
+                luminariasPorSalida: configData.luminarias_por_salida,
+                salidasPorSemana: configData.salidas_por_semana
+              }
+            })
+          } else {
+            // Si no hay configuración, usar valores por defecto
+            set({
+              appConfigLoaded: true,
+              appConfigError: null,
+              config: {
+                agentesActuales: 2,
+                horasPorSalida: 3,
+                luminariasPorSalida: 85,
+                salidasPorSemana: 2
+              }
+            })
+          }
+        } catch (error: any) {
+          console.error('Error fetching app config:', error)
+          set({
+            appConfigLoaded: true,
+            appConfigError: error.message,
+            config: {
+              agentesActuales: 2,
+              horasPorSalida: 3,
+              luminariasPorSalida: 85,
+              salidasPorSemana: 2
+            }
+          })
+        }
+      },
+
+       // Nueva acción: actualizar configuración en Supabase
+       updateAppConfig: async (updates: Partial<AppConfig>) => {
+         try {
+           // Mapear camelCase → snake_case para Supabase
+           const dbUpdates: Record<string, any> = {
+             updated_at: new Date().toISOString()
+           }
+           if ('agentesActuales' in updates) dbUpdates.agentes_actuales = updates.agentesActuales
+           if ('horasPorSalida' in updates) dbUpdates.horas_por_salida = updates.horasPorSalida
+           if ('luminariasPorSalida' in updates) dbUpdates.luminarias_por_salida = updates.luminariasPorSalida
+           if ('salidasPorSemana' in updates) dbUpdates.salidas_por_semana = updates.salidasPorSemana
+
+           // Obtener el registro más reciente (si existe)
+           const { data: records, error: listError } = await supabase
+             .from('app_config')
+             .select('id')
+             .order('updated_at', { ascending: false })
+             .limit(1)
+
+           if (listError) throw listError
+
+           let query
+           if (records && records.length > 0) {
+             // Actualizar el registro existente más reciente
+             query = supabase
+               .from('app_config')
+               .update(dbUpdates)
+               .eq('id', records[0].id)
+           } else {
+             // Insertar nuevo registro (cuando no hay ninguno)
+             query = supabase
+               .from('app_config')
+               .insert(dbUpdates)
+           }
+
+           const { error } = await query
+           if (error) throw error
+
+           // Actualizar estado local optimistamente
+           set((state: BarrioState) => ({
+             config: {
+               ...state.config,
+               ...updates
+             }
+           }))
+         } catch (error: any) {
+           console.error('Error updating app config:', error)
+           throw error
+         }
+       }
     }),
     {
       name: 'barrio-store',
       partialize: (state: any) => ({
+        // Excluimos config del persistence porque viene de Supabase
+        // Pero mantenemos el resto del estado en localStorage
         barrios: state.barrios,
         tareas: state.tareas,
+        selectedBarrio: state.selectedBarrio,
+        isLoading: state.isLoading,
+        error: state.error,
+        user: state.user,
+        session: state.session,
+        jornadas: state.jornadas,
+        visibleLayers: state.visibleLayers,
         activeBaseMap: state.activeBaseMap,
+        officialPoints: state.officialPoints,
+        discoveryPoints: state.discoveryPoints,
         mapFilters: state.mapFilters,
-      }),
+        // config: state.config,  // NO persistir esto
+        appConfigLoaded: state.appConfigLoaded,
+        appConfigError: state.appConfigError
+      })
     }
   )
 )
+
+// Inicialización automática de la configuración desde Supabase
+if (typeof window !== 'undefined') {
+  // Esperamos un poco para que el store esté completamente inicializado
+  setTimeout(() => {
+    useBarrioStore.getState().fetchAppConfig()
+  }, 0)
+}
