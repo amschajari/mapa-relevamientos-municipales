@@ -12,14 +12,14 @@ import type { Barrio } from '@/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useBarrioStore } from '@/stores'
-import { calcularDiasRestantes } from '@/lib/projectionUtils'
+import { calcularSalidasRestantes, calcularSemanasRestantes } from '@/lib/projectionUtils'
 
 interface DashboardViewProps {
   barrios: Barrio[]
 }
 
 export const DashboardView = ({ barrios }: DashboardViewProps) => {
-  const { officialPoints } = useBarrioStore()
+  const { officialPoints, config } = useBarrioStore()
   
   const stats = useMemo(() => {
     const total = barrios.length
@@ -37,9 +37,20 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
 
     const progresoSuperficie = superficieTotal > 0 ? Math.round((superficieRelevada / superficieTotal) * 100) : 0
 
-    const TOTAL_CIUDAD_ESTIMADO = 8000
+    const META_CIUDAD = 8000
     const puntosTotales = officialPoints?.length || 0
-    const progresoGlobalLuminarias = Math.round((puntosTotales / TOTAL_CIUDAD_ESTIMADO) * 100)
+    const progresoGlobalLuminarias = Math.round((puntosTotales / META_CIUDAD) * 100)
+
+    // Proyección basada en ritmo observado (config)
+    const salidasRestantes = calcularSalidasRestantes(
+      META_CIUDAD,
+      puntosTotales,
+      config.luminariasPorSalida
+    )
+    const semanasRestantes = calcularSemanasRestantes(
+      salidasRestantes,
+      config.salidasPorSemana
+    )
 
     return {
       total,
@@ -52,14 +63,12 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
       progresoSuperficie,
       puntosTotales,
       progresoGlobalLuminarias,
-      objetivoGlobal: TOTAL_CIUDAD_ESTIMADO,
-      diasRestantes: calcularDiasRestantes(superficieTotal - superficieRelevada, {
-        agentes: 2,
-        horasPorDia: 3,
-        velocidadEstimadaHaHora: 0.5
-      })
+      metaCiudad: META_CIUDAD,
+      salidasRestantes,
+      semanasRestantes,
+      config
     }
-  }, [barrios, officialPoints])
+  }, [barrios, officialPoints, config])
 
   const barriosRecientes = useMemo(() => {
     return [...barrios]
@@ -132,21 +141,21 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
             subValue={`${stats.superficieRelevada.toFixed(1)} Ha cubiertas`}
             color="bg-indigo-500"
           />
-          <StatCard
-            icon={MapPin}
-            label="Avance Global Ciudad"
-            value={`${stats.progresoGlobalLuminarias}%`}
-            subValue={`${stats.puntosTotales} de ${stats.objetivoGlobal} luminarias`}
-            color="bg-purple-500"
-            trend={stats.puntosTotales > 0 ? "Actualizado" : undefined}
-          />
-          <StatCard
-            icon={Clock}
-            label="Proyección Final"
-            value={`~${stats.diasRestantes} días`}
-            subValue="2 personas, 3hs/día"
-            color="bg-amber-500"
-          />
+           <StatCard
+             icon={MapPin}
+             label="Avance Global Ciudad"
+             value={`${stats.progresoGlobalLuminarias}%`}
+             subValue={`${stats.puntosTotales} de ${stats.metaCiudad} luminarias`}
+             color="bg-purple-500"
+             trend={stats.puntosTotales > 0 ? "Actualizado" : undefined}
+           />
+           <StatCard
+             icon={Clock}
+             label="Proyección Final"
+             value={`~${stats.semanasRestantes} semanas`}
+             subValue="${stats.salidasRestantes} salidas restantes ({stats.config.salidasPorSemana} salidas/semana)"
+             color="bg-amber-500"
+           />
           <StatCard
             icon={CheckCircle2}
             label="Avance Barrios"
