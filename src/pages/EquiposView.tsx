@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Users, Settings, Save, Info } from 'lucide-react'
+import { Users, Settings, Save, Info, CheckCircle } from 'lucide-react'
 import { useBarrioStore } from '@/stores'
 
 export const EquiposView = () => {
   const { config, setConfig, user } = useBarrioStore()
   const [localConfig, setLocalConfig] = useState(config)
+  const [saved, setSaved] = useState(false)
 
-  const handleSave = () => {
-    setConfig(localConfig)
+  const handleSave = async () => {
+    await setConfig(localConfig)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
   }
 
   const handleReset = () => {
@@ -44,6 +47,14 @@ export const EquiposView = () => {
             </button>
           )}
         </div>
+
+        {/* Toast de guardado */}
+        {saved && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <p className="text-sm font-medium text-green-900">Configuración guardada</p>
+          </div>
+        )}
 
         {/* Info banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
