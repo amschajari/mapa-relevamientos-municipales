@@ -115,7 +115,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = activeTab === item.label
