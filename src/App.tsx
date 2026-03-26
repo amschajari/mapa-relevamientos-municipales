@@ -5,6 +5,7 @@ import { LeyendaMapa } from './components/LeyendaMapa'
 import { EstadisticasPanel } from './components/EstadisticasPanel'
 import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
+import { EquiposView } from './pages/EquiposView'
 import { BarrioDetailModal } from './components/BarrioDetailModal'
 import { useBarrioStore } from './stores'
 import { supabase } from './lib/supabase'
@@ -205,14 +206,17 @@ function App() {
 
       case VIEWS.BARRIOS:
         return (
-          <BarriosView 
-            barrios={barrios} 
+          <BarriosView
+            barrios={barrios}
             onViewOnMap={(barrio) => {
               setSelectedBarrio(barrio)
               setActiveTab(VIEWS.MAPA)
             }}
           />
         )
+
+      case VIEWS.EQUIPOS:
+        return <EquiposView />
 
       case VIEWS.ESTADISTICAS:
         return <EstadisticasPanel barrios={barrios} tareas={tareas} />
