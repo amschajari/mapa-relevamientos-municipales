@@ -153,7 +153,7 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
              icon={Clock}
              label="Proyección Final"
              value={`~${stats.semanasRestantes} semanas`}
-             subValue="${stats.salidasRestantes} salidas restantes ({stats.config.salidasPorSemana} salidas/semana)"
+             subValue={`${stats.salidasRestantes} salidas restantes (${stats.config.salidasPorSemana} salidas/semana)`}
              color="bg-amber-500"
            />
           <StatCard
