@@ -139,7 +139,7 @@ export const MobileMapControls = () => {
       {userLocation && <UserLocationMarker position={userLocation} />}
 
       {/* Menú Hamburguesa — arriba a la derecha */}
-      <div ref={menuRef} className="absolute top-4 right-4 z-[1000] flex flex-col items-end gap-2">
+      <div ref={menuRef} className="absolute top-4 right-4 z-[1000] flex flex-col items-end gap-2 sm:hidden">
         {isOpen && (
           <div className="mt-1 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 w-56 animate-in fade-in slide-in-from-top-4 duration-200">
             <div className="px-2 py-1.5 border-b border-gray-50 mb-2">

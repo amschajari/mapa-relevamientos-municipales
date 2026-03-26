@@ -91,7 +91,7 @@ export const useBarrioStore = create<BarrioState>()(
       session: null,
       jornadas: [],
       visibleLayers: {
-        barrios: typeof window !== 'undefined' ? window.innerWidth >= 640 : true,
+        barrios: false,
         luminarias: true
       },
       activeBaseMap: 'osm',
@@ -765,9 +765,6 @@ export const useBarrioStore = create<BarrioState>()(
         // Pero mantenemos el resto del estado en localStorage
         barrios: state.barrios,
         tareas: state.tareas,
-        selectedBarrio: state.selectedBarrio,
-        isLoading: state.isLoading,
-        error: state.error,
         user: state.user,
         session: state.session,
         jornadas: state.jornadas,

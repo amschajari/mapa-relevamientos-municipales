@@ -31,35 +31,35 @@ const items: LeyendaItem[] = [
 
 export const LeyendaMapa = () => {
   return (
-    <div className="hidden sm:block bg-white/95 backdrop-blur p-4 rounded-xl shadow-lg border border-gray-200">
-      <div className="flex items-center gap-2 mb-3">
-        <MapPin className="w-4 h-4 text-gray-600" />
-        <span className="font-semibold text-gray-800 text-sm">Estado de Barrios</span>
+    <div className="hidden sm:block bg-white/95 backdrop-blur p-3 rounded-xl shadow-lg border border-gray-200 max-w-[170px]">
+      <div className="flex items-center gap-2 mb-2">
+        <MapPin className="w-3.5 h-3.5 text-gray-600" />
+        <span className="font-bold text-gray-800 text-[11px] uppercase tracking-wider">Estado Barrios</span>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-3">
+          <div key={item.label} className="flex items-center gap-2.5">
             <div
-              className="w-4 h-4 rounded border-2 border-white shadow-sm"
+              className="w-3 h-3 rounded shadow-sm shrink-0"
               style={{
                 backgroundColor: item.color,
                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
               }}
             />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700">{item.label}</p>
-              <p className="text-xs text-gray-400">{item.description}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold text-gray-700 leading-none">{item.label}</p>
+              <p className="text-[9px] text-gray-400 truncate">{item.description}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-gray-500">
-            Haz clic en un barrio para ver detalles y asignar tareas.
+      <div className="mt-2 pt-2 border-t border-gray-100">
+        <div className="flex items-start gap-1.5">
+          <Info className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+          <p className="text-[9px] leading-tight text-gray-500">
+            Haz clic en un barrio para ver detalles.
           </p>
         </div>
       </div>

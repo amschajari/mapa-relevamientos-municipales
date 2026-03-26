@@ -11,7 +11,6 @@ import { useBarrioStore } from './stores'
 import { supabase } from './lib/supabase'
 import barriosGeoJson from './data/barrios-chajari.json'
 import type { Barrio } from './types'
-import { Edit3 } from 'lucide-react'
 import { LoginModal } from './components/LoginModal'
 import { ImportadorDatos } from './components/ImportadorDatos'
 
@@ -36,7 +35,6 @@ function App() {
     tareas, 
     selectedBarrio, 
     setSelectedBarrio, 
-    user, 
     setSession,
     initializeFromGeoJSON, 
     fetchBarrios,
@@ -127,79 +125,11 @@ function App() {
             </div>
 
             {/* Panel lateral derecho - Leyenda + Detalles */}
-            <div className="hidden sm:block absolute top-4 right-4 w-80 space-y-4 z-[1000] pointer-events-none">
+            <div className="hidden sm:flex absolute top-4 right-4 flex-col items-end space-y-4 z-[1000] pointer-events-none">
               <div className="pointer-events-auto">
                 <LeyendaMapa />
               </div>
 
-              {selectedBarrio && (
-                <div className="bg-white/95 backdrop-blur p-4 rounded-xl shadow-lg border border-gray-200 pointer-events-auto">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-800">{selectedBarrio.nombre}</h3>
-                      {user?.role === 'admin' && (
-                        <button
-                          onClick={() => setShowEditModal(true)}
-                          className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-primary-600 transition-colors"
-                          title="Editar detalles"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setSelectedBarrio(null)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Estado:</span>
-                      <span className={`font-medium ${
-                        selectedBarrio.estado === 'completado' ? 'text-green-600' :
-                        selectedBarrio.estado === 'progreso' ? 'text-amber-600' :
-                        'text-gray-600'
-                      }`}>
-                        {selectedBarrio.estado === 'completado' ? 'Completado' :
-                         selectedBarrio.estado === 'progreso' ? 'En Progreso' :
-                         'Pendiente'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Progreso:</span>
-                      <span className="font-medium">{selectedBarrio.progreso}%</span>
-                    </div>
-
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          selectedBarrio.estado === 'completado' ? 'bg-green-500' :
-                          selectedBarrio.estado === 'progreso' ? 'bg-amber-500' :
-                          'bg-gray-400'
-                        }`}
-                        style={{ width: `${selectedBarrio.progreso}%` }}
-                      />
-                    </div>
-
-                    {(selectedBarrio.luminariasEstimadas ?? 0) > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Luminarias:</span>
-                          <span className="font-medium">
-                            {selectedBarrio.luminariasRelevadas || 0} / {selectedBarrio.luminariasEstimadas}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )
