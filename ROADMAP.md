@@ -24,6 +24,7 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 - **Métrica Clave**: No buscamos el % final de Odoo, buscamos la **Cobertura Geográfica**. Asegurar que los equipos pasen por todas las calles.
 - **Acción Inmediata**:
     - Reemplazar "Progreso %" por **"Manzanas Recorridas"** o **"Estado de Avance"**.
+    - **Objetivo Ciudad**: Contemplar un estimado de **8000 luminarias** totales para calcular la proyección de finalización global (implementado en Dashboard 25/03).
     - Crear vistas de **Reporte para Autoridades**: Mapas de "semáforo" para el Intendente que muestren avance real vs. proyectado de forma intuitiva.
 
 ### 📍 Piloto San Clemente (Contexto de Reflexión)
@@ -55,6 +56,7 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 6. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
 7. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
 8. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
+- **Importador de Barrios (Admin)**: Implementar herramienta en la UI de administración para cargar polígonos GeoJSON de barrios directamente sin intervención en el código.
 
 ---
 
@@ -87,6 +89,11 @@ Este documento sirve como guía para el desarrollo continuo y transferencia de c
 **Respuesta:** Actualmente, el sistema lo resuelve importándolos con `barrio_id = null`.
 - **Visibilidad:** Son visibles en el mapa global pero no "cuentan" para las estadísticas de ningún barrio del Dashboard.
 - **Estrategia Futura:** El GIS debe actuar como "filtro de calidad". Si un punto de Odoo cae fuera, debe marcarse para revisión de los polígonos (¿El barrio es más grande de lo que dibujamos?) o asignarse a un nuevo polígono de "Zona de Expansión".
+- **Estrategia Futura (QGIS sync)**: El usuario está editando polígonos en QGIS para:
+    - Eliminar barrios superpuestos.
+    - Agregar nuevos barrios detectados.
+    - Crear una zona **"Sin Barrio / No Especificada"** para capturar luminarias que caen fuera de las jurisdicciones conformadas, permitiendo que el 100% de los puntos de Odoo tengan una asignación administrativa.
+- **Acción**: Una vez finalizados en QGIS, se deberán re-importar los archivos GeoJSON para refrescar la base de datos `barrios`. Se planea automatizar esto mediante el "Importador de Barrios" en el panel administrativo.
 
 ---
 

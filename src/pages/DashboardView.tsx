@@ -37,6 +37,10 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
 
     const progresoSuperficie = superficieTotal > 0 ? Math.round((superficieRelevada / superficieTotal) * 100) : 0
 
+    const TOTAL_CIUDAD_ESTIMADO = 8000
+    const puntosTotales = officialPoints?.length || 0
+    const progresoGlobalLuminarias = Math.round((puntosTotales / TOTAL_CIUDAD_ESTIMADO) * 100)
+
     return {
       total,
       completados,
@@ -46,7 +50,9 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
       superficieTotal,
       superficieRelevada,
       progresoSuperficie,
-      puntosTotales: officialPoints?.length || 0,
+      puntosTotales,
+      progresoGlobalLuminarias,
+      objetivoGlobal: TOTAL_CIUDAD_ESTIMADO,
       diasRestantes: calcularDiasRestantes(superficieTotal - superficieRelevada, {
         agentes: 2,
         horasPorDia: 3,
@@ -128,11 +134,11 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
           />
           <StatCard
             icon={MapPin}
-            label="Luminarias Cargadas (Puntos)"
-            value={stats.puntosTotales}
-            subValue="Cargados vía CSV / GeoJSON"
+            label="Avance Global Ciudad"
+            value={`${stats.progresoGlobalLuminarias}%`}
+            subValue={`${stats.puntosTotales} de ${stats.objetivoGlobal} luminarias`}
             color="bg-purple-500"
-            trend={stats.puntosTotales > 0 ? "¡Nuevos datos!" : undefined}
+            trend={stats.puntosTotales > 0 ? "Actualizado" : undefined}
           />
           <StatCard
             icon={Clock}
