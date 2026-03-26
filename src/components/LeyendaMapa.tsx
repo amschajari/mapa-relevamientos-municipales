@@ -58,8 +58,8 @@ export const LeyendaMapa = () => {
       <div className="mt-2 pt-2 border-t border-gray-100">
         <div className="flex items-start gap-1.5">
           <Info className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-[9px] leading-tight text-gray-500">
-            Haz clic en un barrio para ver detalles.
+          <p className="text-[9px] leading-tight text-gray-500 italic">
+            Para verlos, actívalos en el panel de capas.
           </p>
         </div>
       </div>
