@@ -227,7 +227,7 @@ const OfficialPointsLayer = () => {
       
       {visibleLayers.luminarias && filteredPoints.length > 0 && (
         <MarkerClusterGroup
-          key={`cluster-group-${filteredPoints.length}-${mapFilters.estadosBase.join(',')}-${mapFilters.barrio}`}
+          key={`cluster-group-${filteredPoints.length}-${(mapFilters.estadosBase || []).join(',')}-${mapFilters.barrio}`}
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}
           maxClusterRadius={40}
