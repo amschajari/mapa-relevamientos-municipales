@@ -21,11 +21,15 @@ interface ControlMapProps {
 }
 
 // Componente para el Mapa de Calor
-const HeatmapLayer = ({ points }: { points: any[] }) => {
+const HeatmapLayer = ({ points, isFiltered }: { points: any[], isFiltered: boolean }) => {
   const map = useMap()
 
   useEffect(() => {
     if (!points || points.length === 0) return
+
+    // Si hay filtros aplicados, cada punto debe brillar con más fuerza
+    // para compensar la menor densidad y que el mapa no se vea "lavado"
+    const intensity = isFiltered ? 0.9 : 0.4
 
     const heatPoints = points.map(point => {
       let position: [number, number] = [0, 0]
@@ -38,20 +42,29 @@ const HeatmapLayer = ({ points }: { points: any[] }) => {
       } else if (point.geom.type === 'Point') {
         position = [point.geom.coordinates[1], point.geom.coordinates[0]]
       }
-      return [...position, 0.5] // [lat, lng, intensidad]
+      return [...position, intensity] 
     })
 
+    // Ajustar el radio: si hay pocos puntos, los hacemos un poco más grandes 
+    // para que se fusionen mejor visualmente
+    const dynamicRadius = isFiltered ? 30 : 22
+
     const heatLayer = (L as any).heatLayer(heatPoints, {
-      radius: 20,
+      radius: dynamicRadius,
       blur: 15,
       maxZoom: 18,
-      gradient: { 0.4: 'blue', 0.6: 'cyan', 0.7: 'lime', 0.8: 'yellow', 1: 'red' }
+      gradient: { 
+        0.4: '#fde047', // Amarillo
+        0.6: '#f97316', // Naranja
+        0.8: '#ef4444', // Rojo
+        1.0: '#991b1b'  // Rojo Sangre
+      }
     }).addTo(map)
 
     return () => {
       map.removeLayer(heatLayer)
     }
-  }, [map, points])
+  }, [map, points, isFiltered])
 
   return null
 }
@@ -118,16 +131,19 @@ const OfficialPointsLayer = () => {
         return false
       }
 
-      // Filtrar por Estado de Base
-      if (mapFilters.estadoBase) {
+      // Filtrar por Estados de Base (Multi-selección)
+      if (mapFilters.estadosBase && mapFilters.estadosBase.length > 0) {
         const estadoBaseStr = (point.estado_base || props.estado_base || '').toLowerCase()
         const isSinBase = estadoBaseStr.includes('sin base')
         const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
         const isOk = !isSinBase && !isMala && estadoBaseStr !== ''
 
-        if (mapFilters.estadoBase === 'ok' && !isOk) return false
-        if (mapFilters.estadoBase === 'malas' && !isMala) return false
-        if (mapFilters.estadoBase === 'sin_base' && !isSinBase) return false
+        // Comprobar si alguno de los filtros seleccionados coincide
+        const matchesOk = mapFilters.estadosBase.includes('ok') && isOk
+        const matchesMalas = mapFilters.estadosBase.includes('malas') && isMala
+        const matchesSinBase = mapFilters.estadosBase.includes('sin_base') && isSinBase
+
+        if (!matchesOk && !matchesMalas && !matchesSinBase) return false
       }
 
       return true
@@ -156,7 +172,10 @@ const OfficialPointsLayer = () => {
   return (
     <>
       {visibleLayers.heatmap && filteredPoints.length > 0 && (
-        <HeatmapLayer points={filteredPoints} />
+        <HeatmapLayer 
+          points={filteredPoints} 
+          isFiltered={mapFilters.estadosBase && mapFilters.estadosBase.length > 0} 
+        />
       )}
       
       {visibleLayers.luminarias && filteredPoints.length > 0 && (

@@ -23,22 +23,22 @@ interface BarrioState {
   session: any | null
   jornadas: JornadaRelevamiento[]
   visibleLayers: {
-  barrios: boolean
-  luminarias: boolean
-  heatmap: boolean
+    barrios: boolean
+    luminarias: boolean
+    heatmap: boolean
   }
   activeBaseMap: 'osm' | 'satellite'
   officialPoints: any[]
   discoveryPoints: any[]
   mapFilters: {
-  barrio: string
-  estadoBase: string
+    barrio: string
+    estadosBase: string[]
   }
   config: {
-  agentesActuales: number
-  horasPorSalida: number
-  luminariasPorSalida: number  // ritmo observado (ej: 85 con 2 agentes)
-  salidasPorSemana: number
+    agentesActuales: number
+    horasPorSalida: number
+    luminariasPorSalida: number  // ritmo observado (ej: 85 con 2 agentes)
+    salidasPorSemana: number
   }
   // Nuevos estados para configuración desde Supabase
   appConfigLoaded: boolean
@@ -61,7 +61,7 @@ interface BarrioState {
   fetchOfficialPoints: () => Promise<void>
   resetOfficialPoints: (barrioId: string) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
-  setMapFilter: (key: 'barrio' | 'estadoBase', value: string) => void
+  setMapFilter: (key: 'barrio' | 'estadosBase', value: string | string[]) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
   addBarrio: (barrio: Omit<Barrio, 'id'>) => Promise<Barrio>
   setConfig: (configUpdate: Partial<BarrioState['config']>) => void
@@ -101,7 +101,7 @@ export const useBarrioStore = create<BarrioState>()(
       discoveryPoints: [],
       mapFilters: {
         barrio: '',
-        estadoBase: ''
+        estadosBase: []
       },
       config: {
         agentesActuales: 2,
@@ -597,7 +597,7 @@ export const useBarrioStore = create<BarrioState>()(
 
       setActiveBaseMap: (baseMap: 'osm' | 'satellite') => set({ activeBaseMap: baseMap }),
 
-      setMapFilter: (filter: 'barrio' | 'estadoBase', value: string) => set((state: BarrioState) => ({
+      setMapFilter: (filter: 'barrio' | 'estadosBase', value: string | string[]) => set((state: BarrioState) => ({
         mapFilters: {
           ...state.mapFilters,
           [filter]: value

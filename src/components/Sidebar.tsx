@@ -51,11 +51,19 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
 
   // Opciones únicas de estado_base extraídas de los puntos oficiales (o hardcodeadas por ahora)
   const estadoBaseOptions = [
-    { value: '', label: 'Todos' },
-    { value: 'ok', label: 'En buenas condiciones' },
-    { value: 'malas', label: 'Malas condiciones / Deteriorada' },
-    { value: 'sin_base', label: 'Sin base' }
+    { value: 'ok', label: 'En buenas condiciones', color: 'bg-green-500' },
+    { value: 'malas', label: 'Deteriorada / Mala', color: 'bg-red-500' },
+    { value: 'sin_base', label: 'Sin base', color: 'bg-orange-500' }
   ]
+
+  const toggleEstadoBase = (value: string) => {
+    const current = mapFilters.estadosBase || []
+    if (current.includes(value)) {
+      setMapFilter('estadosBase', current.filter(v => v !== value))
+    } else {
+      setMapFilter('estadosBase', [...current, value])
+    }
+  }
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard },
@@ -168,17 +176,31 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-600 block">Estado de Base</label>
-                <select
-                  value={mapFilters.estadoBase}
-                  onChange={(e) => setMapFilter('estadoBase', e.target.value)}
-                  className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
-                >
-                  {estadoBaseOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-600 block">Estados de Base</label>
+                <div className="space-y-1.5">
+                  {estadoBaseOptions.map(opt => {
+                    const isSelected = (mapFilters.estadosBase || []).includes(opt.value)
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => toggleEstadoBase(opt.value)}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold transition-all border",
+                          isSelected 
+                            ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
+                            : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          isSelected ? opt.color : "bg-gray-300"
+                        )} />
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </div>

@@ -74,10 +74,13 @@ Si necesitas trabajar con datos de prueba, colócalos en tu ambiente local y no 
 
 ## Estado Actual de Desarrollo
 
-- **Rama Activa:** `feat/heat-maps`
-- **Última Funcionalidad:** Implementación de Mapas de Calor (Heat Maps) para visualización de densidad de luminarias y estados críticos.
-- **Documentación Nueva:** `HEAT_MAPS.md` contiene toda la lógica técnica y plan de iteración.
-- **Próximos Pasos:** Implementar multi-selección de filtros para visualización de "Urgencias" combinadas (Sin base + Deterioradas).
+- **Rama Activa:** `feat/heat-maps` (Sincronizada con GitHub)
+- **Última Funcionalidad:** 
+  - Multi-selección de estados de base para análisis de urgencia combinada.
+  - Mapa de calor dinámico con gradiente rojo/amarillo.
+  - Lógica de compensación de intensidad para puntos filtrados.
+- **Documentación:** Ver `HEAT_MAPS.md` para detalles técnicos de implementación.
+- **Próximos Pasos:** Normalización por superficie y controles de intensidad manuales.
 
 **Actualizado:** 2026-03-27
-**Motivo:** Implementación de Mapas de Calor e inicio de rama de features.
+**Motivo:** Finalización de la primera fase de Mapas de Calor con filtros múltiples e intensidad dinámica.
