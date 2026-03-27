@@ -72,5 +72,15 @@ Si necesitas trabajar con datos de prueba, colócalos en tu ambiente local y no 
 
 ---
 
-**Actualizado:** 2026-03-19
-**Motivo:** Correcciones de seguridad - migración de credenciales a variables de entorno
+## Estado Actual de Desarrollo
+
+- **Rama Activa:** `feat/heat-maps` (Sincronizada con GitHub)
+- **Hito Alcanzado:** Refactor de alto rendimiento para Mapas de Calor.
+- **Cambios Clave:**
+  - Uso de `useRef` y `setLatLngs()` para actualizaciones ultra-fluidas.
+  - Multi-selección funcional en Desktop y Móvil.
+  - Inteligencia de capa basada en ratio de densidad.
+- **Documentación Final:** `HEAT_MAPS.md`.
+
+**Actualizado:** 2026-03-27
+**Motivo:** Cierre de jornada con refactor de rendimiento y soporte móvil completado.

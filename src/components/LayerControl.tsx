@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Layers, Check } from 'lucide-react';
+import { Layers, Check, Flame } from 'lucide-react';
 import { useBarrioStore } from '@/stores/barrioStore';
 import { cn } from '@/lib/utils';
 
@@ -74,9 +74,28 @@ export const LayerControl = () => {
                 "w-2 h-2 rounded-full",
                 visibleLayers.luminarias ? "bg-blue-500" : "bg-gray-300"
               )} />
-              Luminarias (Oficial)
+              Luminarias (Puntos)
             </div>
             {visibleLayers.luminarias && <Check className="w-4 h-4" />}
+          </button>
+
+          <button
+            onClick={() => toggleLayer('heatmap')}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+              visibleLayers.heatmap 
+                ? "bg-orange-50 text-orange-700" 
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Flame className={cn(
+                "w-4 h-4",
+                visibleLayers.heatmap ? "text-orange-500" : "text-gray-300"
+              )} />
+              Mapa de Calor
+            </div>
+            {visibleLayers.heatmap && <Check className="w-4 h-4" />}
           </button>
 
           {/* Mapas Base */}

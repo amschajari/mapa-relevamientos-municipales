@@ -25,13 +25,14 @@ interface BarrioState {
   visibleLayers: {
     barrios: boolean
     luminarias: boolean
+    heatmap: boolean
   }
   activeBaseMap: 'osm' | 'satellite'
   officialPoints: any[]
   discoveryPoints: any[]
   mapFilters: {
     barrio: string
-    estadoBase: string
+    estadosBase: string[]
   }
   config: {
     agentesActuales: number
@@ -56,11 +57,11 @@ interface BarrioState {
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
   fetchJornadas: (barrioId: string) => Promise<void>
   addJornada: (jornada: Omit<JornadaRelevamiento, 'id' | 'creadoPor'>) => Promise<void>
-  toggleLayer: (layer: 'barrios' | 'luminarias') => void
+  toggleLayer: (layer: 'barrios' | 'luminarias' | 'heatmap') => void
   fetchOfficialPoints: () => Promise<void>
   resetOfficialPoints: (barrioId: string) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
-  setMapFilter: (key: 'barrio' | 'estadoBase', value: string) => void
+  setMapFilter: (key: 'barrio' | 'estadosBase', value: string | string[]) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
   addBarrio: (barrio: Omit<Barrio, 'id'>) => Promise<Barrio>
   setConfig: (configUpdate: Partial<BarrioState['config']>) => void
@@ -92,14 +93,15 @@ export const useBarrioStore = create<BarrioState>()(
       jornadas: [],
       visibleLayers: {
         barrios: false,
-        luminarias: true
+        luminarias: true,
+        heatmap: false
       },
       activeBaseMap: 'osm',
       officialPoints: [],
       discoveryPoints: [],
       mapFilters: {
         barrio: '',
-        estadoBase: ''
+        estadosBase: []
       },
       config: {
         agentesActuales: 2,
@@ -540,7 +542,7 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      toggleLayer: (layer: 'barrios' | 'luminarias') => {
+      toggleLayer: (layer: 'barrios' | 'luminarias' | 'heatmap') => {
         set((state: BarrioState) => ({
           visibleLayers: {
             ...state.visibleLayers,
@@ -595,7 +597,7 @@ export const useBarrioStore = create<BarrioState>()(
 
       setActiveBaseMap: (baseMap: 'osm' | 'satellite') => set({ activeBaseMap: baseMap }),
 
-      setMapFilter: (filter: 'barrio' | 'estadoBase', value: string) => set((state: BarrioState) => ({
+      setMapFilter: (filter: 'barrio' | 'estadosBase', value: string | string[]) => set((state: BarrioState) => ({
         mapFilters: {
           ...state.mapFilters,
           [filter]: value
