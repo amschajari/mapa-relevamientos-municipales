@@ -53,7 +53,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
   const estadoBaseOptions = [
     { value: 'ok', label: 'En buenas condiciones', color: 'bg-green-500' },
     { value: 'malas', label: 'Deteriorada / Mala', color: 'bg-red-500' },
-    { value: 'sin_base', label: 'Sin base', color: 'bg-orange-500' }
+    { value: 'sin_base', label: 'Sin base', color: 'bg-yellow-400' }
   ]
 
   const toggleEstadoBase = (value: string) => {
@@ -82,13 +82,13 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
       )}
     >
       {/* Header */}
-      <div className="h-20 border-b border-gray-200 flex items-center justify-between px-4">
+      <div className="h-24 border-b border-gray-200 flex items-center justify-between px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shrink-0">
               <Map className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0 mr-2 py-3">
+            <div className="flex-1 min-w-0 mr-2 py-4">
               <h1 className="text-sm font-black text-gray-900 leading-[1.1] mb-0.5 break-words">
                 Gestión de Relevamientos Municipales
               </h1>

@@ -215,7 +215,7 @@ const OfficialPointsLayer = () => {
       iconSize: L.point(40, 40, true),
     });
   };
-  
+
   return (
     <>
       {visibleLayers.heatmap && filteredPoints.length > 0 && (
@@ -234,6 +234,7 @@ const OfficialPointsLayer = () => {
           showCoverageOnHover={true}
           spiderfyOnMaxZoom={true}
           zoomToBoundsOnClick={true}
+          disableClusteringAtZoom={18}
         >
           {filteredPoints.map((point: any, idx: number) => {
             if (!point.geom) return null;
@@ -257,7 +258,7 @@ const OfficialPointsLayer = () => {
             const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
             const isSinBase = estadoBaseStr.includes('sin base')
             
-            const pinColor = isMala ? '#ef4444' : (isSinBase ? '#f97316' : '#0ea5e9')
+            const pinColor = isMala ? '#ef4444' : (isSinBase ? '#facc15' : '#0ea5e9')
             
             return (
               <CircleMarker
@@ -337,7 +338,7 @@ const OfficialPointsLayer = () => {
                                   estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') 
                                     ? 'text-red-500' 
                                     : estadoBase.toLowerCase().includes('sin base')
-                                      ? 'text-orange-500'
+                                      ? 'text-yellow-600'
                                       : 'text-green-600'
                                 )}>
                                   {estadoBase}
@@ -361,7 +362,6 @@ const OfficialPointsLayer = () => {
                     </div>
                   </div>
                 </Popup>
-
               </CircleMarker>
             )
           })}
@@ -520,6 +520,7 @@ export const ControlMap = ({
       <MapContainer
         center={center}
         zoom={defaultZoom}
+        maxZoom={18}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
@@ -527,11 +528,15 @@ export const ControlMap = ({
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={18}
+            maxNativeZoom={18}
           />
         ) : (
           <TileLayer
             attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={18}
+            maxNativeZoom={18}
           />
         )}
 

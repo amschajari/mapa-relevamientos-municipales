@@ -1,4 +1,4 @@
-import { MapPin, Info } from 'lucide-react'
+import { MapPin, Info, Lightbulb } from 'lucide-react'
 
 interface LeyendaItem {
   color: string
@@ -6,62 +6,67 @@ interface LeyendaItem {
   description: string
 }
 
-const items: LeyendaItem[] = [
-  {
-    color: '#9ca3af',
-    label: 'Pendiente',
-    description: 'Sin iniciar',
-  },
-  {
-    color: '#f59e0b',
-    label: 'En Progreso',
-    description: 'Relevamiento activo',
-  },
-  {
-    color: '#10b981',
-    label: 'Completado',
-    description: 'Relevamiento finalizado',
-  },
-  {
-    color: '#ef4444',
-    label: 'Pausado',
-    description: 'Trabajo suspendido',
-  },
+const barrioItems: LeyendaItem[] = [
+  { color: '#9ca3af', label: 'Pendiente', description: 'Sin iniciar' },
+  { color: '#f59e0b', label: 'En Progreso', description: 'Relevamiento activo' },
+  { color: '#10b981', label: 'Completado', description: 'Relevamiento finalizado' },
+  { color: '#ef4444', label: 'Pausado', description: 'Trabajo suspendido' },
+]
+
+const luminariaItems: LeyendaItem[] = [
+  { color: '#0ea5e9', label: 'Base Buena', description: 'En condiciones' },
+  { color: '#ef4444', label: 'Base Mala', description: 'Deteriorada' },
+  { color: '#facc15', label: 'Sin Base', description: 'Falta base' },
+  { color: '#6b7280', label: 'Apagada', description: 'Sin luz / Quemada' },
 ]
 
 export const LeyendaMapa = () => {
   return (
-    <div className="hidden sm:block bg-white/95 backdrop-blur p-3 rounded-xl shadow-lg border border-gray-200 max-w-[170px]">
-      <div className="flex items-center gap-2 mb-2">
-        <MapPin className="w-3.5 h-3.5 text-gray-600" />
-        <span className="font-bold text-gray-800 text-[11px] uppercase tracking-wider">Estado Barrios</span>
+    <div className="hidden sm:block bg-white/95 backdrop-blur p-4 rounded-[22px] shadow-2xl border border-gray-100 max-w-[210px] animate-in fade-in slide-in-from-right-6 duration-500">
+      {/* Sección Barrios */}
+      <div className="flex items-center gap-3 mb-4">
+        <MapPin className="w-4 h-4 text-sky-500" />
+        <span className="font-extrabold text-sky-600 text-[12px] uppercase tracking-[0.2em] leading-none">Barrios</span>
       </div>
 
-      <div className="space-y-1.5">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-2.5">
+      <div className="space-y-3 mb-6">
+        {barrioItems.map((item) => (
+          <div key={item.label} className="flex items-center gap-3.5 group">
             <div
-              className="w-3 h-3 rounded shadow-sm shrink-0"
-              style={{
-                backgroundColor: item.color,
-                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-              }}
+              className="w-3.5 h-3.5 rounded-sm shrink-0 transition-transform group-hover:scale-110 shadow-sm"
+              style={{ backgroundColor: item.color }}
             />
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-gray-700 leading-none">{item.label}</p>
-              <p className="text-[9px] text-gray-400 truncate">{item.description}</p>
-            </div>
+            <p className="text-[13px] font-black text-gray-700 leading-none">{item.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-2 pt-2 border-t border-gray-100">
-        <div className="flex items-start gap-1.5">
-          <Info className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-[9px] leading-tight text-gray-500 italic">
-            Para verlos, actívalos en el panel de capas.
-          </p>
-        </div>
+      {/* Sección Luminarias */}
+      <div className="flex items-center gap-3 mb-4 pt-5 border-t border-gray-100/50">
+        <Lightbulb className="w-4 h-4 text-sky-500" />
+        <span className="font-extrabold text-sky-600 text-[12px] uppercase tracking-[0.2em] leading-none">Luminarias</span>
+      </div>
+
+      <div className="space-y-3">
+        {luminariaItems.map((item) => (
+          <div key={item.label} className="flex items-center gap-3.5 group">
+            <div
+              className="w-3.5 h-3.5 rounded-full shrink-0 transition-transform group-hover:scale-110 shadow-md"
+              style={{ 
+                backgroundColor: item.color,
+                border: item.label === 'Apagada' ? '1.5px solid #4b5563' : 'none'
+              }}
+            />
+            <p className="text-[13px] font-black text-gray-700 leading-none">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 pt-3 border-t border-gray-100/50 flex items-start gap-2.5">
+        <Info className="w-4 h-4 text-blue-400 mt-0.5" />
+        <p className="text-[10px] leading-snug text-gray-400 italic font-medium">
+          Activa las capas para ver los detalles.
+        </p>
       </div>
     </div>
   )

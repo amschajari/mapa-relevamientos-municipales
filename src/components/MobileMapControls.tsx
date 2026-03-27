@@ -98,7 +98,7 @@ export const MobileMapControls = () => {
   const estadoBaseOptions = [
     { value: 'ok', label: 'En buenas condiciones', color: 'bg-green-500' },
     { value: 'malas', label: 'Deteriorada / Mala', color: 'bg-red-500' },
-    { value: 'sin_base', label: 'Sin base', color: 'bg-orange-500' },
+    { value: 'sin_base', label: 'Sin base', color: 'bg-yellow-400' },
   ]
 
   const toggleEstadoBase = (value: string) => {
