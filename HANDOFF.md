@@ -72,5 +72,12 @@ Si necesitas trabajar con datos de prueba, colócalos en tu ambiente local y no 
 
 ---
 
-**Actualizado:** 2026-03-19
-**Motivo:** Correcciones de seguridad - migración de credenciales a variables de entorno
+## Estado Actual de Desarrollo
+
+- **Rama Activa:** `feat/heat-maps`
+- **Última Funcionalidad:** Implementación de Mapas de Calor (Heat Maps) para visualización de densidad de luminarias y estados críticos.
+- **Documentación Nueva:** `HEAT_MAPS.md` contiene toda la lógica técnica y plan de iteración.
+- **Próximos Pasos:** Implementar multi-selección de filtros para visualización de "Urgencias" combinadas (Sin base + Deterioradas).
+
+**Actualizado:** 2026-03-27
+**Motivo:** Implementación de Mapas de Calor e inicio de rama de features.

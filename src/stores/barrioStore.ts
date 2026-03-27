@@ -23,21 +23,22 @@ interface BarrioState {
   session: any | null
   jornadas: JornadaRelevamiento[]
   visibleLayers: {
-    barrios: boolean
-    luminarias: boolean
+  barrios: boolean
+  luminarias: boolean
+  heatmap: boolean
   }
   activeBaseMap: 'osm' | 'satellite'
   officialPoints: any[]
   discoveryPoints: any[]
   mapFilters: {
-    barrio: string
-    estadoBase: string
+  barrio: string
+  estadoBase: string
   }
   config: {
-    agentesActuales: number
-    horasPorSalida: number
-    luminariasPorSalida: number  // ritmo observado (ej: 85 con 2 agentes)
-    salidasPorSemana: number
+  agentesActuales: number
+  horasPorSalida: number
+  luminariasPorSalida: number  // ritmo observado (ej: 85 con 2 agentes)
+  salidasPorSemana: number
   }
   // Nuevos estados para configuración desde Supabase
   appConfigLoaded: boolean
@@ -56,7 +57,7 @@ interface BarrioState {
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
   fetchJornadas: (barrioId: string) => Promise<void>
   addJornada: (jornada: Omit<JornadaRelevamiento, 'id' | 'creadoPor'>) => Promise<void>
-  toggleLayer: (layer: 'barrios' | 'luminarias') => void
+  toggleLayer: (layer: 'barrios' | 'luminarias' | 'heatmap') => void
   fetchOfficialPoints: () => Promise<void>
   resetOfficialPoints: (barrioId: string) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
@@ -92,7 +93,8 @@ export const useBarrioStore = create<BarrioState>()(
       jornadas: [],
       visibleLayers: {
         barrios: false,
-        luminarias: true
+        luminarias: true,
+        heatmap: false
       },
       activeBaseMap: 'osm',
       officialPoints: [],
@@ -540,7 +542,7 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      toggleLayer: (layer: 'barrios' | 'luminarias') => {
+      toggleLayer: (layer: 'barrios' | 'luminarias' | 'heatmap') => {
         set((state: BarrioState) => ({
           visibleLayers: {
             ...state.visibleLayers,

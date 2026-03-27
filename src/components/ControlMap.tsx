@@ -2,6 +2,7 @@ import { useEffect, useCallback, useMemo, useRef } from 'react'
 import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Popup } from 'react-leaflet'
 import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
+import 'leaflet.heat'
 import type { GeoJsonObject } from 'geojson'
 import type { Barrio, TareaRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
@@ -17,6 +18,42 @@ interface ControlMapProps {
   onBarrioClick?: (barrio: Barrio) => void
   selectedBarrio?: Barrio | null
   onEditBarrio?: (barrio: Barrio) => void
+}
+
+// Componente para el Mapa de Calor
+const HeatmapLayer = ({ points }: { points: any[] }) => {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!points || points.length === 0) return
+
+    const heatPoints = points.map(point => {
+      let position: [number, number] = [0, 0]
+      if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
+        const match = point.geom.match(/\((.*)\)/);
+        if (match) {
+          const coords = match[1].split(' ');
+          position = [parseFloat(coords[1]), parseFloat(coords[0])]
+        }
+      } else if (point.geom.type === 'Point') {
+        position = [point.geom.coordinates[1], point.geom.coordinates[0]]
+      }
+      return [...position, 0.5] // [lat, lng, intensidad]
+    })
+
+    const heatLayer = (L as any).heatLayer(heatPoints, {
+      radius: 20,
+      blur: 15,
+      maxZoom: 18,
+      gradient: { 0.4: 'blue', 0.6: 'cyan', 0.7: 'lime', 0.8: 'yellow', 1: 'red' }
+    }).addTo(map)
+
+    return () => {
+      map.removeLayer(heatLayer)
+    }
+  }, [map, points])
+
+  return null
 }
 
 // Componente para ajustar la vista a los bounds del GeoJSON
@@ -116,150 +153,155 @@ const OfficialPointsLayer = () => {
     });
   };
   
-  if (!visibleLayers.luminarias || !filteredPoints || filteredPoints.length === 0) return null
-
   return (
-    <MarkerClusterGroup
-      key={`cluster-group-${filteredPoints.length}-${mapFilters.estadoBase}-${mapFilters.barrio}`}
-      chunkedLoading
-      iconCreateFunction={createClusterCustomIcon}
-      maxClusterRadius={40}
-      showCoverageOnHover={true}
-      spiderfyOnMaxZoom={true}
-      zoomToBoundsOnClick={true}
-    >
-      {filteredPoints.map((point: any, idx: number) => {
-        if (!point.geom) return null;
-        
-        let position: [number, number] = [0, 0]
-        
-        if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
-          const match = point.geom.match(/\((.*)\)/);
-          if (match) {
-            const coords = match[1].split(' ');
-            position = [parseFloat(coords[1]), parseFloat(coords[0])]
-          }
-        } else if (point.geom.type === 'Point') {
-          position = [point.geom.coordinates[1], point.geom.coordinates[0]]
-        }
+    <>
+      {visibleLayers.heatmap && filteredPoints.length > 0 && (
+        <HeatmapLayer points={filteredPoints} />
+      )}
+      
+      {visibleLayers.luminarias && filteredPoints.length > 0 && (
+        <MarkerClusterGroup
+          key={`cluster-group-${filteredPoints.length}-${mapFilters.estadoBase}-${mapFilters.barrio}`}
+          chunkedLoading
+          iconCreateFunction={createClusterCustomIcon}
+          maxClusterRadius={40}
+          showCoverageOnHover={true}
+          spiderfyOnMaxZoom={true}
+          zoomToBoundsOnClick={true}
+        >
+          {filteredPoints.map((point: any, idx: number) => {
+            if (!point.geom) return null;
+            
+            let position: [number, number] = [0, 0]
+            
+            if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
+              const match = point.geom.match(/\((.*)\)/);
+              if (match) {
+                const coords = match[1].split(' ');
+                position = [parseFloat(coords[1]), parseFloat(coords[0])]
+              }
+            } else if (point.geom.type === 'Point') {
+              position = [point.geom.coordinates[1], point.geom.coordinates[0]]
+            }
 
-        const name = point.nombre || `L-${idx + 1}`
-        
-        // Determinar si poner el pin en rojo (mala) o naranja (sin base)
-        const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase()
-        const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
-        const isSinBase = estadoBaseStr.includes('sin base')
-        
-        const pinColor = isMala ? '#ef4444' : (isSinBase ? '#f97316' : '#0ea5e9')
-        
-        return (
-          <CircleMarker
-            key={`official-${point.id}`}
-            center={position}
-            radius={6}
-            pane="markerPane"
-            pathOptions={{
-              fillColor: pinColor,
-              color: '#ffffff',
-              weight: 2,
-              fillOpacity: 0.9,
-              pane: 'markerPane'
-            }}
-          >
-            <Popup 
-              className="luminaria-popup"
-              minWidth={200}
-            >
-              <div className="px-2 py-2 min-w-[190px]">
-                {/* Header */}
-                <div className="flex items-center gap-1 border-b border-sky-100 pb-1 mb-2">
-                  <span className="text-base">💡</span>
-                  <div className="text-sm font-black text-sky-600 leading-tight">{name}</div>
-                </div>
+            const name = point.nombre || `L-${idx + 1}`
+            
+            // Determinar si poner el pin en rojo (mala) o naranja (sin base)
+            const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase()
+            const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
+            const isSinBase = estadoBaseStr.includes('sin base')
+            
+            const pinColor = isMala ? '#ef4444' : (isSinBase ? '#f97316' : '#0ea5e9')
+            
+            return (
+              <CircleMarker
+                key={`official-${point.id}`}
+                center={position}
+                radius={6}
+                pane="markerPane"
+                pathOptions={{
+                  fillColor: pinColor,
+                  color: '#ffffff',
+                  weight: 2,
+                  fillOpacity: 0.9,
+                  pane: 'markerPane'
+                }}
+              >
+                <Popup 
+                  className="luminaria-popup"
+                  minWidth={200}
+                >
+                  <div className="px-2 py-2 min-w-[190px]">
+                    {/* Header */}
+                    <div className="flex items-center gap-1 border-b border-sky-100 pb-1 mb-2">
+                      <span className="text-base">💡</span>
+                      <div className="text-sm font-black text-sky-600 leading-tight">{name}</div>
+                    </div>
 
-                {/* Campos enriquecidos */}
-                {/* Campos enriquecidos */}
-                <div className="space-y-1 text-xs text-gray-700">
-                  {/* Leer de `propiedades` (JSONB) con fallback en raíz del objeto */}
-                  {(() => {
-                    const props = point.propiedades || {}
-                    const direccion = point.direccion || props.direccion || ''
-                    const barrioNombre = point.barrio_nombre || props.barrio || ''
-                    const sinLuzRaw = point.sin_luz ?? props.sin_luz
-                    const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
+                    {/* Campos enriquecidos */}
+                    <div className="space-y-1 text-xs text-gray-700">
+                      {/* Leer de `propiedades` (JSONB) con fallback en raíz del objeto */}
+                      {(() => {
+                        const props = point.propiedades || {}
+                        const direccion = point.direccion || props.direccion || ''
+                        const barrioNombre = point.barrio_nombre || props.barrio || ''
+                        const sinLuzRaw = point.sin_luz ?? props.sin_luz
+                        const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
 
-                    const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia || ''
-                    const estadoBase = point.estado_base || props.estado_base || ''
-                    const cableado = point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado || ''
-                    const medidor = props.medidor || point.medidor || ''
+                        const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia || ''
+                        const estadoBase = point.estado_base || props.estado_base || ''
+                        const cableado = point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado || ''
+                        const medidor = props.medidor || point.medidor || ''
 
-                    return (
-                      <>
-                        {direccion && (
-                          <div className="flex items-start gap-1">
-                            <span className="text-gray-400 w-4 shrink-0">📍</span>
-                            <span>{direccion}</span>
-                          </div>
-                        )}
-                        <div className="flex items-start gap-1">
-                          <span className="text-gray-400 w-4 shrink-0 font-bold text-[10px] mt-0.5">LOC</span>
-                          <span className="font-semibold text-gray-700">{barrioNombre || 'Sin barrio'}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400 w-4 shrink-0 text-orange-400">⚡</span>
-                          <span className="text-gray-600 font-medium">
-                            {tipo || 'Luminaria'}
-                            {cableado && (
-                              <span className="ml-2 px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[11px] text-gray-600 flex items-center gap-1 inline-flex align-middle">
-                                <span>🔌</span> {cableado}
-                              </span>
+                        return (
+                          <>
+                            {direccion && (
+                              <div className="flex items-start gap-1">
+                                <span className="text-gray-400 w-4 shrink-0">📍</span>
+                                <span>{direccion}</span>
+                              </div>
                             )}
-                          </span>
-                        </div>
-                        {medidor && (
-                          <div className="flex items-start gap-1">
-                            <span className="text-gray-400 w-4 shrink-0 text-[10px]">⏲️</span>
-                            <span>Medidor: {medidor}</span>
-                          </div>
-                        )}
-                        {estadoBase && (
-                          <div className="flex items-start gap-1">
-                            <span className="text-gray-400 w-4 shrink-0">🔩</span>
-                            <span className={cn(
-                              "font-semibold",
-                              estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') 
-                                ? 'text-red-500' 
-                                : estadoBase.toLowerCase().includes('sin base')
-                                  ? 'text-orange-500'
-                                  : 'text-green-600'
-                            )}>
-                              {estadoBase}
-                            </span>
-                          </div>
-                        )}
-                        {sinLuz && (
-                          <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
-                            <span className="text-[10px] animate-pulse">🔴</span>
-                            <span className="text-red-600 font-bold uppercase text-[10px]">Punto Apagado</span>
-                          </div>
-                        )}
-                      </>
-                    )
-                  })()}
-                </div>
+                            <div className="flex items-start gap-1">
+                              <span className="text-gray-400 w-4 shrink-0 font-bold text-[10px] mt-0.5">LOC</span>
+                              <span className="font-semibold text-gray-700">{barrioNombre || 'Sin barrio'}</span>
+                            </div>
 
-                {/* Footer: Coordenadas */}
-                <div className="border-t border-gray-100 pt-1 mt-2 text-[10px] text-gray-400 font-mono">
-                  {position[0].toFixed(5)}, {position[1].toFixed(5)}
-                </div>
-              </div>
-            </Popup>
+                            <div className="flex items-center gap-1">
+                              <span className="text-gray-400 w-4 shrink-0 text-orange-400">⚡</span>
+                              <span className="text-gray-600 font-medium">
+                                {tipo || 'Luminaria'}
+                                {cableado && (
+                                  <span className="ml-2 px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[11px] text-gray-600 flex items-center gap-1 inline-flex align-middle">
+                                    <span>🔌</span> {cableado}
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                            {medidor && (
+                              <div className="flex items-start gap-1">
+                                <span className="text-gray-400 w-4 shrink-0 text-[10px]">⏲️</span>
+                                <span>Medidor: {medidor}</span>
+                              </div>
+                            )}
+                            {estadoBase && (
+                              <div className="flex items-start gap-1">
+                                <span className="text-gray-400 w-4 shrink-0">🔩</span>
+                                <span className={cn(
+                                  "font-semibold",
+                                  estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') 
+                                    ? 'text-red-500' 
+                                    : estadoBase.toLowerCase().includes('sin base')
+                                      ? 'text-orange-500'
+                                      : 'text-green-600'
+                                )}>
+                                  {estadoBase}
+                                </span>
+                              </div>
+                            )}
+                            {sinLuz && (
+                              <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
+                                <span className="text-[10px] animate-pulse">🔴</span>
+                                <span className="text-red-600 font-bold uppercase text-[10px]">Punto Apagado</span>
+                              </div>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </div>
 
-          </CircleMarker>
-        )
-      })}
-    </MarkerClusterGroup>
+                    {/* Footer: Coordenadas */}
+                    <div className="border-t border-gray-100 pt-1 mt-2 text-[10px] text-gray-400 font-mono">
+                      {position[0].toFixed(5)}, {position[1].toFixed(5)}
+                    </div>
+                  </div>
+                </Popup>
+
+              </CircleMarker>
+            )
+          })}
+        </MarkerClusterGroup>
+      )}
+    </>
   )
 }
 
