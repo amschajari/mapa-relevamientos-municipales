@@ -75,12 +75,12 @@ Si necesitas trabajar con datos de prueba, colócalos en tu ambiente local y no 
 ## Estado Actual de Desarrollo
 
 - **Rama Activa:** `feat/heat-maps` (Sincronizada con GitHub)
-- **Última Funcionalidad:** 
-  - Multi-selección de estados de base para análisis de urgencia combinada.
-  - Mapa de calor dinámico con gradiente rojo/amarillo.
-  - Lógica de compensación de intensidad para puntos filtrados.
-- **Documentación:** Ver `HEAT_MAPS.md` para detalles técnicos de implementación.
-- **Próximos Pasos:** Normalización por superficie y controles de intensidad manuales.
+- **Hito Alcanzado:** Refactor de alto rendimiento para Mapas de Calor.
+- **Cambios Clave:**
+  - Uso de `useRef` y `setLatLngs()` para actualizaciones ultra-fluidas.
+  - Multi-selección funcional en Desktop y Móvil.
+  - Inteligencia de capa basada en ratio de densidad.
+- **Documentación Final:** `HEAT_MAPS.md`.
 
 **Actualizado:** 2026-03-27
-**Motivo:** Finalización de la primera fase de Mapas de Calor con filtros múltiples e intensidad dinámica.
+**Motivo:** Cierre de jornada con refactor de rendimiento y soporte móvil completado.

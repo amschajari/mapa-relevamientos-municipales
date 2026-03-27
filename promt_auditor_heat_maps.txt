@@ -1,0 +1,34 @@
+Rol: Actúa como un Senior Software Engineer & GIS Specialist. Tu objetivo es realizar una auditoría técnica y de
+  usabilidad sobre una nueva funcionalidad de Mapas de Calor (Heat Maps) implementada en el sistema de relevamientos
+  municipales.
+
+  Contexto del Proyecto:
+   * Rama de Trabajo: feat/heat-maps (Activa y sincronizada).
+   * Documento de Referencia: HEAT_MAPS.md (Contiene la lógica técnica y el roadmap).
+   * Stack: React, TypeScript, Zustand (Estado), Leaflet + leaflet.heat.
+
+  Lo que se ha implementado:
+   1. Capa de Calor Dinámica: Integración de leaflet.heat alimentada por los mismos filtros que los marcadores
+      oficiales.
+   2. Multi-selección de Filtros: Migración del estado estadoBase (string) a estadosBase (string[]) en el Store de
+      Zustand para permitir análisis combinados (ej. "Sin base" + "Mala").
+   3. Compensación de Intensidad: Lógica en el componente HeatmapLayer que detecta si el usuario está filtrando datos
+      (isFiltered) y, de ser así, aumenta automáticamente la intensidad (intensity: 0.9) y el radio (radius: 30) para
+      evitar que el mapa se vea "lavado" ante la baja densidad de puntos.
+   4. Estética de Urgencia: Gradiente personalizado de tonos cálidos (Amarillo -> Naranja -> Rojo -> Sangre) para
+      resaltar zonas críticas.
+
+  Tu Misión como Auditor:
+   1. Revisión de Código: Analiza src/components/ControlMap.tsx y src/stores/barrioStore.ts. ¿Es eficiente la lógica de
+      isFiltered? ¿Hay riesgos de memory leaks al añadir/quitar la capa de calor?
+   2. Validación de Usabilidad: Evalúa la experiencia de usuario al combinar filtros. ¿Es intuitiva la transición de
+      intensidad?
+   3. Proyección de Mejoras: Basado en el apartado "Próximos Pasos" de HEAT_MAPS.md, prioriza:
+       * Normalización por superficie: ¿Cómo podríamos ajustar la intensidad no solo por cantidad de puntos, sino por la
+         densidad relativa al área del barrio?
+       * Controles Manuales: Sugiere la mejor forma de implementar sliders de radio e intensidad sin sobrecargar la UI.
+   4. Detección de "Edge Cases": ¿Qué pasa si el usuario selecciona todos los barrios y todos los estados? ¿Cómo se
+      comporta el rendimiento con +5000 puntos?
+
+  Entregable: Un informe conciso con Observaciones Técnicas, Riesgos Identificados y Propuestas de Iteración para la
+  rama feat/heat-maps.

@@ -1,6 +1,6 @@
 # Implementación de Mapas de Calor (Heat Maps) 📊🔥
 
-> **Estado:** 🚧 Desarrollo Activo en rama `feat/heat-maps`
+> **Estado:** ✅ Refactor de Rendimiento Completado (Rama `feat/heat-maps`)
 > **Última actualización:** 2026-03-27
 
 Este documento detalla la lógica, dependencias y configuración utilizada para implementar la funcionalidad de Mapas de Calor en el proyecto **Mapa de Relevamientos Municipales**.
@@ -12,7 +12,7 @@ Se utiliza la biblioteca **`leaflet.heat`**, un plugin ligero y eficiente para L
 - **Instalación:** `npm install leaflet.heat`
 - **Tipos:** Se maneja mediante casting a `(L as any)` debido a que es un plugin clásico de Leaflet sin tipos nativos en el ecosistema moderno de React-Leaflet, pero totalmente compatible.
 
-## 2. Arquitectura de la Solución
+## 2. Arquitectura de la Solución (Refactorizada) ⚡
 
 ### A. Estado Global (Zustand)
 En `src/stores/barrioStore.ts`:
@@ -22,13 +22,16 @@ En `src/stores/barrioStore.ts`:
 ### B. Lógica de Filtrado (Consistencia de Datos)
 Para que el mapa de calor sea útil, **comparte la misma lógica de filtrado** que los pines oficiales:
 - El usuario puede seleccionar múltiples estados simultáneamente (ej. "Sin base" + "Deteriorada").
-- El mapa de calor siempre refleja exactamente lo que el usuario está filtrando en la Sidebar.
+- El mapa de calor siempre refleja exactamente lo que el usuario está filtrando en la Sidebar o en los controles móviles.
 
-### C. El Componente `HeatmapLayer`
-Ubicado en `src/components/ControlMap.tsx`, este componente:
-1. Recibe los puntos filtrados.
-2. Extrae las coordenadas de la geometría.
-3. Crea una instancia de `L.heatLayer` con un gradiente cálido profesional.
+### C. El Componente `HeatmapLayer` (Alto Rendimiento) 🚀
+Ubicado en `src/components/ControlMap.tsx`, este componente ha sido refactorizado siguiendo las mejores prácticas de GIS:
+1. **Instancia Persistente con `useRef`:** No se destruye la capa al filtrar; se usan `setLatLngs()` y `setOptions()` para actualizaciones ultra-fluidas.
+2. **Inteligencia de Capa (Ratio de Densidad):** La intensidad y el radio se ajustan automáticamente según el ratio de puntos visibles vs. totales.
+   - **Pocos puntos:** Mayor intensidad (0.9) y radio (30px).
+   - **Muchos puntos:** Menor intensidad (0.4) y radio (22px).
+3. **Validación de Coordenadas:** Parseo seguro que ignora geometrías corruptas o nulas, evitando "puntos fantasma".
+4. **Threshold de Seguridad:** Desactivación automática por encima de 5000 puntos para garantizar fluidez en móviles.
 
 ---
 
@@ -38,25 +41,18 @@ Ubicado en `src/components/ControlMap.tsx`, este componente:
 El mapa utiliza un gradiente de tonos cálidos para resaltar zonas críticas:
 - **Amarillo (`#fde047`)** -> **Naranja (`#f97316`)** -> **Rojo (`#ef4444`)** -> **Rojo Sangre (`#991b1b`)**.
 
-### Inteligencia de Capa (Compensación de Densidad)
-Para evitar que el mapa se vea "lavado" al aplicar filtros (cuando hay menos puntos), se implementó una lógica dinámica:
-- **Si NO hay filtros:** Radio de 22px e intensidad de 0.4.
-- **Si HAY filtros:** Radio de 30px e intensidad de 0.9.
-Esto asegura que los focos de problemas siempre sean visibles y definidos, sin importar cuántos puntos se estén visualizando.
-
 ---
 
 ## 4. Mejoras Implementadas ✅ (Rama: `feat/heat-maps`)
 
 ### Filtros Simultáneos (Urgencia) 🚀
-- **Logro:** Ahora el usuario puede combinar múltiples estados críticos para ver la acumulación de problemas en una sola vista de calor.
-- **UI:** Se implementó una botonera de selección múltiple en la Sidebar.
+- **Logro:** Soporte para multi-selección de estados en Desktop y Móvil.
 
 ### Aislamiento de Vista 🚀
-- **Logro:** Se puede apagar la capa de "Luminarias (Puntos)" y mantener solo el "Mapa de Calor" para un análisis visual sin distracciones.
+- **Logro:** Independencia total entre la capa de puntos y la de calor.
 
-### Intensidad Dinámica 🚀
-- **Logro:** El mapa detecta automáticamente la densidad de puntos y agudiza la concentración visual cuando se filtran estados críticos.
+### Rendimiento Production-Ready 🚀
+- **Logro:** Eliminación de "freezes" durante el filtrado y visualización optimizada.
 
 ---
 

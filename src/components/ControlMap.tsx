@@ -20,51 +20,98 @@ interface ControlMapProps {
   onEditBarrio?: (barrio: Barrio) => void
 }
 
-// Componente para el Mapa de Calor
-const HeatmapLayer = ({ points, isFiltered }: { points: any[], isFiltered: boolean }) => {
+// Componente para el Mapa de Calor con alto rendimiento
+const HeatmapLayer = ({ points, totalPoints }: { points: any[], totalPoints: number }) => {
   const map = useMap()
+  const heatLayerRef = useRef<any>(null)
+
+  // Helper para parsear coordenadas de forma segura
+  const parseCoords = (geom: any): [number, number] | null => {
+    try {
+      if (typeof geom === 'string' && geom.startsWith('POINT')) {
+        const match = geom.match(/\(([^)]+)\)/)
+        if (match?.[1]) {
+          const [lon, lat] = match[1].split(' ').map(Number)
+          if (!isNaN(lat) && !isNaN(lon)) return [lat, lon]
+        }
+      } else if (geom?.type === 'Point' && Array.isArray(geom.coordinates)) {
+        return [geom.coordinates[1], geom.coordinates[0]]
+      }
+    } catch (e) {
+      console.error('Error parseando geometría:', e)
+    }
+    return null
+  }
+
+  // Memoizar los puntos procesados para evitar mapeos innecesarios
+  const heatData = useMemo(() => {
+    if (!points || points.length === 0) return []
+    if (points.length > 5000) return [] // Threshold de seguridad
+
+    // Calcular ratio de visualización (qué tanto del total estamos viendo)
+    const ratio = totalPoints > 0 ? points.length / totalPoints : 1
+    
+    // Intensidad inversamente proporcional al ratio:
+    // Si vemos pocos puntos (ratio bajo), subimos la intensidad (0.9)
+    // Si vemos muchos puntos (ratio alto), bajamos la intensidad (0.4)
+    const intensity = ratio < 0.3 ? 0.9 : (ratio < 0.7 ? 0.6 : 0.4)
+    
+    return points
+      .map(p => {
+        const coords = parseCoords(p.geom)
+        return coords ? [...coords, intensity] : null
+      })
+      .filter((p): p is [number, number, number] => p !== null)
+  }, [points, totalPoints])
 
   useEffect(() => {
-    if (!points || points.length === 0) return
+    if (heatData.length === 0) {
+      if (heatLayerRef.current) {
+        map.removeLayer(heatLayerRef.current)
+        heatLayerRef.current = null
+      }
+      return
+    }
 
-    // Si hay filtros aplicados, cada punto debe brillar con más fuerza
-    // para compensar la menor densidad y que el mapa no se vea "lavado"
-    const intensity = isFiltered ? 0.9 : 0.4
+    const ratio = totalPoints > 0 ? points.length / totalPoints : 1
+    const dynamicRadius = ratio < 0.4 ? 30 : 22
 
-    const heatPoints = points.map(point => {
-      let position: [number, number] = [0, 0]
-      if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
-        const match = point.geom.match(/\((.*)\)/);
-        if (match) {
-          const coords = match[1].split(' ');
-          position = [parseFloat(coords[1]), parseFloat(coords[0])]
+    if (!heatLayerRef.current) {
+      // Inicialización única
+      heatLayerRef.current = (L as any).heatLayer(heatData, {
+        radius: dynamicRadius,
+        blur: 15,
+        maxZoom: 18,
+        gradient: { 
+          0.4: '#fde047', // Amarillo
+          0.6: '#f97316', // Naranja
+          0.8: '#ef4444', // Rojo
+          1.0: '#991b1b'  // Rojo Sangre
         }
-      } else if (point.geom.type === 'Point') {
-        position = [point.geom.coordinates[1], point.geom.coordinates[0]]
-      }
-      return [...position, intensity] 
-    })
-
-    // Ajustar el radio: si hay pocos puntos, los hacemos un poco más grandes 
-    // para que se fusionen mejor visualmente
-    const dynamicRadius = isFiltered ? 30 : 22
-
-    const heatLayer = (L as any).heatLayer(heatPoints, {
-      radius: dynamicRadius,
-      blur: 15,
-      maxZoom: 18,
-      gradient: { 
-        0.4: '#fde047', // Amarillo
-        0.6: '#f97316', // Naranja
-        0.8: '#ef4444', // Rojo
-        1.0: '#991b1b'  // Rojo Sangre
-      }
-    }).addTo(map)
+      }).addTo(map)
+    } else {
+      // Actualización eficiente sin destruir la capa
+      heatLayerRef.current.setLatLngs(heatData)
+      heatLayerRef.current.setOptions({ radius: dynamicRadius })
+    }
 
     return () => {
-      map.removeLayer(heatLayer)
+      // El cleanup solo ocurre si el componente se desmonta realmente
+      if (heatLayerRef.current) {
+        // map.removeLayer(heatLayerRef.current) // Comentado para mantener la instancia si es posible
+      }
     }
-  }, [map, points, isFiltered])
+  }, [map, heatData, totalPoints, points.length])
+
+  // Cleanup al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (heatLayerRef.current) {
+        map.removeLayer(heatLayerRef.current)
+        heatLayerRef.current = null
+      }
+    }
+  }, [map])
 
   return null
 }
@@ -174,13 +221,13 @@ const OfficialPointsLayer = () => {
       {visibleLayers.heatmap && filteredPoints.length > 0 && (
         <HeatmapLayer 
           points={filteredPoints} 
-          isFiltered={mapFilters.estadosBase && mapFilters.estadosBase.length > 0} 
+          totalPoints={officialPoints?.length || 0} 
         />
       )}
       
       {visibleLayers.luminarias && filteredPoints.length > 0 && (
         <MarkerClusterGroup
-          key={`cluster-group-${filteredPoints.length}-${mapFilters.estadoBase}-${mapFilters.barrio}`}
+          key={`cluster-group-${filteredPoints.length}-${mapFilters.estadosBase.join(',')}-${mapFilters.barrio}`}
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}
           maxClusterRadius={40}
