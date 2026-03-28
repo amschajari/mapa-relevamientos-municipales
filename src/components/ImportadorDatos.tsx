@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { UploadCloud, FileText, CheckCircle, AlertCircle, X, Eye, Download } from 'lucide-react'
 import { useBarrioStore } from '@/stores'
 import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/constants'
 
 interface RegistroPreview {
   nombre: string
@@ -106,9 +107,12 @@ export const ImportadorDatos = () => {
   const [nombreArchivo, setNombreArchivo] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  const [importMode, setImportMode] = useState<'merge' | 'replace'>('replace')
   const [resultado, setResultado] = useState<{ ok: number; err: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState('')
+  const [selectedBarrioReset, setSelectedBarrioReset] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (user?.role !== 'admin') {
@@ -178,8 +182,7 @@ export const ImportadorDatos = () => {
     let err = 0
     const affectedBarrioIds = new Set<string>()
 
-    // 1. Deduplicar validos en memoria por ID Luminaria (nombre)
-    // Esto resuelve el caso de CSVs con duplicados internos (ej. 72 cargados en UI -> 71 finales)
+    // 0. Detectar barrios afectados
     const deduplicatedValidos = Object.values(
       validos.reduce((acc, current) => {
         acc[current.nombre] = current
@@ -187,9 +190,25 @@ export const ImportadorDatos = () => {
       }, {} as Record<string, typeof validos[0]>)
     )
 
+    deduplicatedValidos.forEach(registro => {
+      if (registro.barrio) {
+        const nOdoo = normalizarNombre(registro.barrio)
+        const found = barrios.find(
+          b => normalizarNombre(b.nombre) === nOdoo || normalizarNombre(b.nombre).includes(nOdoo)
+        )
+        if (found) affectedBarrioIds.add(found.id)
+      }
+    })
+
     const nombres = deduplicatedValidos.map(r => r.nombre)
 
     try {
+      // 1. Si modo es 'replace', borrar puntos previos de los barrios afectados
+      if (importMode === 'replace' && affectedBarrioIds.size > 0) {
+        const ids = Array.from(affectedBarrioIds)
+        await useBarrioStore.getState().bulkDeleteByBarrios(ids)
+      }
+
       // 2. Buscar existentes en la DB para resolver si es Insert o Update
       const existentesMap = new Map<string, string>()
       const batchSize = 500 // Lotes de 500 para evitar queries gigantes
@@ -444,6 +463,36 @@ export const ImportadorDatos = () => {
               </div>
             )}
 
+            <div className="p-4 bg-primary-50/50 border-y border-primary-100">
+              <label className="text-sm font-semibold text-primary-900 block mb-2">Modo de Importación</label>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setImportMode('replace')}
+                  className={cn(
+                    "flex-1 p-3 rounded-xl border-2 transition-all text-left",
+                    importMode === 'replace' 
+                      ? "border-primary-500 bg-white shadow-sm ring-2 ring-primary-500/20" 
+                      : "border-gray-200 bg-gray-50 text-gray-400 opacity-60 hover:opacity-100"
+                  )}
+                >
+                  <p className="font-bold text-sm text-primary-700">Reemplazar Barrios (Default)</p>
+                  <p className="text-[11px] leading-tight mt-0.5">Limpia las luminarias viejas de los barrios incluidos e inserta las nuevas.</p>
+                </button>
+                <button
+                  onClick={() => setImportMode('merge')}
+                  className={cn(
+                    "flex-1 p-3 rounded-xl border-2 transition-all text-left",
+                    importMode === 'merge' 
+                      ? "border-amber-500 bg-white shadow-sm ring-2 ring-amber-500/20" 
+                      : "border-gray-200 bg-gray-50 text-gray-400 opacity-60 hover:opacity-100"
+                  )}
+                >
+                  <p className="font-bold text-sm text-amber-700">Mezclar (Update/Insert)</p>
+                  <p className="text-[11px] leading-tight mt-0.5">Suma los puntos nuevos y actualiza los existentes sin borrar nada previo.</p>
+                </button>
+              </div>
+            </div>
+
             <div className="p-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={limpiar}
@@ -490,26 +539,64 @@ export const ImportadorDatos = () => {
                 Zona de Peligro: Reiniciar Datos
               </h3>
               <p className="text-sm text-red-700 mt-1">
-                Esto eliminará permanentemente todos los puntos oficiales del servidor para el barrio seleccionado.
+                Acciones permanentes de limpieza de base de datos.
               </p>
             </div>
             
-            <div className="flex gap-3">
-              <select 
-                className="flex-1 px-3 py-2 border border-red-200 rounded-lg text-sm bg-white text-gray-800 focus:ring-2 focus:ring-red-500 outline-none"
-                onChange={(e) => {
-                  if (e.target.value) {
-                    useBarrioStore.getState().resetOfficialPoints(e.target.value)
-                    e.target.value = ''
-                  }
-                }}
-                defaultValue=""
-              >
-                <option value="" disabled>Seleccionar barrio a reiniciar...</option>
-                {barrios.map(b => (
-                  <option key={b.id} value={b.id}>{b.nombre}</option>
-                ))}
-              </select>
+            <div className="space-y-4">
+              {/* Reinicio por Barrio */}
+              <div className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-red-100">
+                <label className="text-xs font-bold text-red-800 uppercase tracking-wider">Reiniciar Barrio Específico</label>
+                <div className="flex gap-2">
+                  <select 
+                    className="flex-1 px-3 py-2 border border-red-200 rounded-lg text-sm bg-white text-gray-800"
+                    value={selectedBarrioReset}
+                    onChange={(e) => setSelectedBarrioReset(e.target.value)}
+                  >
+                    <option value="" disabled>Seleccionar barrio...</option>
+                    {barrios.map(b => (
+                      <option key={b.id} value={b.id}>{b.nombre}</option>
+                    ))}
+                  </select>
+                  <button
+                    disabled={!selectedBarrioReset}
+                    onClick={() => {
+                      useBarrioStore.getState().resetOfficialPoints(selectedBarrioReset)
+                      setSelectedBarrioReset('')
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 disabled:opacity-50"
+                  >
+                    Reiniciar
+                  </button>
+                </div>
+              </div>
+
+              {/* Reinicio Global */}
+              <div className="flex flex-col gap-2 p-3 bg-red-100/50 rounded-lg border border-red-200">
+                <label className="text-xs font-bold text-red-900 uppercase tracking-wider">Limpieza Global (TODO EL MAPA)</label>
+                <p className="text-[10px] text-red-700 leading-tight mb-1">
+                  Escribe <span className="font-black underline">BORRAR</span> para habilitar el botón de eliminación total.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Escribe BORRAR..."
+                    className="flex-1 px-3 py-2 border border-red-300 rounded-lg text-sm"
+                    value={confirmDeleteAll}
+                    onChange={(e) => setConfirmDeleteAll(e.target.value)}
+                  />
+                  <button
+                    disabled={confirmDeleteAll !== 'BORRAR'}
+                    onClick={() => {
+                      useBarrioStore.getState().clearAllOfficialPoints()
+                      setConfirmDeleteAll('')
+                    }}
+                    className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm font-bold hover:bg-black disabled:opacity-50"
+                  >
+                    ELIMINAR TODO
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

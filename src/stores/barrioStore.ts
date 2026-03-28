@@ -61,6 +61,8 @@ interface BarrioState {
   toggleLayer: (layer: 'barrios' | 'luminarias' | 'heatmap') => void
   fetchOfficialPoints: () => Promise<void>
   resetOfficialPoints: (barrioId: string) => Promise<void>
+  clearAllOfficialPoints: () => Promise<void>
+  bulkDeleteByBarrios: (barrioIds: string[]) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
   setMapFilter: (key: 'barrio' | 'estadosBase', value: string | string[]) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
@@ -578,21 +580,61 @@ export const useBarrioStore = create<BarrioState>()(
 
           if (puntosError) throw puntosError
 
-          // Resetear estadísticas del barrio
-          await get().updateBarrio(barrioId, {
-            luminariasRelevadas: 0,
-            progreso: 0,
-            estado: 'pendiente'
-          })
-
+          // Recalcular stats para este barrio
+          await get().recalculateBarrioStats([barrioId])
           await get().fetchOfficialPoints()
-          await get().fetchBarrios()
-          alert('Relevamiento reiniciado. Todos los puntos han sido eliminados.')
+          
+          alert('Barrio reiniciado correctamente.')
         } catch (error: any) {
           console.error('Error resetting points:', error)
           alert('Error al reiniciar el relevamiento: ' + error.message)
         } finally {
           set({ isLoading: false })
+        }
+      },
+
+      clearAllOfficialPoints: async () => {
+        set({ isLoading: true })
+        try {
+          const { error } = await supabase
+            .from('puntos_relevamiento')
+            .delete()
+            .not('id', 'is', null) // Borrar todo
+
+          if (error) throw error
+
+          // Resetear todos los barrios localmente y en DB
+          const allBarrioIds = get().barrios.map((b: Barrio) => b.id)
+          if (allBarrioIds.length > 0) {
+            await get().recalculateBarrioStats(allBarrioIds)
+          }
+
+          await get().fetchOfficialPoints()
+          alert('Se han eliminado TODOS los puntos del sistema.')
+        } catch (error: any) {
+          console.error('Error clearing all points:', error)
+          alert('Error al limpiar el mapa: ' + error.message)
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      bulkDeleteByBarrios: async (barrioIds: string[]) => {
+        if (!barrioIds || barrioIds.length === 0) return
+        
+        try {
+          const { error } = await supabase
+            .from('puntos_relevamiento')
+            .delete()
+            .in('barrio_id', barrioIds)
+
+          if (error) throw error
+          
+          // No alertamos aquí porque suele ser parte de un proceso más grande (importación)
+          await get().recalculateBarrioStats(barrioIds)
+        } catch (error: any) {
+          console.error('Error in bulk delete:', error)
+          throw error
         }
       },
 
@@ -621,7 +663,7 @@ export const useBarrioStore = create<BarrioState>()(
             if (countError) throw countError
 
             const nuevasRelevadas = count || 0
-            const barrio = get().barrios.find((b: any) => b.id === id)
+            const barrio = get().barrios.find((b: Barrio) => b.id === id)
 
             if (barrio) {
               const nuevasEstimadas = Math.max(barrio.luminariasEstimadas || 0, nuevasRelevadas)
