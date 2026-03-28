@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
 import 'leaflet.heat'
 import type { GeoJsonObject } from 'geojson'
-import type { Barrio, TareaRelevamiento } from '@/types'
+import type { Barrio, TareaRelevamiento, PuntoRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { BarrioPopup } from './BarrioPopup'
@@ -21,20 +21,22 @@ interface ControlMapProps {
 }
 
 // Componente para el Mapa de Calor con alto rendimiento
-const HeatmapLayer = ({ points, totalPoints }: { points: any[], totalPoints: number }) => {
+const HeatmapLayer = ({ points, totalPoints }: { points: PuntoRelevamiento[], totalPoints: number }) => {
   const map = useMap()
   const heatLayerRef = useRef<any>(null)
 
   // Helper para parsear coordenadas de forma segura
-  const parseCoords = (geom: any): [number, number] | null => {
+  const parseCoords = (geom: PuntoRelevamiento['geom']): [number, number] | null => {
     try {
-      if (typeof geom === 'string' && geom.startsWith('POINT')) {
-        const match = geom.match(/\(([^)]+)\)/)
-        if (match?.[1]) {
-          const [lon, lat] = match[1].split(' ').map(Number)
-          if (!isNaN(lat) && !isNaN(lon)) return [lat, lon]
+      if (typeof geom === 'string') {
+        if (geom.startsWith('POINT')) {
+          const match = geom.match(/\(([^)]+)\)/)
+          if (match?.[1]) {
+            const [lon, lat] = match[1].split(' ').map(Number)
+            if (!isNaN(lat) && !isNaN(lon)) return [lat, lon]
+          }
         }
-      } else if (geom?.type === 'Point' && Array.isArray(geom.coordinates)) {
+      } else if (geom && typeof geom === 'object' && 'type' in geom && geom.type === 'Point' && Array.isArray(geom.coordinates)) {
         return [geom.coordinates[1], geom.coordinates[0]]
       }
     } catch (e) {
@@ -236,18 +238,20 @@ const OfficialPointsLayer = () => {
           zoomToBoundsOnClick={true}
           disableClusteringAtZoom={18}
         >
-          {filteredPoints.map((point: any, idx: number) => {
+          {filteredPoints.map((point: PuntoRelevamiento, idx: number) => {
             if (!point.geom) return null;
             
             let position: [number, number] = [0, 0]
             
-            if (typeof point.geom === 'string' && point.geom.startsWith('POINT')) {
-              const match = point.geom.match(/\((.*)\)/);
-              if (match) {
-                const coords = match[1].split(' ');
-                position = [parseFloat(coords[1]), parseFloat(coords[0])]
+            if (typeof point.geom === 'string') {
+              if (point.geom.startsWith('POINT')) {
+                const match = point.geom.match(/\((.*)\)/);
+                if (match) {
+                  const coords = match[1].split(' ');
+                  position = [parseFloat(coords[1]), parseFloat(coords[0])]
+                }
               }
-            } else if (point.geom.type === 'Point') {
+            } else if (point.geom && typeof point.geom === 'object' && 'type' in point.geom && point.geom.type === 'Point') {
               position = [point.geom.coordinates[1], point.geom.coordinates[0]]
             }
 

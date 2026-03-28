@@ -2,7 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { Menu, X, Check, Navigation2, Info, Map, Flame } from 'lucide-react'
 import { useMap, CircleMarker, Popup } from 'react-leaflet'
 import { useBarrioStore } from '@/stores/barrioStore'
-import { cn } from '@/lib/utils'
+import { cn, ESTADO_BASE_OPTIONS } from '@/lib/constants'
+import { calculateLastUpdate } from '@/lib/mapUtils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -84,22 +85,7 @@ export const MobileMapControls = () => {
     officialPoints,
   } = useBarrioStore()
 
-  // Fecha de última actualización: el created_at más reciente entre los puntos
-  const lastUpdate = useMemo(() => {
-    if (!officialPoints || officialPoints.length === 0) return null
-    const dates = officialPoints
-      .map((p: any) => p.created_at || p.updated_at)
-      .filter(Boolean)
-      .map((d: string) => new Date(d).getTime())
-    if (dates.length === 0) return null
-    return new Date(Math.max(...dates))
-  }, [officialPoints])
-
-  const estadoBaseOptions = [
-    { value: 'ok', label: 'En buenas condiciones', color: 'bg-green-500' },
-    { value: 'malas', label: 'Deteriorada / Mala', color: 'bg-red-500' },
-    { value: 'sin_base', label: 'Sin base', color: 'bg-yellow-400' },
-  ]
+  const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
 
   const toggleEstadoBase = (value: string) => {
     const current = mapFilters.estadosBase || []
@@ -217,7 +203,7 @@ export const MobileMapControls = () => {
               <div>
                 <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Estados de Base</label>
                 <div className="space-y-1">
-                  {estadoBaseOptions.map(opt => {
+                  {ESTADO_BASE_OPTIONS.map(opt => {
                     const isSelected = (mapFilters.estadosBase || []).includes(opt.value)
                     return (
                       <button

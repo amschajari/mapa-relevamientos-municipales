@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
-import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento, JornadaRelevamiento } from '@/types'
+import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento, JornadaRelevamiento, PuntoRelevamiento } from '@/types'
+import type { Session } from '@supabase/supabase-js'
 import area from '@turf/area'
 import { calcularEstimadoAdaptive } from '@/lib/projectionUtils'
 
@@ -20,7 +21,7 @@ interface BarrioState {
   isLoading: boolean
   error: string | null
   user: { id: string; email: string; role: 'admin' | 'viewer' } | null
-  session: any | null
+  session: Session | null
   jornadas: JornadaRelevamiento[]
   visibleLayers: {
     barrios: boolean
@@ -28,8 +29,8 @@ interface BarrioState {
     heatmap: boolean
   }
   activeBaseMap: 'osm' | 'satellite'
-  officialPoints: any[]
-  discoveryPoints: any[]
+  officialPoints: PuntoRelevamiento[]
+  discoveryPoints: PuntoRelevamiento[]
   mapFilters: {
     barrio: string
     estadosBase: string[]
@@ -51,7 +52,7 @@ interface BarrioState {
   setSelectedBarrio: (barrio: Barrio | null) => void
   updateBarrio: (id: string, updates: Partial<Barrio>) => Promise<void>
   addTarea: (tarea: TareaRelevamiento) => Promise<void>
-  setSession: (session: any) => void
+  setSession: (session: Session | null) => void
   logout: () => Promise<void>
   updateBarrioProgress: (nombre: string, progress: number) => Promise<void>
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
