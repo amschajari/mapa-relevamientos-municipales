@@ -80,6 +80,37 @@ export interface JornadaRelevamiento {
   creadoPor: string
 }
 
+export interface LuminariaPropiedades {
+  direccion?: string
+  barrio?: string
+  sin_luz?: boolean | string
+  tipo?: string
+  tipo_luminaria?: string
+  tipologia?: string
+  estado_base?: string
+  cableado?: string
+  alimentacion?: string
+  tipo_de_cableado?: string
+  [key: string]: any
+}
+
+export interface PuntoRelevamiento {
+  id: string
+  geom: string | { type: 'Point'; coordinates: [number, number] }
+  nombre?: string
+  estado_base?: string
+  barrio_id?: string
+  barrio_nombre?: string
+  direccion?: string
+  tipo_luminaria?: string
+  cableado?: string
+  sin_luz?: boolean | string
+  medidor?: string
+  propiedades?: LuminariaPropiedades
+  created_at?: string
+  updated_at?: string
+}
+
 export interface RegistroRelevamiento {
   id: string
   tareaId: string

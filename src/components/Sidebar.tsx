@@ -11,15 +11,11 @@ import {
   LogOut,
   UploadCloud,
 } from 'lucide-react'
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
 import { useBarrioStore } from '@/stores'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
+import { cn, ESTADO_BASE_OPTIONS } from '@/lib/constants'
+import { calculateLastUpdate } from '@/lib/mapUtils'
 
 interface NavItem {
   label: string
@@ -39,22 +35,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
   const { user, logout, barrios, mapFilters, setMapFilter, officialPoints } = useBarrioStore()
 
   // Calcular última actualización basada en los puntos
-  const lastUpdate = useMemo(() => {
-    if (!officialPoints || officialPoints.length === 0) return null
-    const dates = officialPoints
-      .map((p: any) => p.created_at || p.updated_at)
-      .filter(Boolean)
-      .map((d: string) => new Date(d).getTime())
-    if (dates.length === 0) return null
-    return new Date(Math.max(...dates))
-  }, [officialPoints])
-
-  // Opciones únicas de estado_base extraídas de los puntos oficiales (o hardcodeadas por ahora)
-  const estadoBaseOptions = [
-    { value: 'ok', label: 'En buenas condiciones', color: 'bg-green-500' },
-    { value: 'malas', label: 'Deteriorada / Mala', color: 'bg-red-500' },
-    { value: 'sin_base', label: 'Sin base', color: 'bg-yellow-400' }
-  ]
+  const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
 
   const toggleEstadoBase = (value: string) => {
     const current = mapFilters.estadosBase || []
@@ -179,7 +160,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-gray-600 block">Estados de Base</label>
                 <div className="space-y-1.5">
-                  {estadoBaseOptions.map(opt => {
+                  {ESTADO_BASE_OPTIONS.map(opt => {
                     const isSelected = (mapFilters.estadosBase || []).includes(opt.value)
                     return (
                       <button

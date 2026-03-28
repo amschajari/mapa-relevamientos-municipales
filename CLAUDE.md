@@ -92,7 +92,11 @@ interface Barrio {
 
 ## Notas para Desarrolladores
 
-- El estado se persiste automáticamente en localStorage (parcial: barrios, tareas, activeBaseMap, mapFilters)
-- Para agregar barrios, editar `src/data/barrios-chajari.json`
-- El usuario admin se determina por email: `a.m.saposnik@gmail.com`
-- Requiere conexión a internet para OpenStreetMap tiles
+- **Doble Ambiente**: El desarrollo se alterna entre **Oficina** (Chajarí) y **Casa**. Sincronizar siempre vía Git antes de iniciar.
+- **Flujo Odoo**: Las luminarias maestras residen en Odoo. El archivo `Luminaria (...).csv` es la referencia base para importaciones.
+- **D.R.Y. (Don't Repeat Yourself)**: 
+    - No duplicar constantes de UI (ej. colores, estados). Usar `@/lib/constants.ts`.
+    - Lógica de cálculo común debe residir en `@/lib/mapUtils.ts`.
+- **Estado Global**: Se persiste automáticamente en localStorage (parcial: barrios, tareas, activeBaseMap, mapFilters).
+- **Admin**: El usuario admin se determina por email: `a.m.saposnik@gmail.com`.
+- **Mapas**: Requiere conexión a internet para OpenStreetMap tiles. Max zoom fijado en 18 para evitar distorsión satelital.
