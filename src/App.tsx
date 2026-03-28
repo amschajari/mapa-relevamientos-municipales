@@ -25,7 +25,6 @@ const VIEWS = {
 } as const
 
 function App() {
-  const [activeTab, setActiveTab] = useState<string>(VIEWS.MAPA)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -36,18 +35,16 @@ function App() {
     selectedBarrio, 
     setSelectedBarrio, 
     setSession,
-    initializeFromGeoJSON, 
     fetchBarrios,
-    fetchOfficialPoints
+    fetchOfficialPoints,
+    activeTab,
+    setActiveTab
   } = useBarrioStore()
 
   // Cargar barrios y auth desde Supabase
   useEffect(() => {
     // 1. Cargar barrios
     fetchBarrios().then(() => {
-      if (barriosGeoJson?.features) {
-        initializeFromGeoJSON(barriosGeoJson.features as any)
-      }
       fetchOfficialPoints()
       setIsLoading(false)
     })
@@ -63,7 +60,6 @@ function App() {
 
     return () => subscription.unsubscribe()
   }, [])
-
   /* Demo: Simular algunos barrios con progreso
   useEffect(() => {
     if (barrios.length > 0 && tareas.length === 0) {
@@ -170,8 +166,6 @@ function App() {
     <div className="h-[100dvh] w-screen flex overflow-hidden bg-gray-50">
       <div className="hidden sm:flex">
         <Sidebar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
           onLoginClick={() => setShowLoginModal(true)}
         />
       </div>

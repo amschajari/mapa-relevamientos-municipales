@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Menu, X, Check, Navigation2, Info, Map, Flame } from 'lucide-react'
+import { Menu, X, Navigation2, Info, Map, LayoutDashboard, Building2, Users, BarChart3, UploadCloud } from 'lucide-react'
 import { useMap, CircleMarker, Popup } from 'react-leaflet'
 import { useBarrioStore } from '@/stores/barrioStore'
 import { cn, ESTADO_BASE_OPTIONS } from '@/lib/constants'
@@ -77,12 +77,11 @@ export const MobileMapControls = () => {
   const [showInfo, setShowInfo] = useState(false)
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const {
-    visibleLayers,
-    toggleLayer,
     barrios,
     mapFilters,
     setMapFilter,
     officialPoints,
+    setActiveTab
   } = useBarrioStore()
 
   const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
@@ -137,50 +136,30 @@ export const MobileMapControls = () => {
         {isOpen && (
           <div className="mt-1 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 w-56 animate-in fade-in slide-in-from-top-4 duration-200 overflow-y-auto max-h-[80vh]">
             <div className="px-2 py-1.5 border-b border-gray-50 mb-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Capas</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Navegación</span>
             </div>
 
-            <button
-              onClick={() => toggleLayer('barrios')}
-              className={cn(
-                'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all mb-1',
-                visibleLayers.barrios ? 'bg-primary-50 text-primary-700' : 'text-gray-500 hover:bg-gray-50'
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2 h-2 rounded-full', visibleLayers.barrios ? 'bg-primary-500' : 'bg-gray-300')} />
-                Polígonos
-              </div>
-              {visibleLayers.barrios && <Check className="w-3.5 h-3.5" />}
-            </button>
-
-            <button
-              onClick={() => toggleLayer('luminarias')}
-              className={cn(
-                'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all mb-1',
-                visibleLayers.luminarias ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2 h-2 rounded-full', visibleLayers.luminarias ? 'bg-blue-500' : 'bg-gray-300')} />
-                Luminarias
-              </div>
-              {visibleLayers.luminarias && <Check className="w-3.5 h-3.5" />}
-            </button>
-
-            <button
-              onClick={() => toggleLayer('heatmap')}
-              className={cn(
-                'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                visibleLayers.heatmap ? 'bg-orange-50 text-orange-700' : 'text-gray-500 hover:bg-gray-50'
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Flame className={cn('w-4 h-4', visibleLayers.heatmap ? 'text-orange-500' : 'text-gray-300')} />
-                Mapa de Calor
-              </div>
-              {visibleLayers.heatmap && <Check className="w-3.5 h-3.5" />}
-            </button>
+            <div className="space-y-1 mb-3">
+              {[
+                { label: 'Dashboard', icon: LayoutDashboard },
+                { label: 'Barrios', icon: Building2 },
+                { label: 'Equipos', icon: Users },
+                { label: 'Estadísticas', icon: BarChart3 },
+                { label: 'Importar Datos', icon: UploadCloud },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => {
+                    setActiveTab(item.label)
+                    setIsOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 active:bg-primary-50 active:text-primary-700 transition-all"
+                >
+                  <item.icon className="w-4 h-4 text-gray-400" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
 
             <div className="px-2 py-1.5 border-b border-t border-gray-50 my-2">
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Filtros</span>

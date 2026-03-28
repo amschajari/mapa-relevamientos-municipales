@@ -21,6 +21,7 @@ interface BarrioState {
   isLoading: boolean
   error: string | null
   user: { id: string; email: string; role: 'admin' | 'viewer' } | null
+  activeTab: string
   session: Session | null
   jornadas: JornadaRelevamiento[]
   visibleLayers: {
@@ -55,6 +56,7 @@ interface BarrioState {
   setSession: (session: Session | null) => void
   logout: () => Promise<void>
   updateBarrioProgress: (nombre: string, progress: number) => Promise<void>
+  setActiveTab: (tab: string) => void
   setBarrioStatus: (nombre: string, status: EstadoBarrio) => Promise<void>
   fetchJornadas: (barrioId: string) => Promise<void>
   addJornada: (jornada: Omit<JornadaRelevamiento, 'id' | 'creadoPor'>) => Promise<void>
@@ -92,6 +94,7 @@ export const useBarrioStore = create<BarrioState>()(
       isLoading: false,
       error: null,
       user: null,
+      activeTab: 'Mapa',
       session: null,
       jornadas: [],
       visibleLayers: {
@@ -134,6 +137,8 @@ export const useBarrioStore = create<BarrioState>()(
         await supabase.auth.signOut()
         set({ user: null, session: null })
       },
+
+      setActiveTab: (tab: string) => set({ activeTab: tab }),
 
       // Fetch barrios desde Supabase
       fetchBarrios: async () => {
@@ -391,18 +396,7 @@ export const useBarrioStore = create<BarrioState>()(
 
         console.log(`Sincronizando GeoJSON: ${geojsonNames.length} barrios encontrados.`)
 
-        // 1. Barrios para ELIMINAR (Están en DB pero NO en GeoJSON)
-        const toDelete = barrios.filter((b: Barrio) => !geojsonNames.includes(b.nombre))
-        for (const barrio of toDelete) {
-          console.log(`Eliminando barrio obsoleto: ${barrio.nombre}`)
-          try {
-            await supabase.from('barrios').delete().eq('id', barrio.id)
-          } catch (err) {
-            console.error(`Error deleting ${barrio.nombre}:`, err)
-          }
-        }
-
-        // 2. Barrios para AGREGAR (Están en GeoJSON pero NO en DB)
+        // 1. Barrios para AGREGAR (Están en GeoJSON pero NO en DB)
         const toAdd = features.filter(f => !dbNames.includes(f.properties.Nombre))
         for (const feature of toAdd) {
           const nombre = feature.properties.Nombre

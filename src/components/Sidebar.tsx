@@ -25,14 +25,12 @@ interface NavItem {
 }
 
 interface SidebarProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
   onLoginClick: () => void
 }
 
-export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) => {
+export const Sidebar = ({ onLoginClick }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, logout, barrios, mapFilters, setMapFilter, officialPoints } = useBarrioStore()
+  const { user, logout, barrios, mapFilters, setMapFilter, officialPoints, activeTab, setActiveTab } = useBarrioStore()
 
   // Calcular última actualización basada en los puntos
   const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
@@ -113,7 +111,7 @@ export const Sidebar = ({ activeTab, onTabChange, onLoginClick }: SidebarProps) 
             return (
               <li key={item.label}>
                 <button
-                  onClick={() => onTabChange(item.label)}
+                  onClick={() => setActiveTab(item.label)}
                   className={cn(
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                     'hover:bg-gray-50',

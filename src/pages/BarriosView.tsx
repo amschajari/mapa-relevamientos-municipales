@@ -15,6 +15,7 @@ import {
 import type { Barrio } from '@/types'
 import { BarrioDetailModal } from '@/components/BarrioDetailModal'
 import { useBarrioStore } from '@/stores'
+import { cn } from '@/lib/constants'
 
 interface BarriosViewProps {
   barrios: Barrio[]
@@ -107,7 +108,11 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
 
   const SortHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <th
-      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      className={cn(
+        "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors",
+        field === 'progreso' && "hidden sm:table-cell",
+        field === 'luminarias' && "hidden md:table-cell"
+      )}
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center gap-1">
@@ -142,10 +147,10 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                 luminariasRelevadas: 0
               } as Barrio)
             }}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium flex items-center gap-2"
+            className="hidden sm:flex px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-xs font-semibold items-center gap-1.5"
           >
-            <Plus className="w-4 h-4" />
-            Nuevo Barrio
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline">Nuevo Barrio</span>
           </button>
         </div>
 
@@ -188,7 +193,7 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
               <SortHeader field="estado">Estado</SortHeader>
               <SortHeader field="progreso">Progreso</SortHeader>
               <SortHeader field="luminarias">Luminarias</SortHeader>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="hidden sm:table-cell px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
@@ -200,27 +205,43 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                 className="hover:bg-gray-50 transition-colors cursor-pointer group"
                 onClick={() => onViewOnMap?.(barrio)}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
-                    {getEstadoIcon(barrio.estado)}
-                    <div>
-                      <p className="font-medium text-gray-900">{barrio.nombre}</p>
-                      <p className="text-xs text-gray-500">ID: {barrio.id}</p>
+                    <div className="shrink-0">{getEstadoIcon(barrio.estado)}</div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-900 truncate text-sm">{barrio.nombre}</p>
+                      <p className="hidden sm:block text-[10px] text-gray-400 font-mono">ID: {barrio.id.substring(0, 8)}...</p>
+                      
+                      {/* Barra de progreso móvil */}
+                      <div className="sm:hidden mt-1 flex items-center gap-1.5">
+                         <div className="w-12 bg-gray-100 rounded-full h-1">
+                            <div
+                              className={cn(
+                                "h-full rounded-full",
+                                barrio.estado === 'completado' ? 'bg-green-500' : 
+                                barrio.estado === 'progreso' ? 'bg-amber-500' : 'bg-gray-300'
+                              )}
+                              style={{ width: `${barrio.progreso}%` }}
+                            />
+                         </div>
+                         <span className="text-[10px] font-black text-gray-400">{barrio.progreso}%</span>
+                      </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoBadgeColor(
-                      barrio.estado
-                    )}`}
+                    className={cn(
+                      "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold sm:font-medium",
+                      getEstadoBadgeColor(barrio.estado)
+                    )}
                   >
                     {getEstadoLabel(barrio.estado)}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
-                    <div className="w-24 bg-gray-200 rounded-full h-2">
+                    <div className="w-20 lg:w-24 bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${
                           barrio.estado === 'completado'
@@ -237,7 +258,7 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
                     {barrio.luminariasRelevadas || 0} / {barrio.luminariasEstimadas || 0}
                   </div>
@@ -249,7 +270,7 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                       : 0}% completado
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end gap-2">
                     <button 
                       onClick={(e) => {
