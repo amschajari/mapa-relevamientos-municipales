@@ -8,11 +8,10 @@ import { BarriosView } from './pages/BarriosView'
 import { EquiposView } from './pages/EquiposView'
 import { BarrioDetailModal } from './components/BarrioDetailModal'
 import { useBarrioStore } from './stores'
-import { supabase } from './lib/supabase'
-import barriosGeoJson from './data/barrios-chajari.json'
 import type { Barrio } from './types'
+import { supabase } from './lib/supabase'
 import { LoginModal } from './components/LoginModal'
-import { ImportadorDatos } from './components/ImportadorDatos'
+import { ImportacionView } from './components/ImportacionView'
 
 // Tipos de vista
 const VIEWS = {
@@ -108,7 +107,6 @@ function App() {
                 </div>
               ) : (
                 <ControlMap
-                  barriosGeoJson={barriosGeoJson as any}
                   tareas={tareas}
                   onBarrioClick={handleBarrioClick}
                   selectedBarrio={selectedBarrio}
@@ -148,7 +146,7 @@ function App() {
         return <EstadisticasPanel barrios={barrios} tareas={tareas} />
 
       case VIEWS.IMPORTAR_DATOS:
-        return <ImportadorDatos />
+        return <ImportacionView />
 
       default:
         return (

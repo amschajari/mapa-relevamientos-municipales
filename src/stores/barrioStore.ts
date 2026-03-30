@@ -80,8 +80,8 @@ interface BarrioState {
   getBarriosByEstado: (estado: EstadoBarrio) => Barrio[]
   getBarriosConTareas: () => Barrio[]
 
-  // Inicialización desde GeoJSON
-  initializeFromGeoJSON: (features: BarrioFeature[]) => Promise<void>
+  // Inicialización y Sincronización desde GeoJSON
+  importarPoligonosBarrios: (features: BarrioFeature[]) => Promise<{ creados: number; actualizados: number; eliminados: number; errores: string[] }>
 }
 
 export const useBarrioStore = create<BarrioState>()(
@@ -164,12 +164,10 @@ export const useBarrioStore = create<BarrioState>()(
               fechaInicio: b.fecha_inicio ? new Date(b.fecha_inicio) : undefined,
               fechaFin: b.fecha_fin ? new Date(b.fecha_fin) : undefined,
               observaciones: b.observaciones,
+              geojson: b.geojson,
             }))
-            set((state: BarrioState) => ({ 
-              barrios: barriosMapeados.map((nb: Barrio) => {
-                const existing = state.barrios.find((eb: Barrio) => eb.id === nb.id)
-                return { ...nb, geojson: existing?.geojson || null }
-              }), 
+            set(() => ({ 
+              barrios: barriosMapeados, 
               isLoading: false 
             }))
           } else {
@@ -384,70 +382,73 @@ export const useBarrioStore = create<BarrioState>()(
         )
       },
 
-      // Inicialización desde GeoJSON: Sincronización Total
-      initializeFromGeoJSON: async (features: BarrioFeature[]) => {
-        // En lugar de resetear todo, vamos a actualizar los datos base de los barrios existentes
-        const { barrios, updateBarrio } = get()
+      // Importación desde GeoJSON (UI de Importador de Barrios)
+      importarPoligonosBarrios: async (features: BarrioFeature[]) => {
+        const { barrios, fetchBarrios } = get()
+        const resultados = { creados: 0, actualizados: 0, eliminados: 0, errores: [] as string[] }
         
-        // Actualización de datos base si es necesario...
+        const geojsonNames = features.map(f => f.properties.Nombre).filter(Boolean)
 
-        const geojsonNames = features.map((f: BarrioFeature) => f.properties.Nombre).filter(Boolean)
-        const dbNames = barrios.map((b: Barrio) => b.nombre)
-
-        console.log(`Sincronizando GeoJSON: ${geojsonNames.length} barrios encontrados.`)
-
-        // 1. Barrios para AGREGAR (Están en GeoJSON pero NO en DB)
-        const toAdd = features.filter(f => !dbNames.includes(f.properties.Nombre))
-        for (const feature of toAdd) {
-          const nombre = feature.properties.Nombre
-          const areaM2 = area(feature)
-          const areaHa = Math.round((areaM2 / 10000) * 100) / 100
-          
-          console.log(`Agregando nuevo barrio: ${nombre} (${areaHa} Ha)`)
+        // 1. Barrios para ACTUALIZAR (Están en DB y en GeoJSON) o INSERTAR (Están en GeoJSON y no en DB)
+        // Optamos por buscar el ID si existe, sino crear.
+        for (const feature of features) {
           try {
-            const { error } = await supabase.from('barrios').insert({
-              nombre,
-              superficie_ha: areaHa,
-              estado: 'pendiente',
-              progreso: 0,
-              luminarias_estimadas: Math.round(areaHa * 4), // Default adaptativo (4 por manzana)
-              luminarias_relevadas: 0
-            })
-            if (error) throw error
-          } catch (err) {
-            console.error(`Error adding ${nombre}:`, err)
-          }
-        }
+            const nombre = feature.properties.Nombre;
+            if (!nombre) continue;
 
-        // 3. Barrios para ACTUALIZAR (Están en ambos)
-        // Ya que el fetchBarrios refrescará todo, solo nos aseguramos de actualizar superficie si cambió
-        for (const barrio of barrios) {
-          const feature = features.find((f: BarrioFeature) => f.properties.Nombre === barrio.nombre)
-          if (feature) {
-            const areaM2 = area(feature)
-            const areaHa = Math.round((areaM2 / 10000) * 100) / 100
-            
-            // Actualizar si la superficie cambió O si faltan las estimaciones base
-            if (areaHa !== barrio.superficie_ha || (barrio.luminariasEstimadas || 0) === 0) {
-              console.log(`Actualizando datos base: ${barrio.nombre} -> ${areaHa} Ha`)
-              await updateBarrio(barrio.id, { 
+            const areaM2 = area(feature);
+            const areaHa = Math.round((areaM2 / 10000) * 100) / 100;
+            const existingBarrio = barrios.find((b: Barrio) => b.nombre === nombre);
+
+            if (existingBarrio) {
+              // Actualizar (Upsert de geometría y superficie)
+              const { error } = await supabase.from('barrios').update({
                 superficie_ha: areaHa,
-                luminariasEstimadas: barrio.luminariasEstimadas || Math.round(areaHa * 4)
-              })
+                geojson: feature,
+                luminarias_estimadas: existingBarrio.luminariasEstimadas || Math.round(areaHa * 4)
+              }).eq('id', existingBarrio.id);
+
+              if (error) throw error;
+              resultados.actualizados++;
+            } else {
+              // Insertar
+              const { error } = await supabase.from('barrios').insert({
+                nombre,
+                superficie_ha: areaHa,
+                estado: 'pendiente',
+                progreso: 0,
+                luminarias_estimadas: Math.round(areaHa * 4),
+                luminarias_relevadas: 0,
+                geojson: feature
+              });
+
+              if (error) throw error;
+              resultados.creados++;
             }
+          } catch (err: any) {
+            resultados.errores.push(`Error con ${feature.properties?.Nombre || 'Desconocido'}: ${err.message}`);
           }
         }
 
-        // 4. Refrescar todo el estado desde la DB final
-        await get().fetchBarrios()
+        // 2. Barrios para ELIMINAR (Están en DB pero NO en GeoJSON)
+        const toDelete = barrios.filter((b: Barrio) => !geojsonNames.includes(b.nombre));
+        for (const barrio of toDelete) {
+          try {
+            const { error } = await supabase.from('barrios').delete().eq('id', barrio.id);
+            if (error) {
+              // Probablemente rechazado por llave foránea (puntos_relevamiento)
+              throw error;
+            }
+            resultados.eliminados++;
+          } catch (err: any) {
+             resultados.errores.push(`No se pudo eliminar "${barrio.nombre}": ${err.message} (Puede tener puntos asociados)`);
+          }
+        }
 
-        // 5. Inyectar GeoJSON en el estado local para validaciones espaciales
-        set((state: BarrioState) => ({
-          barrios: state.barrios.map((b: Barrio) => {
-            const feature = features.find((f: BarrioFeature) => f.properties.Nombre === b.nombre)
-            return { ...b, geojson: feature || null }
-          })
-        }))
+        // Refrescar el estado global con los datos traídos fresquitos de la BD
+        await fetchBarrios();
+        
+        return resultados;
       },
 
       fetchJornadas: async (barrioId: string) => {
