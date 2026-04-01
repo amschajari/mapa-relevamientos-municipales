@@ -388,9 +388,9 @@ export const useBarrioStore = create<BarrioState>()(
         const resultados = { creados: 0, actualizados: 0, eliminados: 0, errores: [] as string[] }
         
         const geojsonNames = features.map(f => f.properties.Nombre).filter(Boolean)
+        const newBarrioIds: { nombre: string; id: string }[] = []
 
-        // 1. Barrios para ACTUALIZAR (Están en DB y en GeoJSON) o INSERTAR (Están en GeoJSON y no en DB)
-        // Optamos por buscar el ID si existe, sino crear.
+        // 1. Barrios para ACTUALIZAR o INSERTAR
         for (const feature of features) {
           try {
             const nombre = feature.properties.Nombre;
@@ -401,28 +401,27 @@ export const useBarrioStore = create<BarrioState>()(
             const existingBarrio = barrios.find((b: Barrio) => b.nombre === nombre);
 
             if (existingBarrio) {
-              // Actualizar (Upsert de geometría y superficie)
+              // Actualizar superficie (sin geojson hasta que la columna exista en Supabase)
               const { error } = await supabase.from('barrios').update({
                 superficie_ha: areaHa,
-                geojson: feature,
                 luminarias_estimadas: existingBarrio.luminariasEstimadas || Math.round(areaHa * 4)
               }).eq('id', existingBarrio.id);
 
               if (error) throw error;
               resultados.actualizados++;
             } else {
-              // Insertar
-              const { error } = await supabase.from('barrios').insert({
+              // Insertar nuevo barrio
+              const { data: newBarrio, error } = await supabase.from('barrios').insert({
                 nombre,
                 superficie_ha: areaHa,
                 estado: 'pendiente',
                 progreso: 0,
                 luminarias_estimadas: Math.round(areaHa * 4),
                 luminarias_relevadas: 0,
-                geojson: feature
-              });
+              }).select('id').single();
 
               if (error) throw error;
+              if (newBarrio) newBarrioIds.push({ nombre, id: newBarrio.id });
               resultados.creados++;
             }
           } catch (err: any) {
@@ -430,24 +429,33 @@ export const useBarrioStore = create<BarrioState>()(
           }
         }
 
-        // 2. Barrios para ELIMINAR (Están en DB pero NO en GeoJSON)
+        // 2. Re-linkear puntos huérfanos a los nuevos barrios (por nombre)
+        // Esto repara los puntos cuyos barrios fueron eliminados y ahora re-insertados
+        for (const { nombre, id } of newBarrioIds) {
+          try {
+            const { error } = await supabase
+              .from('puntos_relevamiento')
+              .update({ barrio_id: id })
+              .eq('barrio_nombre', nombre)
+            if (error) throw error;
+          } catch (err: any) {
+            resultados.errores.push(`Re-linkeo de puntos de "${nombre}": ${err.message}`);
+          }
+        }
+
+        // 3. Barrios para ELIMINAR (están en DB pero NO en GeoJSON)
         const toDelete = barrios.filter((b: Barrio) => !geojsonNames.includes(b.nombre));
         for (const barrio of toDelete) {
           try {
             const { error } = await supabase.from('barrios').delete().eq('id', barrio.id);
-            if (error) {
-              // Probablemente rechazado por llave foránea (puntos_relevamiento)
-              throw error;
-            }
+            if (error) throw error;
             resultados.eliminados++;
           } catch (err: any) {
-             resultados.errores.push(`No se pudo eliminar "${barrio.nombre}": ${err.message} (Puede tener puntos asociados)`);
+            resultados.errores.push(`No se pudo eliminar "${barrio.nombre}": ${err.message} (Puede tener puntos asociados)`);
           }
         }
 
-        // Refrescar el estado global con los datos traídos fresquitos de la BD
         await fetchBarrios();
-        
         return resultados;
       },
 
