@@ -164,7 +164,12 @@ export const useBarrioStore = create<BarrioState>()(
               fechaInicio: b.fecha_inicio ? new Date(b.fecha_inicio) : undefined,
               fechaFin: b.fecha_fin ? new Date(b.fecha_fin) : undefined,
               observaciones: b.observaciones,
-              geojson: b.geojson,
+              // Convertir geom (PostGIS) a formato GeoJSON para Leaflet
+              geojson: b.geom ? {
+                type: 'Feature',
+                properties: { nombre: b.nombre },
+                geometry: b.geom
+              } : null,
             }))
             set(() => ({ 
               barrios: barriosMapeados, 
@@ -390,7 +395,7 @@ export const useBarrioStore = create<BarrioState>()(
         const geojsonNames = features.map(f => f.properties.Nombre).filter(Boolean)
         const newBarrioIds: { nombre: string; id: string }[] = []
 
-        // 1. Barrios para ACTUALIZAR o INSERTAR
+        // 1. Barrios para ACTUALIZAR o INSERTAR usando función RPC con geometría
         for (const feature of features) {
           try {
             const nombre = feature.properties.Nombre;
@@ -400,28 +405,20 @@ export const useBarrioStore = create<BarrioState>()(
             const areaHa = Math.round((areaM2 / 10000) * 100) / 100;
             const existingBarrio = barrios.find((b: Barrio) => b.nombre === nombre);
 
-            if (existingBarrio) {
-              // Actualizar superficie (sin geojson hasta que la columna exista en Supabase)
-              const { error } = await supabase.from('barrios').update({
-                superficie_ha: areaHa,
-                luminarias_estimadas: existingBarrio.luminariasEstimadas || Math.round(areaHa * 4)
-              }).eq('id', existingBarrio.id);
+            // Usar función RPC para upsert con geometría
+            const { data: barrioId, error } = await supabase.rpc('upsert_barrio_con_geometria', {
+              p_nombre: nombre,
+              p_superficie_ha: areaHa,
+              p_luminarias_estimadas: existingBarrio?.luminariasEstimadas || null,
+              p_geom: feature.geometry // Enviar el objeto geometry directamente
+            });
 
-              if (error) throw error;
+            if (error) throw error;
+            
+            if (existingBarrio) {
               resultados.actualizados++;
             } else {
-              // Insertar nuevo barrio
-              const { data: newBarrio, error } = await supabase.from('barrios').insert({
-                nombre,
-                superficie_ha: areaHa,
-                estado: 'pendiente',
-                progreso: 0,
-                luminarias_estimadas: Math.round(areaHa * 4),
-                luminarias_relevadas: 0,
-              }).select('id').single();
-
-              if (error) throw error;
-              if (newBarrio) newBarrioIds.push({ nombre, id: newBarrio.id });
+              newBarrioIds.push({ nombre, id: barrioId });
               resultados.creados++;
             }
           } catch (err: any) {
@@ -430,7 +427,6 @@ export const useBarrioStore = create<BarrioState>()(
         }
 
         // 2. Re-linkear puntos huérfanos a los nuevos barrios (por nombre)
-        // Esto repara los puntos cuyos barrios fueron eliminados y ahora re-insertados
         for (const { nombre, id } of newBarrioIds) {
           try {
             const { error } = await supabase
