@@ -13,7 +13,6 @@ import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
 
 interface ControlMapProps {
-  barriosGeoJson: GeoJsonObject
   tareas?: TareaRelevamiento[]
   onBarrioClick?: (barrio: Barrio) => void
   selectedBarrio?: Barrio | null
@@ -510,12 +509,25 @@ const BarriosLayer = ({
 }
 
 export const ControlMap = ({
-  barriosGeoJson,
   onBarrioClick,
   selectedBarrio,
   onEditBarrio,
 }: ControlMapProps) => {
-  const { activeBaseMap } = useBarrioStore()
+  const { activeBaseMap, barrios } = useBarrioStore()
+  
+  const barriosGeoJson = useMemo(() => {
+    return {
+      type: 'FeatureCollection',
+      features: barrios.filter(b => b.geojson).map(b => {
+        // Asegurarnos de que el geojson mantenga el nombre correcto para la capa
+        const feature = { ...b.geojson }
+        if (!feature.properties) feature.properties = {}
+        feature.properties.Nombre = b.nombre
+        return feature
+      })
+    } as GeoJsonObject
+  }, [barrios])
+
   const center = useMemo(() => [-30.7516, -57.9872] as [number, number], [])
   const defaultZoom = typeof window !== 'undefined' && window.innerWidth < 640 ? 15 : 14
 
