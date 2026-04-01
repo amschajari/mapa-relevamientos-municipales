@@ -146,7 +146,7 @@ const CenterBarrio = ({
   useEffect(() => {
     if (selectedBarrio && geoJson) {
       const feature = (geoJson as any).features?.find(
-        (f: any) => f.properties.Nombre === selectedBarrio.nombre || f.properties.fid.toString() === selectedBarrio.id
+        (f: any) => f.properties.Nombre === selectedBarrio.nombre || String(f.properties.fid || f.properties.Nombre) === selectedBarrio.id
       )
 
       if (feature) {
@@ -476,7 +476,7 @@ const BarriosLayer = ({
       const storeBarrio = getBarrioByNombre(nombre)
 
       const barrio: Barrio = {
-        id: storeBarrio?.id || fid.toString(),
+        id: storeBarrio?.id || String(fid || nombre),
         nombre,
         estado: storeBarrio?.estado || 'pendiente',
         progreso: storeBarrio?.progreso || 0,
