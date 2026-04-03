@@ -62,7 +62,7 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
         {/* Header */}
         <div className="p-6 text-center border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-xl font-bold text-gray-800">Acceso Administrador</h2>
-          <p className="text-xs text-gray-500 mt-1">Ingresa tus credenciales de Supabase</p>
+          <p className="text-xs text-gray-500 mt-1">Solo usuarios autorizados</p>
         </div>
 
         {/* Body */}
@@ -129,13 +129,6 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
               )}
             </button>
           </form>
-        </div>
-
-        {/* Footer info */}
-        <div className="p-4 bg-amber-50 border-t border-amber-100 italic">
-          <p className="text-[10px] text-amber-700 text-center leading-relaxed">
-            Solo el usuario **a.m.saposnik@gmail.com** tendrá permisos de edición habilitados tras el login.
-          </p>
         </div>
       </div>
     </div>

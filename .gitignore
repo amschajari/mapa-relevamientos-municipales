@@ -42,3 +42,8 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# AI Agents & Skills
+.agents/
+.agent/
+skills-lock.json
