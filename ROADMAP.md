@@ -1,101 +1,50 @@
-# HOJA DE RUTA Y CONTEXTO DE DESARROLLO - 18/03/2026
-## Sistema de Control de Relevamientos - Municipalidad de Chajarí
+# 🗺️ HOJA DE RUTA UNIFICADA: PLATAFORMA GIS MUNICIPAL
 
-Este documento sirve como guía para el desarrollo continuo y transferencia de contexto entre agentes de IA y desarrolladores.
-
----
-
-## 1. Resumen de Implementación Actual (Checkpoint 25/03/2026)
-- **Importador Odoo (V2)**: Estrategia de etiquetas validada operativamente. Bulk upsert con deduplicación.
-- **Mapa Responsive (Mobile)**: Menú hamburguesa, marcador GPS, panel de info y layout responsive.
-- **Clusters (Celeste/Cyan)**: Zoom automático al click, cobertura visual y paleta diferenciada.
-- **Seguridad (Hardening)**: `search_path` fijo en funciones SQL. RLS endurecido (lectura pública / escritura admin).
-- **Estándares**: `AGENT_WORKFLOW.md`, `DEVELOPMENT.md`, `ROADMAP.md` establecidos.
-- **Agentic Workflows**: Directorio `.agent/workflows` configurado.
-- **Persistencia**: Sincronización total con Supabase (puntos, barrios, jornadas).
-- **Selector de Mapas Base**: Alternancia entre OSM y Satelital (ESRI) con persistencia local.
-- **Seguridad Auth**: LoginModal mejorado. Usuario Master: `a.m.saposnik@gmail.com`.
+## 💎 Visión Estratégica (Actualizada Abril 2026)
+Evolucionar de una herramienta de relevamiento a una **Plataforma de Gestión Espacial Municipal (SaaS)**. 
+*Referencia principal:* [PROPUESTA_EVOLUCION_PLATAFORMA_GIS.md](file:///d:/ZZ_PARA%20ANALISIS%20IA%20REPORTES/mapa-relevamientos-municipales/PROPUESTA_EVOLUCION_PLATAFORMA_GIS.md)
 
 ---
 
-### 🗺️ El GIS como "Borrador Estratégico" (Acompañamiento a Odoo)
-- **Problema**: El registro oficial se realiza en **Odoo**. El GIS no debe competir ni duplicar esa carga.
-- **Nueva Visión**: El GIS es el panel de **Hoja de Ruta/Proyección**. Sirve para que el coordinador visualice y planifique las salidas de campo que luego se registran en Odoo.
-- **Métrica Clave**: No buscamos el % final de Odoo, buscamos la **Cobertura Geográfica**. Asegurar que los equipos pasen por todas las calles.
-- **Acción Inmediata**:
-    - Reemplazar "Progreso %" por **"Manzanas Recorridas"** o **"Estado de Avance"**.
-    - **Objetivo Ciudad**: Contemplar un estimado de **8000 luminarias** totales para calcular la proyección de finalización global (implementado en Dashboard 25/03).
-    - Crear vistas de **Reporte para Autoridades**: Mapas de "semáforo" para el Intendente que muestren avance real vs. proyectado de forma intuitiva.
+## 🚀 Fases de Ejecución Inmediata
 
-### 📍 Piloto San Clemente (Contexto de Reflexión)
-- **Objetivo**: Probar la utilidad del GIS como guía de campo. El usuario usará su experiencia previa para validar si el mapa ayuda a coordinar mejor los recorridos.
-- **Relación con Odoo**: Odoo manda en el dato. El GIS manda en la **estrategia espacial**.
+### Fase 1: Estabilización y Calidad (Sprints Actuales)
+*Objetivo: Sentar bases sólidas sin romper la funcionalidad operativa.*
+- [x] **Gestión de Skills**: Implementado `autoskills` para sincronización Casa/Oficina.
+- [x] **Limpieza de UI**: Depuración del Login (Remoción de avisos redundantes y personalización).
+- [ ] **Auditoría Espacial**: Reintroducir Turf.js para detectar puntos fuera de polígonos.
+- [ ] **Refactor de Datos**: Migrar Auth a tabla de usuarios con roles (SuperAdmin/Coordinador/Operario).
 
----
+### Fase 2: Modularización (La "Gran Limpieza")
+- [ ] **Split del Store**: Dividir `barrioStore.ts` en `authStore`, `mapStore`, `configStore` y `surveyStore`.
+- [ ] **Estructura de Carpetas**: Implementar `src/features/` para separar dominios.
 
-### 🗺️ Documentación Estratégica
-### 🎯 Hito actual: Importador V2 - Estrategia de Etiquetas (Label Over Geometry)
-- **Simplificación Estratégica**: Se prioriza la etiqueta `Barrio` de Odoo sobre el cálculo espacial para evitar errores de precisión iniciales.
-- **Matching Inteligente**: El sistema asocia puntos a polígonos mediante coincidencia de nombres normalizados (ignorando tildes y mayúsculas).
-- **Gestión Independiente**: El GIS muestra la realidad del terreno, mientras que el coordinador gestiona manualmente el estado del barrio (En progreso, Completo).
-- **Enriquecimiento**: Soporte para campos de `Tipo de Cableado` 🔌 y `Medidor` ⏲️.
+### Fase 3: Capacidades GIS Pro
+- [ ] **Editor Live**: Implementar herramientas de dibujo (`Leaflet.Draw`) para editar polígonos desde la web.
+- [ ] **Capas IDERA**: Conectar servicios WMS oficiales.
+- [ ] **Exportación**: Generador de reportes PDF por barrio sincronizados desde Odoo.
 
-### 🛤️ Próximos Pasos Técnicos
-1. **Consolidación de Datos**: Importar masivamente los relevamientos históricos (San Clemente y otros).
-2. **Tablero de Control**: Mejorar los KPIs del dashboard basados en la carga manual de jornadas.
-3. **Auditoría Espacial (Fase 2)**: Reintroducir Turf.js solo como herramienta de auditoría (para detectar puntos que "físicamente" están en otro barrio) sin que bloquee la importación administrativa.
-## Hitos Completados (25/03/2026) ✅
-- **Hardening de Seguridad**: search_path corregido en funciones críticas y RLS habilitado en tablas sensibles.
-- **Diferenciación Visual**: Código de colores en mapa (Rojo: Mala, Naranja: Sin base, Celeste: Ok).
-- **UX Desktop**: Fecha de última actualización integrada en Sidebar.
-- **Navegación**: Renombrado "Configuración" a "Importar Datos".
-- **Gestión Administrativa**: Implementado CRUD básico de barrios (edición y creación) desde la UI.
-- **Mobile Map Controls**: Refactor de menús y cierre por eventos.
-4. **Control de Capas V2**: Visualización de semáforo (Verde: Relevado, Rojo: Pendiente) basado en polígonos.
-5. **Control de Capas**: Asegurar que podamos "tachar" o pintar calles recorridas manualmente desde el Dashboard.
-6. **Integración Odoo**: Investigar endpoint de "Atención al Vecino" para visualizar tickets sobre el mapa.
-7. **Asignación Espacial (Outliers)**: Implementar Trigger en DB para asignar `barrio_id` vía `ST_Intersects` si el dato es nulo.
-8. **Reportes en PDF**: Generación automática de resúmenes de relevamiento por barrio.
-- **Importador de Barrios (Admin)**: Implementar herramienta en la UI de administración para cargar polígonos GeoJSON de barrios directamente sin intervención en el código.
+### Fase 4: Integración y Transparencia
+- [ ] **Odoo API Bridge**: Conexión segura mediante Supabase Edge Functions.
+- [ ] **Portal Ciudadano**: Vista pública de "Gestión Viva" para `chajari.gob.ar`.
+- [ ] **Protocolo de Migración**: Preparar el traspaso a infraestructura 100% municipal.
 
 ---
 
-## 3. Seguridad y Roles (Master Admin)
-- **Usuario Master**: `a.m.saposnik@gmail.com`
-- **Permisos**: Solo este usuario (o usuarios validados) pueden ver los iconos de edición (lápiz) y botones de "Guardar".
-- **Estado**: **Implementado** (Supabase Auth integrado con el store. LoginModal funcional).
-
-### 🧹 Limpieza de Datos (Completada)
-- **Acción**: Eliminados registros de `luminarias_estimadas` y `progreso` ficticios.
-- **Estado**: **Finalizado**. El sistema inicia en 0 para ser llenado con datos estratégicos reales.
+## 📅 Hitos Recientes (Checkpoint 03/04/2026)
+- **Sincronización de Entorno**: Configurado `skills-lock.json` para paridad de ambientes.
+- **Estrategia SaaS**: Definido el protocolo de migración institucional y el eje de transparencia.
+- **Limpieza de Login**: Modal de acceso profesionalizado y seguro.
 
 ---
 
-## 4. Hitos Logrados (Sesión 19/03)
-1. **Desacoplamiento de Carga**: Mover la interfaz de "Cargar puntos" fuera del modal de barrios a una sección independiente (Configuración/Global). **Estado: Finalizado**.
-2. **Motor de Importación (Bulk Upsert)**: Reemplazada carga secuencial por carga masiva. **Estado: Finalizado**.
-3. **Deduplicación de Datos**: Implementada lógica de `upsert` basada en "ID Luminaria". **Estado: Finalizado**.
-4. **Resiliencia de Carga**: Escudo contra barrios mal escritos (ej: "Sam Clemente") para evitar bloqueos del lote. **Estado: Finalizado**.
-5. **Limpieza de UI**: Remoción de botones obsoletos y reubicación de "Reiniciar Barrio" a la zona de peligro. **Estado: Finalizado**.
-6. **Validación de Build**: Proyecto 100% verificado con `npm run build`. **Estado: Finalizado**.
-
-## 5. Próximos Pasos (Pendientes)
-1. **Auditoría Espacial (Fase 2)**: Reintroducir Turf.js solo como herramienta de auditoría (para detectar puntos que "físicamente" están en otro barrio) sin que bloquee la importación administrativa.
-2. **Dashboard de Reportes**: Crear vistas de "semáforo" para el Intendente.
-3. **Exportación PDF**: Generar resúmenes por barrio.
-
-## 5. Reflexiones de Negocio y GIS
-### Pregunta: ¿Qué pasa con los puntos fuera de los polígonos barriales?
-**Respuesta:** Actualmente, el sistema lo resuelve importándolos con `barrio_id = null`.
-- **Visibilidad:** Son visibles en el mapa global pero no "cuentan" para las estadísticas de ningún barrio del Dashboard.
-- **Estrategia Futura:** El GIS debe actuar como "filtro de calidad". Si un punto de Odoo cae fuera, debe marcarse para revisión de los polígonos (¿El barrio es más grande de lo que dibujamos?) o asignarse a un nuevo polígono de "Zona de Expansión".
-- **Estrategia Futura (QGIS sync)**: El usuario está editando polígonos en QGIS para:
-    - Eliminar barrios superpuestos.
-    - Agregar nuevos barrios detectados.
-    - Crear una zona **"Sin Barrio / No Especificada"** para capturar luminarias que caen fuera de las jurisdicciones conformadas, permitiendo que el 100% de los puntos de Odoo tengan una asignación administrativa.
-- **Acción**: Una vez finalizados en QGIS, se deberán re-importar los archivos GeoJSON para refrescar la base de datos `barrios`. Se planea automatizar esto mediante el "Importador de Barrios" en el panel administrativo.
+## 🧹 Notas de Mantenimiento
+- Mantener `barrioStore.ts` bajo vigilancia hasta el split de la Fase 2.
+- Priorizar siempre la seguridad de las API Keys de Odoo mediante el bridge de Supabase.
+- El GIS manda en la **estrategia espacial**, Odoo manda en el **dato administrativo**.
 
 ---
 
 **Nota para futuros agentes**:
-El proyecto usa una estructura de carpetas limpia en `/src`. Los estilos son Tailwind neutros/profesionales. La lógica de negocio pesada debe residir en `barrioStore.ts`. Siempre verificar que `useMap` se use dentro de componentes hijos de `MapContainer`.
+Este proyecto está en transición a una arquitectura SaaS. Seguir el esquema de `src/features` y evitar engrosar `barrioStore.ts`. Consultar siempre el [Anexo A](file:///d:/ZZ_PARA%20ANALISIS%20IA%20REPORTES/mapa-relevamientos-municipales/PROPUESTA_EVOLUCION_PLATAFORMA_GIS.md) antes de proponer cambios en la infraestructura.
+ca de negocio pesada debe residir en `barrioStore.ts`. Siempre verificar que `useMap` se use dentro de componentes hijos de `MapContainer`.
