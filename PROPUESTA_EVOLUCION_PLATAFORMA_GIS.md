@@ -1,7 +1,7 @@
 # PROPUESTA DE EVOLUCIÓN: PLATAFORMA GIS MUNICIPAL
 
 > **Fecha:** Abril 2026
-> **Estado:** Propuesta técnica
+> **Estado:** Propuesta técnica (Actualizada)
 > **Confidencial:** Este documento contiene estrategia técnica interna
 
 ---
@@ -15,16 +15,15 @@ El sistema actual es una **herramienta de relevamiento de campo** para rastrear 
 Evolucionar hacia una **Plataforma de Gestión Espacial Municipal** capaz de gestionar:
 
 - Relevamientos de campo
-- Inventarios de infraestructura
-- Datasets espaciales
-- Activos municipales
-- Flujos de inspección
-- Capas de planificación urbana
-- Datasets ambientales
+- Inventarios de infraestructura (Luminarias, Arbolado, Espacios Verdes)
+- Datasets espaciales y capas de catastro
+- Activos municipales en tiempo real
+- Flujos de inspección y reclamos
+- Capas de planificación urbana e indicadores ambientales
 
-### Integración con ERP
+### Integración con ERP (Odoo)
 
-Potencial integración con sistemas ERP municipales como **Odoo** para sincronización bidireccional de datos.
+Potencial integración con el sistema ERP municipal **Odoo** para sincronización bidireccional de datos de activos fijos y mantenimiento.
 
 ---
 
@@ -35,26 +34,18 @@ Potencial integración con sistemas ERP municipales como **Odoo** para sincroniz
 ```
 mapa-relevamientos-municipales/
 ├── src/
-│   ├── components/        # 16 componentes React
-│   ├── pages/            # 3 vistas principales
-│   ├── stores/           # 1 store Zustand (barrioStore.ts)
+│   ├── components/        # Componentes React (Login, Mapa, Sidebar)
+│   ├── pages/            # Vistas (Dashboard, Equipos, Barrios)
+│   ├── stores/           # Store Zustand (barrioStore.ts - Candidato a refactor)
 │   ├── types/            # Interfaces TypeScript
 │   ├── lib/              # Utilidades, Supabase client
 │   └── data/             # GeoJSON de barrios
 ├── supabase/
-│   ├── migrations/       # 6 migraciones SQL
+│   ├── migrations/       # Migraciones SQL (Tablas y RLS)
 │   └── hardening.sql     # Scripts de seguridad
-├── docs/                 # Documentación técnica
-└── scripts/              # Scripts de prueba
+├── docs/                 # Documentación técnica y actas
+└── scripts/              # Scripts de utilidad y mantenimiento
 ```
-
-### Patrón Arquitectónico
-
-**Monolito modular** con:
-- State management centralizado (Zustand)
-- Composición de componentes
-- Sincronización bidireccional con PostgreSQL/PostGIS
-- Persistencia parcial en localStorage
 
 ### Stack Tecnológico
 
@@ -62,269 +53,87 @@ mapa-relevamientos-municipales/
 |------|------------|
 | Frontend | React 18 + TypeScript + Vite |
 | Estilos | Tailwind CSS |
-| State | Zustand + persistencia |
+| State | Zustand + persistencia local |
 | Mapas | Leaflet + react-leaflet |
 | GIS | @turf/turf + PostGIS |
 | Backend | Supabase (PostgreSQL) |
-| Auth | Supabase Auth |
+| Auth | Supabase Auth (Integrado) |
 
 ---
 
 ## 3. ANÁLISIS DE CALIDAD DE CÓDIGO
 
 ### Fortalezas
+- Arquitectura clara con separación de responsabilidades.
+- TypeScript bien utilizado para seguridad de datos.
+- Sincronización robusta con PostgreSQL/PostGIS.
 
-- Arquitectura clara con separación de concerns
-- TypeScript bien utilizado con tipos definidos
-- Composición de componentes React
-- Persistencia inteligente (localStorage + Supabase)
-- GeoJSON bien integrado con PostGIS
-
-### Riesgos y Limitaciones
-
-| Área | Riesgo | Impacto |
-|------|--------|---------|
-| **Auth** | Admin hardcodeado por email | Seguridad limitada |
-| **Escala** | Sin paginación de puntos | Problemas con >10k puntos |
-| **Offline** | Sin Service Worker | No funciona sin internet |
-| **Mapa Base** | Solo OSM y ESRI | Sin mapas catastrales |
-| **Validación** | Validación客户端 | Posibles inconsistencias |
-| **Store** | 834 líneas en un solo archivo | Difícil mantenimiento |
-
----
-
-## 4. MODELO DE DOMINIO DETECTADO
-
-### Entidades Implícitas
-
-| Entidad | Descripción | Tabla Supabase |
-|---------|-------------|---------------|
-| **Barrio** | Unidad geográfica de relevamiento | `barrios` |
-| **PuntoRelevamiento** | Luminaria/punto de datos | `puntos_relevamiento` |
-| **Jornada** | Día de trabajo de campo | `jornadas_relevamiento` |
-| **Tarea** | Asignación de trabajo | `tareas_relevamiento` |
-| **Config** | Parámetros del sistema | `app_config` |
-
-### Relaciones
-
-```
-Barrio (1) ──── (N) PuntoRelevamiento
-Barrio (1) ──── (N) Jornada
-Barrio (1) ──── (N) Tarea
-```
+### Riesgos y Limitaciones actuales
+- **Escala**: Necesita paginación para manejar >10k puntos.
+- **Store**: `barrioStore.ts` (+800 líneas) es un monolito difícil de mantener.
+- **Offline**: Requiere Service Worker para trabajo en campo sin señal.
 
 ---
 
 ## 5. CAPACIDADES GEOSPACIALES
 
 ### Estado Actual
+- ✅ Almacenamiento de geometrías (PostGIS).
+- ✅ Renderizado de mapas y clustering.
+- ✅ Mapas de calor y conversión de coordenadas.
 
-- ✅ Almacenamiento de geometrías (PostGIS)
-- ✅ Renderizado de mapas (Leaflet)
-- ✅ GeoJSON import/export
-- ✅ Clustering de puntos
-- ✅ Mapas de calor
-- ✅ Conversión de coordenadas
-- ✅ Cálculo de superficies (turf/area)
-
-### Requerido para Plataforma GIS
-
-| Capacidad | Estado | Acción |
-|----------|--------|--------|
-| Editor de polígonos | ❌ | Implementar Leaflet.Draw |
-| Geocoding | ❌ | Integrar Nominatim |
-| WMS/WFS | ❌ | Agregar soporte TileLayer |
-| Spatial queries | ⚠️ Parcial | Extender RPC functions |
-| Índices espaciales | ⚠️ PostGIS | Verificar ST_Indexes |
-| Catálogo de datos | ❌ | Crear módulo nuevo |
+### Requerido para Plataforma GIS Pro
+- [ ] **Editor de polígonos**: Implementar `Leaflet.Draw` para editar barrios en vivo.
+- [ ] **Geocoding**: Integración con Nominatim o Google Maps.
+- [ ] **WMS/WFS**: Soporte para capas oficiales de **IDERA** o Catastro Provincial.
 
 ---
 
-## 6. POTENCIAL DE INTEROPERABILIDAD
+## 6. INTEGRACIÓN CON ODOO (Estrategia)
 
-### APIs y Servicios
+### ¿Directo o Mediante Puente?
 
-| Tipo | Potencial | Implementación |
-|------|-----------|----------------|
-| REST API | ✅ Supabase | Ya disponible |
-| GraphQL | ⚠️ No | Agregar cliente |
-| Webhooks | ⚠️ No | Configurar triggers |
-| ETL Pipelines | ✅ Scripts | Reutilizar existente |
-| Odoo Sync | ✅ Parcial | Ampliar importador |
+Para mantener una arquitectura **SaaS Escalable**, se propone el uso de **Supabase Edge Functions** como puente de seguridad:
 
-### Integraciones Detectadas
+1. **Odoo (ERP)**: Fuente primaria del dato (Inventario).
+2. **Supabase (Bridge)**: Caché espacial que traduce datos de Odoo a geometrías PostGIS.
+3. **Plataforma GIS**: Consumo rápido y seguro de datos ya procesados.
 
-```
-Odoo (ERP Externo)
-       │
-       ▼
-┌─────────────────┐
-│ Importador CSV   │ ◄── Luminarias_*.csv
-│ (ImportadorDatos.tsx)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Supabase        │
-│ (puntos_relevamiento)
-└─────────────────┘
-```
-
-### Recomendaciones de Integración
-
-1. **Odoo Sync**: Implementar API REST bidireccional
-2. **Scheduled Jobs**: Webhooks de Supabase para sincronización periódica
-3. **Event-driven**: Triggers en PostgreSQL para actualizar Odoo
+*Beneficio: Seguridad total de las credenciales de Odoo y performance de mapa superior.*
 
 ---
 
-## 7. ESTRATEGIA DE REFACTOR
+## 13. EJE DE TRANSPARENCIA Y GESTIÓN PÚBLICA
 
-### Principios
+La evolución del sistema contempla una **"Vista de Ciudadano"** integrable en `chajari.gob.ar`:
 
-1. **No reescribir** - Evolucionar incrementalmente
-2. **Preservar funcionalidad** - Cada cambio debe mantener backward compatibility
-3. **Modularizar progresivamente** - Extraerdominios gradualmente
-4. **Documentar decisiones** - Mantener ADR (Architecture Decision Records)
-
-### Plan de Refactor
-
-#### Fase 1: Limpieza (1-2 sprints)
-
-```
- ANTES                              DESPUÉS
-┌──────────────────────┐     ┌──────────────────────┐
-│ barrioStore.ts       │     │ stores/
-│ (834 líneas)         │     │ ├── barrioStore.ts    │
-│                      │     │ ├── mapStore.ts       │
-│                      │     │ └── userStore.ts      │
-└──────────────────────┘     └──────────────────────┘
-```
-
-#### Fase 2: Extracción de Módulos
-
-```
-src/
-├── features/
-│   ├── surveying/           # Relevamientos
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── types/
-│   ├── neighborhoods/       # Barrios
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── types/
-│   └── map/                 # Mapa
-│       ├── components/
-│       ├── hooks/
-│       └── layers/
-├── shared/
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   └── types/
-└── App.tsx
-```
-
-#### Fase 3: Service Layer
-
-```
-src/services/
-├── api/
-│   ├── supabase.ts
-│   ├── odoo.ts
-│   └── external.ts
-├── geo/
-│   ├── postgis.ts
-│   ├── geojson.ts
-│   └── spatial.ts
-└── sync/
-    ├── odooSync.ts
-    └── offlineSync.ts
-```
+- **Transparencia Activa**: Publicación de mapas de avance de gestión (pavimentación, recambio LED, obras hídricas).
+- **Impacto**: Pasar de reportes en PDF estáticos a un Mapa Vivo de Gestión.
+- **Implementación**: Creación de una versión Read-Only del mapa embebible mediante `<iframe>` o subdominio oficial.
 
 ---
 
-## 8. ARQUITECTURA FUTURA DE LA PLATAFORMA
+## ANEXO A: PROTOCOLO DE MIGRACIÓN INSTITUCIONAL
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     MUNICIPAL GIS PLATFORM                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
-│  │  Surveys    │  │  Assets     │  │  Datasets   │            │
-│  │  Module     │  │  Registry   │  │  Catalog    │            │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘            │
-│         │                │                │                     │
-│         └────────────────┼────────────────┘                     │
-│                          │                                      │
-│                    ┌──────▼──────┐                               │
-│                    │  Map Engine │                               │
-│                    │  (Leaflet)  │                               │
-│                    └──────┬──────┘                               │
-│                          │                                      │
-│         ┌────────────────┼────────────────┐                    │
-│         │                │                │                     │
-│  ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐            │
-│  │  PostGIS    │  │  WMS/WFS    │  │  Vector     │            │
-│  │  Storage    │  │  Services   │  │  Tiles      │            │
-│  └─────────────┘  └─────────────┘  └─────────────┘            │
-│                                                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                     INTEGRATION LAYER                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│  │  Odoo    │  │  IGN     │  │  IDERCON │  │  Custom  │        │
-│  │  Sync    │  │  WMS     │  │  WFS     │  │  APIs    │        │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘        │
-└─────────────────────────────────────────────────────────────────┘
-```
+Para trasladar el proyecto desde la propiedad personal (Alejandro) al espacio exclusivo de la Municipalidad de Chajarí:
 
-### Módulos Propuestos
+### Paso 1: Infraestructura Git (GitHub)
+- Crear una **GitHub Organization** oficial (ej: `munichajari-it`).
+- Transferir la propiedad del repositorio o realizar un clon limpio.
 
-| Módulo | Descripción | Prioridad |
-|--------|-------------|-----------|
-| **Survey Management** | Gestión de relevamientos, jornadas, equipos | Alta |
-| **Spatial Dataset Management** | Catálogo de capas GIS, metadatos | Media |
-| **Municipal Asset Registry** | Inventario de activos urbanos | Media |
-| **Integration Layer** | Conectores Odoo, APIs externas | Alta |
-| **Import/Export Pipelines** | ETL para datos geográficos | Alta |
-| **Spatial APIs** | Endpoints REST/GraphQL | Baja |
-| **Administration Panel** | Configuración multi-tenant | Baja |
+### Paso 2: Infraestructura de Datos (Supabase)
+- Crear un nuevo proyecto en Supabase con correo institucional.
+- Ejecutar los scripts de `supabase/migrations` para recrear las tablas y políticas RLS.
+- Exportar/Importar datos mediante archivos SQL o CSV.
+
+### Paso 3: Configuración de Entorno
+- Actualizar las variables de entorno (`.env`) con la nueva `SUPABASE_URL` y `KEY`.
+- Re-invitar a los usuarios (técnicos) al nuevo sistema mediante sus correos oficiales.
 
 ---
 
-## 9. ROADMAP TÉCNICO DE EVOLUCIÓN
-
-### Stage 1: Estabilización (Sprint 1-2)
-
-**Objetivo:** Mejorar fundamentos sin cambiar funcionalidad visible
-
-- [ ] Migrar auth a tabla `usuarios` con roles
-- [ ] Implementar paginación en `fetchBarrios` y `fetchOfficialPoints`
-- [ ] Agregar logging de auditoría (trigger en Supabase)
-- [ ] Tests unitarios con Vitest para core logic
-- [ ] Documentar ADR para decisiones arquitectónicas
-
-**Entregable:** Base sólida para desarrollo futuro
-
----
-
-### Stage 2: Límites de Dominio (Sprint 3-4)
-
-**Objetivo:** Desacoplar el store monolítico
-
-- [ ] Extraer `mapStore.ts` (capas, filtros, zoom)
-- [ ] Extraer `userStore.ts` (auth, sesión, permisos)
-- [ ] Extraer `configStore.ts` (parámetros globales)
-- [ ] Implementar паттерн Feature-based folder structure
-- [ ] Agregar typed hooks para cada store
-
-**Entregable:** Código modular fácil de mantener
-
----
-
-### Stage 3: Capacidades GIS (Sprint 5-7)
+> **Nota Final:** Este documento es una hoja de ruta viva. Todas las decisiones técnicas priorizan la soberanía de datos del municipio y la flexibilidad del desarrollador.
+ge 3: Capacidades GIS (Sprint 5-7)
 
 **Objetivo:** Agregar funcionalidades de plataforma GIS
 
