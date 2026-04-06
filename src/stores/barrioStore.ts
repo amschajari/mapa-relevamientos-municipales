@@ -29,7 +29,7 @@ interface BarrioState {
     luminarias: boolean
     heatmap: boolean
   }
-  activeBaseMap: 'osm' | 'satellite'
+  activeBaseMap: 'osm' | 'satellite' | 'osm-dark'
   officialPoints: PuntoRelevamiento[]
   discoveryPoints: PuntoRelevamiento[]
   mapFilters: {
@@ -65,7 +65,7 @@ interface BarrioState {
   resetOfficialPoints: (barrioId: string) => Promise<void>
   clearAllOfficialPoints: () => Promise<void>
   bulkDeleteByBarrios: (barrioIds: string[]) => Promise<void>
-  setActiveBaseMap: (baseMap: 'osm' | 'satellite') => void
+  setActiveBaseMap: (baseMap: 'osm' | 'satellite' | 'osm-dark') => void
   setMapFilter: (key: 'barrio' | 'estadosBase', value: string | string[]) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
   addBarrio: (barrio: Omit<Barrio, 'id'>) => Promise<Barrio>
@@ -637,7 +637,7 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      setActiveBaseMap: (baseMap: 'osm' | 'satellite') => set({ activeBaseMap: baseMap }),
+      setActiveBaseMap: (baseMap: 'osm' | 'satellite' | 'osm-dark') => set({ activeBaseMap: baseMap }),
 
       setMapFilter: (filter: 'barrio' | 'estadosBase', value: string | string[]) => set((state: BarrioState) => ({
         mapFilters: {
