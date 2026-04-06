@@ -103,7 +103,7 @@ export const LayerControl = () => {
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mapa Base</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1 p-1">
+          <div className="grid grid-cols-3 gap-1 p-1">
             <button
               onClick={() => setActiveBaseMap('osm')}
               className={cn(
@@ -115,6 +115,19 @@ export const LayerControl = () => {
             >
               <div className="w-full h-10 rounded-lg bg-[url('https://a.tile.openstreetmap.org/12/2048/1287.png')] bg-cover bg-center border border-gray-200" />
               <span className="text-[10px] font-bold">OSM</span>
+            </button>
+
+            <button
+              onClick={() => setActiveBaseMap('osm-dark')}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all",
+                activeBaseMap === 'osm-dark'
+                  ? "bg-primary-50 border-primary-100 text-primary-700 shadow-sm"
+                  : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+              )}
+            >
+              <div className="w-full h-10 rounded-lg bg-[url('https://a.basemaps.cartocdn.com/dark_all/12/2048/1287.png')] bg-cover bg-center border border-gray-200" />
+              <span className="text-[10px] font-bold">Oscuro</span>
             </button>
 
             <button
