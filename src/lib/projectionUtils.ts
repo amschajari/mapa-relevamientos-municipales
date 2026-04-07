@@ -14,34 +14,7 @@ export const DEFAULT_RHYTHM: WorkRhythm = {
   velocidadEstimadaHaHora: 0.5 // Valor base a calibrar con el weekend pilot
 }
 
-/**
- * Calcula el total estimado de luminarias de forma adaptativa.
- * Si hay datos reales (relevadas y superficie cubierta), calcula la densidad real.
- * Si no, usa una densidad base (8 por Ha / 1 por manzana).
- * @param superficieTotalHa Superficie total del barrio
- * @param superficieCubiertaHa Superficie que ya fue relevada (estimada por progreso)
- * @param relevadasCount Luminarias encontradas hasta el momento
- * @param densidadBase Densidad por defecto (8 lúmenes/Ha)
- * @returns Total estimado sugerido
- */
-export const calcularEstimadoAdaptive = (
-  superficieTotalHa: number,
-  superficieCubiertaHa: number,
-  relevadasCount: number,
-  densidadBase: number = 4
-): number => {
-  if (superficieTotalHa <= 0) return 0
 
-  // Si tenemos una muestra significativa (ej: > 10% del barrio o > 1 Ha)
-  // calculamos la densidad real observada.
-  if (superficieCubiertaHa > 0 && relevadasCount > 0) {
-    const densidadReal = relevadasCount / superficieCubiertaHa
-    return Math.round(superficieTotalHa * densidadReal)
-  }
-
-  // Si no hay datos reales, usamos la densidad base
-  return Math.round(superficieTotalHa * densidadBase)
-}
 
 /**
  * Calcula los días restantes para completar un área
