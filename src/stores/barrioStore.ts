@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento, JornadaRelevamiento, PuntoRelevamiento } from '@/types'
 import type { Session } from '@supabase/supabase-js'
 import area from '@turf/area'
-import { calcularEstimadoAdaptive } from '@/lib/projectionUtils'
+
 
 interface AppConfig {
   agentesActuales: number
@@ -516,26 +516,14 @@ export const useBarrioStore = create<BarrioState>()(
 
           set((state: BarrioState) => ({ jornadas: [nuevaJornada, ...state.jornadas] }))
 
-          // Recalcular progreso del barrio de forma adaptativa
+          // Actualizar solo el conteo real de luminarias (progreso es manual)
           const barrio = get().barrios.find((b: Barrio) => b.id === jornada.barrioId)
           if (barrio) {
             const nuevasRelevadas = (barrio.luminariasRelevadas || 0) + jornada.luminariasRelevadas
-            const superficieCubiertaEstimada = barrio.superficie_ha ? (barrio.superficie_ha * (barrio.progreso / 100)) : 0
-            
-            // Calculamos el nuevo estimado basado en la densidad actual observada
-            const nuevasEstimadas = calcularEstimadoAdaptive(
-              barrio.superficie_ha || 0,
-              superficieCubiertaEstimada,
-              (barrio.luminariasRelevadas || 0) // Usamos el valor previo para la densidad actual
-            ) || barrio.luminariasEstimadas || 0
-            
-            const nuevoProgreso = nuevasEstimadas > 0 ? Math.min(100, Math.round((nuevasRelevadas / nuevasEstimadas) * 100)) : 0
-            
             await get().updateBarrio(barrio.id, {
               luminariasRelevadas: nuevasRelevadas,
-              luminariasEstimadas: nuevasEstimadas,
-              progreso: nuevoProgreso,
-              estado: barrio.estado === 'pendiente' ? 'progreso' : barrio.estado
+              // progreso y luminariasEstimadas son campos manuales: no se tocan aquí
+              estado: barrio.estado === 'pendiente' && nuevasRelevadas > 0 ? 'progreso' : barrio.estado
             })
           }
         } catch (error: any) {
@@ -651,9 +639,9 @@ export const useBarrioStore = create<BarrioState>()(
 
         set({ isLoading: true })
         try {
-          // Procesar cada barrio afectado
+          // Solo actualiza el conteo REAL de luminarias.
+          // progreso y luminariasEstimadas son campos manuales del admin, no se recalculan.
           for (const id of barrioIds) {
-            // 1. Contar puntos oficiales en Supabase para este barrio
             const { count, error: countError } = await supabase
               .from('puntos_relevamiento')
               .select('*', { count: 'exact', head: true })
@@ -665,20 +653,13 @@ export const useBarrioStore = create<BarrioState>()(
             const barrio = get().barrios.find((b: Barrio) => b.id === id)
 
             if (barrio) {
-              const nuevasEstimadas = Math.max(barrio.luminariasEstimadas || 0, nuevasRelevadas)
-              const nuevoProgreso = nuevasEstimadas > 0 ? Math.min(100, Math.round((nuevasRelevadas / nuevasEstimadas) * 100)) : 0
-
-              // 2. Actualizar la tabla barrios en Supabase
               await get().updateBarrio(id, {
                 luminariasRelevadas: nuevasRelevadas,
-                luminariasEstimadas: nuevasEstimadas,
-                progreso: nuevoProgreso,
                 estado: barrio.estado === 'pendiente' && nuevasRelevadas > 0 ? 'progreso' : barrio.estado
               })
             }
           }
 
-          // 3. Refrescar datos locales
           await get().fetchBarrios()
         } catch (error: any) {
           console.error('Error recalculating stats:', error)

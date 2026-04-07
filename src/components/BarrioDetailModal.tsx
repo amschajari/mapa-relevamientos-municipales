@@ -57,10 +57,7 @@ export const BarrioDetailModal = ({
   const [editData, setEditData] = useState({
     nombre: barrio.nombre,
     estado: barrio.estado,
-    progreso: barrio.progreso,
     observaciones: barrio.observaciones || '',
-    luminariasEstimadas: barrio.luminariasEstimadas || 0,
-    luminariasRelevadas: barrio.luminariasRelevadas || 0,
     agentes: 2,
     horasPorDia: 3,
   })
@@ -69,10 +66,7 @@ export const BarrioDetailModal = ({
     setEditData({
       nombre: barrio.nombre,
       estado: barrio.estado,
-      progreso: barrio.progreso,
       observaciones: barrio.observaciones || '',
-      luminariasEstimadas: barrio.luminariasEstimadas || 0,
-      luminariasRelevadas: barrio.luminariasRelevadas || 0,
       agentes: 2,
       horasPorDia: 3,
     })
@@ -92,19 +86,14 @@ export const BarrioDetailModal = ({
         await addBarrio({
           nombre: editData.nombre,
           estado: editData.estado,
-          progreso: editData.progreso,
+          progreso: 0,
           observaciones: editData.observaciones,
-          luminariasEstimadas: editData.luminariasEstimadas,
-          luminariasRelevadas: editData.luminariasRelevadas,
         })
       } else {
         await updateBarrio(barrio.id, {
           nombre: editData.nombre,
           estado: editData.estado,
-          progreso: editData.progreso,
           observaciones: editData.observaciones,
-          luminariasEstimadas: editData.luminariasEstimadas,
-          luminariasRelevadas: editData.luminariasRelevadas,
         })
       }
       setIsEditing(false)
@@ -230,63 +219,45 @@ export const BarrioDetailModal = ({
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600 font-medium">Progreso del relevamiento</span>
-              <span className="font-bold text-gray-800">{isEditing ? editData.progreso : barrio.progreso}%</span>
-            </div>
-            {isEditing ? (
-              <input
-                type="range" min="0" max="100" value={editData.progreso}
-                onChange={(e) => setEditData({ ...editData, progreso: parseInt(e.target.value) })}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
-              />
-            ) : (
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full transition-all duration-500 ${
-                    barrio.estado === 'completado' ? 'bg-green-500' : 
-                    barrio.estado === 'progreso' ? 'bg-amber-500' : 'bg-gray-400'
-                  }`}
-                  style={{ width: `${barrio.progreso}%` }}
-                />
-              </div>
-            )}
+          {/* Luminarias encontradas: dato real, no calculado */}
+          <div className="bg-gray-50 p-4 rounded-xl space-y-1">
+            <p className="text-sm font-medium text-gray-600">Luminarias encontradas</p>
+            <p className="text-3xl font-black text-gray-800">{barrio.luminariasRelevadas?.toLocaleString('es-AR') || 0}</p>
+            {barrio.superficie_ha && barrio.luminariasRelevadas ? (
+              <p className="text-xs text-gray-400">
+                {(barrio.luminariasRelevadas / barrio.superficie_ha).toFixed(1)} lum/Ha
+              </p>
+            ) : null}
           </div>
 
           {/* Conteo de Luminarias */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-600">Relevadas</span>
-              </div>
-              {isEditing ? (
-                <input
-                  type="number" value={editData.luminariasRelevadas}
-                  onChange={(e) => setEditData({ ...editData, luminariasRelevadas: parseInt(e.target.value) || 0 })}
-                  className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-lg font-bold"
-                />
-              ) : (
-                <p className="text-2xl font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</p>
-              )}
+          {/* Luminarias encontradas y densidad (solo lectura, dato real) */}
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-600">Luminarias encontradas</span>
             </div>
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-600">Estimadas</span>
-              </div>
-              {isEditing ? (
-                <input
-                  type="number" value={editData.luminariasEstimadas}
-                  onChange={(e) => setEditData({ ...editData, luminariasEstimadas: parseInt(e.target.value) || 0 })}
-                  className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-lg font-bold"
-                />
-              ) : (
-                <p className="text-2xl font-bold text-gray-800">{barrio.luminariasEstimadas || 0}</p>
-              )}
-            </div>
+            <p className="text-2xl font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</p>
+            <p className="text-[10px] text-gray-400 mt-1">Conteo real importado</p>
           </div>
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-600">Densidad</span>
+            </div>
+            {barrio.superficie_ha && barrio.luminariasRelevadas ? (
+              <>
+                <p className="text-2xl font-bold text-gray-800">
+                  {(barrio.luminariasRelevadas / barrio.superficie_ha).toFixed(1)}
+                </p>
+                <p className="text-[10px] text-gray-400 mt-1">lum / Ha</p>
+              </>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Sin datos</p>
+            )}
+          </div>
+        </div>
 
           {/* Calculador de Proyección (Solo Admin) */}
           {user?.role === 'admin' && (
