@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Map,
   Users,
-  BarChart3,
   ChevronLeft,
   ChevronRight,
   Building2,
@@ -48,9 +47,8 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
     { label: 'Dashboard', icon: LayoutDashboard },
     { label: 'Mapa', icon: Map },
     { label: 'Barrios', icon: Building2 },
-    { label: 'Equipos', icon: Users },
-    { label: 'Estadísticas', icon: BarChart3 },
-    { label: 'Importar Datos', icon: UploadCloud },
+    ...(user?.role === 'admin' ? [{ label: 'Equipos', icon: Users }] : []),
+    ...(user?.role === 'admin' ? [{ label: 'Importar Datos', icon: UploadCloud }] : []),
   ]
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Menu, X, Navigation2, Info, Map, LayoutDashboard, Building2, Users, BarChart3, UploadCloud } from 'lucide-react'
+import { Menu, X, Navigation2, Info, Map, LayoutDashboard, Building2, Users, UploadCloud } from 'lucide-react'
 import { useMap, CircleMarker, Popup } from 'react-leaflet'
 import { useBarrioStore } from '@/stores/barrioStore'
 import { cn, ESTADO_BASE_OPTIONS } from '@/lib/constants'
@@ -81,8 +81,10 @@ export const MobileMapControls = () => {
     mapFilters,
     setMapFilter,
     officialPoints,
-    setActiveTab
+    setActiveTab,
+    user
   } = useBarrioStore()
+  const isAdmin = user?.role === 'admin'
 
   const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
 
@@ -143,9 +145,8 @@ export const MobileMapControls = () => {
               {[
                 { label: 'Dashboard', icon: LayoutDashboard },
                 { label: 'Barrios', icon: Building2 },
-                { label: 'Equipos', icon: Users },
-                { label: 'Estadísticas', icon: BarChart3 },
-                { label: 'Importar Datos', icon: UploadCloud },
+                ...(isAdmin ? [{ label: 'Equipos', icon: Users }] : []),
+                ...(isAdmin ? [{ label: 'Importar Datos', icon: UploadCloud }] : []),
               ].map((item) => (
                 <button
                   key={item.label}

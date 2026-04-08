@@ -7,19 +7,90 @@ import {
   TrendingUp,
   Users,
   Calendar,
+  Settings,
+  Zap,
 } from 'lucide-react'
 import type { Barrio } from '@/types'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { useBarrioStore } from '@/stores'
-import { calcularSalidasRestantes, calcularSemanasRestantes } from '@/lib/projectionUtils'
+
+
+const SimuladorCampana = ({ luminariasRestantes }: { luminariasRestantes: number }) => {
+
+  // Valores de referencia (se configuran en la pestaña Equipos por el administrador)
+  const agentes = 3
+  const horas = 3
+  const rendimiento = 80
+  const diasLaborables = 5
+
+  const manHoursBase = 3 * 3; 
+  const luminariasPorHoraHombre = rendimiento / manHoursBase;
+
+  const manHoursSimulado = agentes * horas;
+  const luminariasAlDia = manHoursSimulado * luminariasPorHoraHombre;
+
+  const diasRestantes = luminariasRestantes > 0 && luminariasAlDia > 0 ? Math.ceil(luminariasRestantes / luminariasAlDia) : 0
+  const semanasRestantes = diasLaborables > 0 ? Math.ceil(diasRestantes / diasLaborables) : 0
+
+  return (
+    <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl border border-amber-200 shadow-sm w-full">
+      {/* Tiempos Estimativos */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-amber-500 rounded-lg">
+          <Settings className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800">Tiempos Estimativos</h3>
+          <p className="text-sm text-gray-500">Variables operativas actuales del equipo</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 border border-amber-100 text-center">
+          <p className="text-[10px] uppercase font-black tracking-wider text-gray-400 mb-1">Agentes</p>
+          <p className="text-3xl font-black text-gray-800">{agentes}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-amber-100 text-center">
+          <p className="text-[10px] uppercase font-black tracking-wider text-gray-400 mb-1">Horas/Día</p>
+          <p className="text-3xl font-black text-gray-800">{horas}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-amber-100 text-center">
+          <p className="text-[10px] uppercase font-black tracking-wider text-gray-400 mb-1">Luces/Jornada</p>
+          <p className="text-3xl font-black text-gray-800">{rendimiento}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-amber-100 text-center">
+          <p className="text-[10px] uppercase font-black tracking-wider text-gray-400 mb-1">Días/Sem.</p>
+          <p className="text-3xl font-black text-gray-800">{diasLaborables}</p>
+        </div>
+      </div>
+
+      {/* Demoras Iterables */}
+      <div className="border-t border-amber-200 pt-4">
+        <p className="text-[10px] uppercase font-black tracking-wider text-amber-600 mb-3">Demoras Iterables</p>
+        <div className="flex items-center gap-4 bg-white p-5 rounded-xl border border-amber-100 shadow-sm">
+          <div className="p-4 bg-green-100 rounded-full">
+            <Zap className="w-8 h-8 text-green-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">Tiempo estimado al cierre</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-black text-gray-900">{semanasRestantes}</span>
+              <span className="font-bold text-gray-600 tracking-wide">semanas operativas</span>
+            </div>
+            <p className="text-xs text-gray-400 font-medium mt-1">{diasRestantes} salidas · {luminariasRestantes} luminarias restantes para la meta ciudad.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 interface DashboardViewProps {
   barrios: Barrio[]
 }
 
 export const DashboardView = ({ barrios }: DashboardViewProps) => {
-  const { officialPoints, config } = useBarrioStore()
+  const { officialPoints } = useBarrioStore()
   
   const stats = useMemo(() => {
     const total = barrios.length
@@ -28,29 +99,9 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
     const pendientes = barrios.filter((b) => b.estado === 'pendiente').length
     const pausados = barrios.filter((b) => b.estado === 'pausado').length
 
-    const superficieTotal = barrios.reduce((acc, b) => acc + (b.superficie_ha || 0), 0)
-    const superficieRelevada = barrios.reduce((acc, b) => {
-      if (b.estado === 'completado') return acc + (b.superficie_ha || 0)
-      if (b.estado === 'progreso') return acc + ((b.superficie_ha || 0) * (b.progreso / 100))
-      return acc
-    }, 0)
-
-    const progresoSuperficie = superficieTotal > 0 ? Math.round((superficieRelevada / superficieTotal) * 100) : 0
-
     const META_CIUDAD = 8000
     const puntosTotales = officialPoints?.length || 0
     const progresoGlobalLuminarias = Math.round((puntosTotales / META_CIUDAD) * 100)
-
-    // Proyección basada en ritmo observado (config)
-    const salidasRestantes = calcularSalidasRestantes(
-      META_CIUDAD,
-      puntosTotales,
-      config.luminariasPorSalida
-    )
-    const semanasRestantes = calcularSemanasRestantes(
-      salidasRestantes,
-      config.salidasPorSemana
-    )
 
     return {
       total,
@@ -58,17 +109,11 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
       enProgreso,
       pendientes,
       pausados,
-      superficieTotal,
-      superficieRelevada,
-      progresoSuperficie,
       puntosTotales,
       progresoGlobalLuminarias,
       metaCiudad: META_CIUDAD,
-      salidasRestantes,
-      semanasRestantes,
-      config
     }
-  }, [barrios, officialPoints, config])
+  }, [barrios, officialPoints])
 
   const barriosRecientes = useMemo(() => {
     return [...barrios]
@@ -95,13 +140,13 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-gray-500 mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-800">{value}</p>
-          {subValue && <p className="text-xs text-gray-400 mt-1">{subValue}</p>}
+          <p className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-1">{label}</p>
+          <p className="text-3xl font-black text-gray-800">{value}</p>
+          {subValue && <p className="text-xs font-medium text-gray-400 mt-1">{subValue}</p>}
           {trend && (
             <div className="flex items-center gap-1 mt-2">
               <TrendingUp className="w-4 h-4 text-green-500" />
-              <span className="text-xs text-green-600 font-medium">{trend}</span>
+              <span className="text-xs text-green-600 font-bold">{trend}</span>
             </div>
           )}
         </div>
@@ -118,85 +163,47 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-sm text-gray-500">
-              Control de relevamiento municipal •{' '}
-              {format(new Date(), "EEEE d 'de' MMMM", { locale: es })}
-            </p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
-            <div className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600">
-              <Calendar className="w-4 h-4 inline mr-2" />
+            <div className="px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-sm font-bold text-gray-600">
+              <Calendar className="w-4 h-4 inline mr-2 text-gray-400" />
               {format(new Date(), 'dd/MM/yyyy')}
             </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            icon={TrendingUp}
-            label="Superficie Total"
-            value={`${stats.superficieTotal.toFixed(1)} Ha`}
-            subValue={`${stats.superficieRelevada.toFixed(1)} Ha cubiertas`}
-            color="bg-indigo-500"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            <StatCard
              icon={MapPin}
-             label="Avance Global Ciudad"
+             label="Avance Ciudad"
              value={`${stats.progresoGlobalLuminarias}%`}
-             subValue={`${stats.puntosTotales} de ${stats.metaCiudad} luminarias`}
-             color="bg-purple-500"
-             trend={stats.puntosTotales > 0 ? "Actualizado" : undefined}
+             subValue={`${stats.puntosTotales} encontradas de ${stats.metaCiudad}`}
+             color="bg-primary-600"
+             trend={stats.puntosTotales > 0 ? "Relevamiento Activo" : undefined}
            />
            <StatCard
-             icon={Clock}
-             label="Proyección Final"
-             value={`~${stats.semanasRestantes} semanas`}
-             subValue={`${stats.salidasRestantes} salidas restantes (${stats.config.salidasPorSemana} salidas/semana)`}
-             color="bg-amber-500"
+             icon={CheckCircle2}
+             label="Gestión de Polígonos"
+             value={`${stats.completados}/${stats.total}`}
+             subValue={`Barrios relevados al 100%`}
+             color="bg-emerald-500"
            />
-          <StatCard
-            icon={CheckCircle2}
-            label="Avance Barrios"
-            value={`${stats.completados}/${stats.total}`}
-            subValue={`${stats.progresoSuperficie}% de la superficie`}
-            color="bg-green-500"
-          />
+           <StatCard
+             icon={Users}
+             label="Equipos (Salidas)"
+             value={stats.enProgreso}
+             subValue={`Barrios actualmente operando`}
+             color="bg-sky-500"
+           />
         </div>
 
-        {/* Progreso General */}
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Cobertura de Superficie</h3>
-                <p className="text-sm text-gray-500">
-                  {stats.superficieRelevada.toFixed(1)} de {stats.superficieTotal.toFixed(1)} Hectáreas cubiertas
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-indigo-600">{stats.progresoSuperficie}%</p>
-              <p className="text-xs text-gray-500">avance por área</p>
-            </div>
-          </div>
-
-          <div className="w-full bg-gray-100 rounded-full h-4">
-            <div
-              className="h-4 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-1000"
-              style={{ width: `${stats.progresoSuperficie}%` }}
-            />
-          </div>
-
-          <div className="flex justify-between mt-2 text-sm text-gray-500">
-            <span>Pendientes: {stats.pendientes}</span>
-            <span>En progreso: {stats.enProgreso}</span>
-            <span>Completados: {stats.completados}</span>
-          </div>
+        {/* Simulador Central */}
+        <div className="w-full">
+          <SimuladorCampana 
+            luminariasRestantes={stats.metaCiudad - stats.puntosTotales} 
+          />
         </div>
 
         {/* Barrios Recientes */}
@@ -220,7 +227,7 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
                 <p>No hay barrios activos</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {barriosRecientes.map((barrio) => (
                   <div
                     key={barrio.id}
@@ -228,26 +235,21 @@ export const DashboardView = ({ barrios }: DashboardViewProps) => {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-2 h-2 rounded-full ${
-                          barrio.estado === 'completado'
-                            ? 'bg-green-500'
-                            : barrio.estado === 'progreso'
-                            ? 'bg-amber-500'
-                            : 'bg-gray-400'
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          barrio.estado === 'completado' ? 'bg-green-500' :
+                          barrio.estado === 'progreso' ? 'bg-amber-500' : 'bg-gray-400'
                         }`}
                       />
-                      <div>
-                        <p className="font-medium text-gray-800">{barrio.nombre}</p>
-                        <p className="text-xs text-gray-500">
-                          {barrio.luminariasRelevadas || 0} de {barrio.luminariasEstimadas || 0} luminarias
-                        </p>
-                      </div>
+                      <p className="font-medium text-gray-800 text-sm">{barrio.nombre}</p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-sm font-medium text-gray-800">
-                        {barrio.progreso}%
-                      </span>
-                    </div>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      barrio.estado === 'completado' ? 'bg-green-100 text-green-700' :
+                      barrio.estado === 'progreso' ? 'bg-amber-100 text-amber-700' :
+                      'bg-gray-100 text-gray-500'
+                    }`}>
+                      {barrio.estado === 'completado' ? 'Completado' :
+                       barrio.estado === 'progreso' ? 'En curso' : 'Pausado'}
+                    </span>
                   </div>
                 ))}
               </div>

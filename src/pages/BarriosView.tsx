@@ -6,9 +6,6 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  MoreHorizontal,
-  Plus,
-  Edit3,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react'
@@ -136,22 +133,6 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
               {barrios.filter(b => b.estado === 'completado').length} completados
             </p>
           </div>
-          <button 
-            onClick={() => {
-              setSelectedBarrio({
-                id: '',
-                nombre: '',
-                estado: 'pendiente',
-                progreso: 0,
-                luminariasEstimadas: 0,
-                luminariasRelevadas: 0
-              } as Barrio)
-            }}
-            className="hidden sm:flex px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-xs font-semibold items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">Nuevo Barrio</span>
-          </button>
         </div>
 
         {/* Filters */}
@@ -192,18 +173,15 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
               <SortHeader field="nombre">Nombre</SortHeader>
               <SortHeader field="estado">Estado</SortHeader>
               <SortHeader field="progreso">Progreso</SortHeader>
-              <SortHeader field="luminarias">Luminarias</SortHeader>
-              <th className="hidden sm:table-cell px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
+              <SortHeader field="luminarias">Encontradas</SortHeader>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredBarrios.map((barrio) => (
               <tr
                 key={barrio.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer group"
-                onClick={() => onViewOnMap?.(barrio)}
+                className="hover:bg-primary-50 transition-colors cursor-pointer group"
+                onClick={() => setSelectedBarrio(barrio)}
               >
                 <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
@@ -259,33 +237,8 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                   </div>
                 </td>
                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {barrio.luminariasRelevadas || 0} / {barrio.luminariasEstimadas || 0}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {barrio.luminariasEstimadas
-                      ? Math.round(
-                          ((barrio.luminariasRelevadas || 0) / barrio.luminariasEstimadas) * 100
-                        )
-                      : 0}% completado
-                  </div>
-                </td>
-                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end gap-2">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedBarrio(barrio)
-                      }}
-                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
-                      title="Editar barrio"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <span className="text-sm font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</span>
+                  <span className="text-xs text-gray-400 ml-1">relevadas</span>
                 </td>
               </tr>
             ))}

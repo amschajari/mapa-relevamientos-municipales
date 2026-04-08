@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { ControlMap } from './components/ControlMap'
 import { Sidebar } from './components/Sidebar'
 import { LeyendaMapa } from './components/LeyendaMapa'
-import { EstadisticasPanel } from './components/EstadisticasPanel'
 import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
 import { EquiposView } from './pages/EquiposView'
@@ -19,7 +18,6 @@ const VIEWS = {
   MAPA: 'Mapa',
   BARRIOS: 'Barrios',
   EQUIPOS: 'Equipos',
-  ESTADISTICAS: 'Estadísticas',
   IMPORTAR_DATOS: 'Importar Datos',
 } as const
 
@@ -141,9 +139,6 @@ function App() {
 
       case VIEWS.EQUIPOS:
         return <EquiposView />
-
-      case VIEWS.ESTADISTICAS:
-        return <EstadisticasPanel barrios={barrios} tareas={tareas} />
 
       case VIEWS.IMPORTAR_DATOS:
         return <ImportacionView />
