@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react'
-import { MapContainer, TileLayer, GeoJSON, useMap, CircleMarker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, GeoJSON, useMap, Popup, Marker } from 'react-leaflet'
 import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
 import 'leaflet.heat'
@@ -194,6 +194,17 @@ const OfficialPointsLayer = () => {
         if (!matchesOk && !matchesMalas && !matchesSinBase) return false
       }
 
+      // Filtrar por Funcionamiento (Multi-selección)
+      if (mapFilters.funcionamiento && mapFilters.funcionamiento.length > 0) {
+        const sinLuzRaw = point.sin_luz ?? props.sin_luz
+        const isNoEnciende = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
+        
+        const matchesNoEnciende = mapFilters.funcionamiento.includes('no_enciende') && isNoEnciende
+        // Podríamos agregar más estados de funcionamiento aquí en el futuro (ej: intermitente)
+
+        if (!matchesNoEnciende) return false
+      }
+
       return true
     })
   }, [officialPoints, mapFilters])
@@ -263,19 +274,26 @@ const OfficialPointsLayer = () => {
             
             const pinColor = isMala ? '#ef4444' : (isSinBase ? '#facc15' : '#0ea5e9')
             
+            const sinLuzRaw = point.sin_luz ?? point.propiedades?.sin_luz
+            const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
+            
+            const customIcon = L.divIcon({
+              html: `
+                <div class="relative flex items-center justify-center w-6 h-6">
+                  ${sinLuz ? '<div class="absolute w-5 h-5 rounded-full border-2 border-slate-700 shadow-sm"></div>' : ''}
+                  <div class="w-2.5 h-2.5 rounded-full border border-white shadow-sm z-10" style="background-color: ${pinColor}"></div>
+                </div>
+              `,
+              className: 'custom-div-icon',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+            
             return (
-              <CircleMarker
+              <Marker
                 key={`official-${point.id}`}
-                center={position}
-                radius={6}
-                pane="markerPane"
-                pathOptions={{
-                  fillColor: pinColor,
-                  color: '#ffffff',
-                  weight: 2,
-                  fillOpacity: 0.9,
-                  pane: 'markerPane'
-                }}
+                position={position}
+                icon={customIcon}
               >
                 <Popup 
                   className="luminaria-popup"
@@ -351,7 +369,7 @@ const OfficialPointsLayer = () => {
                             {sinLuz && (
                               <div className="flex items-center gap-1 bg-red-50 rounded px-1 py-0.5 mt-1">
                                 <span className="text-[10px] animate-pulse">🔴</span>
-                                <span className="text-red-600 font-bold uppercase text-[10px]">Punto Apagado</span>
+                                <span className="text-red-600 font-bold uppercase text-[10px]">No enciende</span>
                               </div>
                             )}
                           </>
@@ -365,7 +383,7 @@ const OfficialPointsLayer = () => {
                     </div>
                   </div>
                 </Popup>
-              </CircleMarker>
+              </Marker>
             )
           })}
         </MarkerClusterGroup>

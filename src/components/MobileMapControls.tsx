@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { Menu, X, Navigation2, Info, Map, LayoutDashboard, Building2, Users, UploadCloud } from 'lucide-react'
 import { useMap, CircleMarker, Popup } from 'react-leaflet'
 import { useBarrioStore } from '@/stores/barrioStore'
-import { cn, ESTADO_BASE_OPTIONS } from '@/lib/constants'
+import { cn, ESTADO_BASE_OPTIONS, FUNCIONAMIENTO_OPTIONS } from '@/lib/constants'
 import { calculateLastUpdate } from '@/lib/mapUtils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -88,12 +88,12 @@ export const MobileMapControls = () => {
 
   const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
 
-  const toggleEstadoBase = (value: string) => {
-    const current = mapFilters.estadosBase || []
+  const toggleMapFilter = (key: 'estadosBase' | 'funcionamiento', value: string) => {
+    const current = (mapFilters[key] as string[]) || []
     if (current.includes(value)) {
-      setMapFilter('estadosBase', current.filter(v => v !== value))
+      setMapFilter(key, current.filter(v => v !== value))
     } else {
-      setMapFilter('estadosBase', [...current, value])
+      setMapFilter(key, [...current, value])
     }
   }
 
@@ -188,7 +188,33 @@ export const MobileMapControls = () => {
                     return (
                       <button
                         key={opt.value}
-                        onClick={() => toggleEstadoBase(opt.value)}
+                        onClick={() => toggleMapFilter('estadosBase', opt.value)}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
+                          isSelected 
+                            ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
+                            : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-1.5 h-1.5 rounded-full",
+                          isSelected ? opt.color : "bg-gray-300"
+                        )} />
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Funcionamiento</label>
+                <div className="space-y-1">
+                  {FUNCIONAMIENTO_OPTIONS.map(opt => {
+                    const isSelected = (mapFilters.funcionamiento || []).includes(opt.value)
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => toggleMapFilter('funcionamiento', opt.value)}
                         className={cn(
                           "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
                           isSelected 

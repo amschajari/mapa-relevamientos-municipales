@@ -35,6 +35,7 @@ interface BarrioState {
   mapFilters: {
     barrio: string
     estadosBase: string[]
+    funcionamiento: string[]
   }
   config: {
     agentesActuales: number
@@ -66,7 +67,7 @@ interface BarrioState {
   clearAllOfficialPoints: () => Promise<void>
   bulkDeleteByBarrios: (barrioIds: string[]) => Promise<void>
   setActiveBaseMap: (baseMap: 'osm' | 'satellite' | 'osm-dark') => void
-  setMapFilter: (key: 'barrio' | 'estadosBase', value: string | string[]) => void
+  setMapFilter: (key: 'barrio' | 'estadosBase' | 'funcionamiento', value: string | string[]) => void
   recalculateBarrioStats: (barrioIds: string[]) => Promise<void>
   addBarrio: (barrio: Omit<Barrio, 'id'>) => Promise<Barrio>
   setConfig: (configUpdate: Partial<BarrioState['config']>) => void
@@ -107,7 +108,8 @@ export const useBarrioStore = create<BarrioState>()(
       discoveryPoints: [],
       mapFilters: {
         barrio: '',
-        estadosBase: []
+        estadosBase: [],
+        funcionamiento: [],
       },
       config: {
         agentesActuales: 2,
@@ -627,7 +629,7 @@ export const useBarrioStore = create<BarrioState>()(
 
       setActiveBaseMap: (baseMap: 'osm' | 'satellite' | 'osm-dark') => set({ activeBaseMap: baseMap }),
 
-      setMapFilter: (filter: 'barrio' | 'estadosBase', value: string | string[]) => set((state: BarrioState) => ({
+      setMapFilter: (filter: 'barrio' | 'estadosBase' | 'funcionamiento', value: string | string[]) => set((state: BarrioState) => ({
         mapFilters: {
           ...state.mapFilters,
           [filter]: value
