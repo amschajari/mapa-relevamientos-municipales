@@ -413,7 +413,6 @@ const BarriosLayer = ({
     (feature?: any) => {
       const nombre = feature?.properties?.Nombre || ''
       const status = getBarrioStatus(nombre)
-      const progress = getBarrioProgress(nombre)
       const isSelected = selectedBarrio?.nombre === nombre
 
       const baseStyle = {
@@ -426,8 +425,7 @@ const BarriosLayer = ({
       switch (status) {
         case 'completado': return { ...baseStyle, color: '#059669', fillColor: '#10b981' }
         case 'progreso':
-          const intensity = Math.max(0.3, progress / 100)
-          return { ...baseStyle, color: '#d97706', fillColor: `rgba(245, 158, 11, ${intensity})` }
+          return { ...baseStyle, fillOpacity: 0.7, color: '#d97706', fillColor: '#f59e0b' }
         case 'pausado': return { ...baseStyle, color: '#dc2626', fillColor: '#ef4444' }
         case 'pendiente':
         default: return { ...baseStyle, color: '#4b5563', fillColor: '#9ca3af' }
