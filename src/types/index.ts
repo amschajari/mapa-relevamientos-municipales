@@ -157,3 +157,43 @@ export interface BarrioGeoJSON {
   }
   features: BarrioFeature[]
 }
+
+// ============================================
+// Sistema de Capas IDE-Style
+// ============================================
+
+export type LayerType = 'point' | 'line' | 'polygon' | 'heatmap' | 'geojson'
+export type LayerSource = 'supabase' | 'geojson' | 'wms' | 'wfs'
+
+export interface LayerStyle {
+  color?: string
+  fillColor?: string
+  fillOpacity?: number
+  radius?: number
+  weight?: number
+  opacity?: number
+}
+
+export interface MapLayer {
+  id: string
+  name: string
+  type: LayerType
+  source: LayerSource
+  visible: boolean
+  style: LayerStyle
+  domain: string // "luminarias" | "espacios_verdes" | "pavimento"
+  sublayer?: string // "led" | "vapor" | "parques" | "plazas"
+  opacity: number // 0-100
+  description?: string
+  dataSource?: string // tabla o endpoint
+}
+
+export interface LayerDomain {
+  id: string // "luminarias" | "espacios_verdes" | "pavimento"
+  name: string
+  icon: string // icono lucide-react
+  layers: MapLayer[]
+  expanded?: boolean
+}
+
+export type BaseMapType = 'osm' | 'osm-dark' | 'satellite' | 'argenmap'

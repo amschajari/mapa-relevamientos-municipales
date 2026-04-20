@@ -9,12 +9,13 @@ import {
   LogIn,
   LogOut,
   UploadCloud,
+  Layers,
 } from 'lucide-react'
 import { useBarrioStore } from '@/stores'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { cn, ESTADO_BASE_OPTIONS, FUNCIONAMIENTO_OPTIONS } from '@/lib/constants'
-import { calculateLastUpdate } from '@/lib/mapUtils'
+import { cn } from '@/lib/constants'
+import { LayersPanel } from './LayersPanel'
 
 interface NavItem {
   label: string
@@ -29,19 +30,20 @@ interface SidebarProps {
 
 export const Sidebar = ({ onLoginClick }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, logout, barrios, mapFilters, setMapFilter, officialPoints, activeTab, setActiveTab } = useBarrioStore()
+  const [activeSection, setActiveSection] = useState<'nav' | 'layers'>('nav')
+  
+  const { user, logout, officialPoints, activeTab, setActiveTab } = useBarrioStore()
 
-  // Calcular última actualización basada en los puntos
-  const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
+  console.log('[Sidebar] activeSection:', activeSection, 'activeTab:', activeTab)
 
-  const toggleMapFilter = (key: 'estadosBase' | 'funcionamiento', value: string) => {
-    const current = (mapFilters[key] as string[]) || []
-    if (current.includes(value)) {
-      setMapFilter(key, current.filter(v => v !== value))
-    } else {
-      setMapFilter(key, [...current, value])
-    }
-  }
+  // Calcular última actualización
+  const lastUpdate = useMemo(() => {
+    if (!officialPoints || officialPoints.length === 0) return null
+    const sorted = [...officialPoints].sort((a, b) => 
+      new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime()
+    )
+    return new Date(sorted[0]?.updated_at || 0)
+  }, [officialPoints])
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard },
@@ -55,25 +57,25 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
     <aside
       className={cn(
         'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-20',
-        collapsed ? 'w-16' : 'w-64'
+        collapsed ? 'w-16' : 'w-72'
       )}
     >
       {/* Header */}
-      <div className="h-24 border-b border-gray-200 flex items-center justify-between px-4">
+      <div className="h-20 border-b border-gray-200 flex items-center justify-between px-3">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shrink-0">
               <Map className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0 mr-2 py-4">
+            <div className="flex-1 min-w-0 mr-2 py-3">
               <h1 className="text-sm font-black text-gray-900 leading-[1.1] mb-0.5 break-words">
-                Gestión de Relevamientos Municipales
+                Gestión Municipal
               </h1>
               <div className="flex flex-col">
                 <p className="text-[10px] font-bold text-primary-600 truncate">
-                  Alejandro Saposnik
+                  Chajarí, ER
                 </p>
-                {lastUpdate && (
+                {lastUpdate && lastUpdate.getTime() > 0 && (
                   <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">
                     Act: {format(lastUpdate, "dd/MM/yy HH:mm", { locale: es })}
                   </p>
@@ -89,7 +91,7 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
         >
           {collapsed ? (
             <ChevronRight className="w-4 h-4 text-gray-500" />
@@ -99,131 +101,112 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.label
-            const Icon = item.icon
+      {/* Tabs: Nav / Capas */}
+      {!collapsed && (
+        <div className="flex border-b border-gray-100">
+          <button
+            onClick={() => setActiveSection('nav')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors",
+              activeSection === 'nav'
+                ? "text-primary-600 border-b-2 border-primary-600"
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            <Map className="w-4 h-4" />
+            NAV
+          </button>
+          <button
+            onClick={() => setActiveSection('layers')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors",
+              activeSection === 'layers'
+                ? "text-primary-600 border-b-2 border-primary-600"
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            <Layers className="w-4 h-4" />
+            CAPAS
+          </button>
+        </div>
+      )}
 
-            return (
-              <li key={item.label}>
-                <button
-                  onClick={() => setActiveTab(item.label)}
-                  className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                    'hover:bg-gray-50',
-                    isActive
-                      ? 'bg-primary-50 text-primary-700 font-medium'
-                      : 'text-gray-600'
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      'w-5 h-5',
-                      isActive ? 'text-primary-600' : 'text-gray-500'
-                    )}
-                  />
-                  {!collapsed && (
-                    <span className="text-sm">{item.label}</span>
-                  )}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+      {/* Content: Nav o Capas */}
+      {!collapsed ? (
+        activeSection === 'nav' ? (
+          <nav className="flex-1 py-3 px-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
+            <ul className="space-y-1">
+              {navItems.map((item) => {
+                const isActive = activeTab === item.label
+                const Icon = item.icon
 
-        {!collapsed && activeTab === 'Mapa' && (
-          <div className="mt-8 px-3 animate-in fade-in slide-in-from-left-4 duration-300">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
-              Filtros de Mapa
-            </h3>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-600 block">Barrio</label>
-                <select
-                  value={mapFilters.barrio}
-                  onChange={(e) => setMapFilter('barrio', e.target.value)}
-                  className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
-                >
-                  <option value="">Todos los barrios</option>
-                  {barrios.map(b => (
-                    <option key={b.id} value={b.id}>{b.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600 block">Estados de Base</label>
-                <div className="space-y-1.5">
-                  {ESTADO_BASE_OPTIONS.map(opt => {
-                    const isSelected = (mapFilters.estadosBase || []).includes(opt.value)
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => toggleMapFilter('estadosBase', opt.value)}
+                return (
+                  <li key={item.label}>
+                    <button
+                      onClick={() => setActiveTab(item.label)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                        'hover:bg-gray-50',
+                        isActive
+                          ? 'bg-primary-50 text-primary-700 font-medium'
+                          : 'text-gray-600'
+                      )}
+                    >
+                      <Icon
                         className={cn(
-                          "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold transition-all border",
-                          isSelected 
-                            ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
-                            : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                          'w-5 h-5',
+                          isActive ? 'text-primary-600' : 'text-gray-500'
                         )}
-                      >
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          isSelected ? opt.color : "bg-gray-300"
-                        )} />
-                        {opt.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600 block">Funcionamiento</label>
-                <div className="space-y-1.5">
-                  {FUNCIONAMIENTO_OPTIONS.map(opt => {
-                    const isSelected = (mapFilters.funcionamiento || []).includes(opt.value)
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => toggleMapFilter('funcionamiento', opt.value)}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold transition-all border",
-                          isSelected 
-                            ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
-                            : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          isSelected ? opt.color : "bg-gray-300"
-                        )} />
-                        {opt.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
+                      />
+                      <span className="text-sm">{item.label}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            <LayersPanel className="h-full" />
           </div>
-        )}
-      </nav>
+        )
+      ) : (
+        // Collapsed: solo icono de capas
+        collapsed && (
+          <button
+            onClick={() => setActiveSection('layers')}
+            className={cn(
+              "flex flex-col items-center gap-1 py-3 text-xs",
+              activeSection === 'layers' 
+                ? "text-primary-600" 
+                : "text-gray-400"
+            )}
+          >
+            <Layers className="w-5 h-5" />
+            <span>Capas</span>
+          </button>
+        )
+      )}
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex flex-col gap-3">
+      <div className="p-3 border-t border-gray-200">
+        <div className="flex flex-col gap-2">
           {user ? (
             <>
               {!collapsed ? (
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-medium text-primary-700">AS</span>
+                    <span className="text-xs font-medium text-primary-700">
+                      {user.email?.charAt(0).toUpperCase()}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">Alejandro S.</p>
-                    <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {user.email?.split('@')[0]}
+                    </p>
+                    <p className="text-[10px] text-gray-500 truncate capitalize">
+                      {user.role}
+                    </p>
                   </div>
                   <button 
                     onClick={logout}

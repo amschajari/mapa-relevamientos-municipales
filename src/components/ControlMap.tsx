@@ -11,6 +11,7 @@ import { BarrioPopup } from './BarrioPopup'
 import { cn } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
+import { EspaciosVerdesLayer } from './EspaciosVerdesLayer'
 
 interface ControlMapProps {
   tareas?: TareaRelevamiento[]
@@ -590,6 +591,8 @@ export const ControlMap = ({
         />
 
         <OfficialPointsLayer />
+
+        <EspaciosVerdesLayer />
 
         <LayerControl />
         <MobileMapControls />

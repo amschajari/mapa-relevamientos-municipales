@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { ImportadorDatos } from './ImportadorDatos'
 import { ImportadorPoligonos } from './ImportadorPoligonos'
-import { MapPin, Hexagon } from 'lucide-react'
+import { ImportadorEspaciosVerdes } from './ImportadorEspaciosVerdes'
+import { MapPin, Hexagon, Trees } from 'lucide-react'
 
 export const ImportacionView = () => {
-  const [activeTab, setActiveTab] = useState<'puntos' | 'poligonos'>('puntos')
+  const [activeTab, setActiveTab] = useState<'puntos' | 'poligonos' | 'espacios'>('puntos')
 
   return (
     <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
@@ -21,7 +22,7 @@ export const ImportacionView = () => {
             }`}
           >
             <MapPin className="w-4 h-4" />
-            Luminarias (Puntos)
+            Luminarias
           </button>
           <button
             onClick={() => setActiveTab('poligonos')}
@@ -32,7 +33,18 @@ export const ImportacionView = () => {
             }`}
           >
             <Hexagon className="w-4 h-4" />
-            Barrios (Polígonos)
+            Barrios
+          </button>
+          <button
+            onClick={() => setActiveTab('espacios')}
+            className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+              activeTab === 'espacios'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Trees className="w-4 h-4" />
+            Espacios Verdes
           </button>
         </div>
       </div>
@@ -41,6 +53,7 @@ export const ImportacionView = () => {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'puntos' && <ImportadorDatos />}
         {activeTab === 'poligonos' && <ImportadorPoligonos />}
+        {activeTab === 'espacios' && <ImportadorEspaciosVerdes />}
       </div>
     </div>
   )
