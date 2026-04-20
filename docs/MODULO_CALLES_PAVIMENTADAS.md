@@ -64,21 +64,24 @@ Query lista para copiar y pegar en [Overpass Turbo](https://overpass-turbo.eu/):
 
 ```overpass
 [out:json][timeout:25];
-// Bounding box aproximado de Chajarí
-// Ajustar según necesidad
+// Bounding box de Chajarí (basado en polígonos de barrios municipales)
+// Coordenadas: (lat_min, lon_min, lat_max, lon_max)
 (
   // Calles residenciales
-  way["highway"="residential"](-30.8873,-57.9894,-30.8533,-57.9394);
-  // Avenidas principales
-  way["highway"="primary"](-30.8873,-57.9894,-30.8533,-57.9394);
-  way["highway"="secondary"](-30.8873,-57.9894,-30.8533,-57.9394);
-  way["highway"="tertiary"](-30.8873,-57.9894,-30.8533,-57.9394);
+  way["highway"="residential"](-30.780,-58.030,-30.730,-57.965);
+  // Avenidas y colectoras
+  way["highway"="primary"](-30.780,-58.030,-30.730,-57.965);
+  way["highway"="secondary"](-30.780,-58.030,-30.730,-57.965);
+  way["highway"="tertiary"](-30.780,-58.030,-30.730,-57.965);
+  // Calles de servicio y accesos
+  way["highway"="service"](-30.780,-58.030,-30.730,-57.965);
   
   // Opcional: filtrar solo pavimentadas (si existen etiquetas surface)
-  // way["highway"]["surface"~"paved|asphalt|concrete"](-30.8873,-57.9894,-30.8533,-57.9394);
+  // ATENCIÓN: En OSM no todas las calles tienen etiqueta surface
+  // way["highway"]["surface"~"paved|asphalt|concrete"](-30.780,-58.030,-30.730,-57.965);
 );
 
-// Salida de datos
+// Salida de datos con geometría completa
 out body;
 >;
 out skel qt;
@@ -88,14 +91,16 @@ out skel qt;
 
 1. Ir a https://overpass-turbo.eu/
 2. Pegar la consulta arriba
-3. Hacer clic en "Ejecutar" ▶️
-4. Verificar que el bbox cubra todo Chajarí (ajustar coordenadas si es necesario)
-5. Exportar como GeoJSON: "Exportar" → "GeoJSON"
+3. Hacer clic en "Ejecutar" ▶️ o presionar `Ctrl+Enter`
+4. Verificar que el área cubra todo Chajarí (aparecerá el recuadro violeta en el mapa)
+5. Exportar como GeoJSON: "Exportar" → "GeoJSON" → "Descargar"
 
 ### Notas sobre la consulta:
 
-- El bbox `(-30.8873,-57.9894,-30.8533,-57.9394)` es aproximado. **Verificar/aumentar** según extensión real del ejido urbano.
-- La línea comentada con `surface` puede descomentarse si se quiere filtrar solo pavimentadas, pero atención: no todas las calles en OSM tienen esa etiqueta completa.
+- **Bounding box corregido**: `(-30.780, -58.030, -30.730, -57.965)` basado en los polígonos reales de barrios
+- **Si no aparecen resultados**: Probar con un área más amplia cambiando los valores
+- **La etiqueta `surface`**: Muy pocas calles en OSM la tienen completa en Chajarí. Mejor descargar todo y filtrar en QGIS.
+- **Tipos de vía incluidos**: residential, primary, secondary, tertiary, service (cubre la mayoría de calles urbanas)
 
 ---
 
@@ -151,6 +156,7 @@ out skel qt;
 | Fecha | Autor | Cambio |
 |-------|-------|--------|
 | Abril 2026 | - | Creación del documento (borrador inicial) |
+| Abril 2026 | - | Corrección del bounding box en query Overpass (coordenadas basadas en barrios reales de Chajarí) |
 
 ---
 

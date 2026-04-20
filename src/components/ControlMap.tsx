@@ -6,6 +6,7 @@ import 'leaflet.heat'
 import type { GeoJsonObject } from 'geojson'
 import type { Barrio, TareaRelevamiento, PuntoRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
+import { useMapStore } from '@/stores'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { BarrioPopup } from './BarrioPopup'
 import { cn } from '@/lib/utils'
@@ -165,6 +166,11 @@ const CenterBarrio = ({
 
 const OfficialPointsLayer = () => {
   const { officialPoints, visibleLayers, fetchOfficialPoints, mapFilters } = useBarrioStore()
+  const { layers } = useMapStore()
+  
+  // Verificar visibilidad desde mapStore (para que funcione con LayersPanel)
+  const showLuminarias = layers.find(l => l.id === 'luminarias-todas')?.visible ?? visibleLayers.luminarias
+  const showHeatmap = layers.find(l => l.id === 'luminarias-calor')?.visible ?? visibleLayers.heatmap
 
   useEffect(() => {
     fetchOfficialPoints()
@@ -231,14 +237,14 @@ const OfficialPointsLayer = () => {
 
   return (
     <>
-      {visibleLayers.heatmap && filteredPoints.length > 0 && (
+      {(showHeatmap) && filteredPoints.length > 0 && (
         <HeatmapLayer 
           points={filteredPoints} 
           totalPoints={officialPoints?.length || 0} 
         />
       )}
       
-      {visibleLayers.luminarias && filteredPoints.length > 0 && (
+      {(showLuminarias) && filteredPoints.length > 0 && (
         <MarkerClusterGroup
           key={`cluster-group-${filteredPoints.length}-${(mapFilters.estadosBase || []).join(',')}-${mapFilters.barrio}`}
           chunkedLoading
@@ -407,7 +413,11 @@ const BarriosLayer = ({
 }) => {
   const map = useMap()
   const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio, visibleLayers } = useBarrioStore()
+  const { layers } = useMapStore()
   const geoJsonRef = useRef<L.GeoJSON | null>(null)
+
+  // Verificar visibilidad desde mapStore (para que funcione con LayersPanel)
+  const showBarrios = layers.find(l => l.id === 'barrios-poligonos')?.visible ?? visibleLayers.barrios
 
   // Memoizar estilos por estado para evitar recálculos
   const getBarrioStyle = useCallback(
@@ -515,7 +525,7 @@ const BarriosLayer = ({
     [getBarrioByNombre, onBarrioClick, setSelectedBarrio, openPopupForBarrio]
   )
 
-  return visibleLayers.barrios ? (
+  return showBarrios ? (
     <GeoJSON
       ref={geoJsonRef}
       data={geoJson}
@@ -530,7 +540,11 @@ export const ControlMap = ({
   selectedBarrio,
   onEditBarrio,
 }: ControlMapProps) => {
-  const { activeBaseMap, barrios } = useBarrioStore()
+  const { activeBaseMap: barrioStoreBaseMap, barrios } = useBarrioStore()
+  const { activeBaseMap: mapStoreBaseMap } = useMapStore()
+  
+  // Usar mapStore si está disponible, sino fallback a barrioStore
+  const activeBaseMap = mapStoreBaseMap || barrioStoreBaseMap
   
   const barriosGeoJson = useMemo(() => {
     return {
@@ -594,7 +608,9 @@ export const ControlMap = ({
 
         <EspaciosVerdesLayer />
 
-        <LayerControl />
+        <div className="sm:hidden">
+          <LayerControl />
+        </div>
         <MobileMapControls />
       </MapContainer>
     </div>
