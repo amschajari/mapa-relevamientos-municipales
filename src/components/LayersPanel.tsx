@@ -13,6 +13,7 @@ import {
   Route
 } from 'lucide-react'
 import { useMapStore } from '@/stores'
+import { useBarrioStore } from '@/stores/barrioStore'
 import { cn } from '@/lib/utils'
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -28,7 +29,9 @@ interface LayersPanelProps {
 
 export const LayersPanel = ({ className }: LayersPanelProps) => {
   const { domains, toggleDomain, toggleLayer, activeBaseMap, setActiveBaseMap, espaciosVerdes } = useMapStore()
+  const { barrios, mapFilters, setMapFilter } = useBarrioStore()
   const [baseMapExpanded, setBaseMapExpanded] = useState(true)
+  const [filtrosExpanded, setFiltrosExpanded] = useState(true)
 
   console.log('[LayersPanel] domains:', domains.length, 'espaciosVerdes:', espaciosVerdes.length, 'layers:', domains.flatMap(d => d.layers).filter(l => l.visible).length, 'visible')
 
@@ -103,6 +106,40 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
             </div>
           )
         })}
+      </div>
+
+      {/* Filtro de Barrio */}
+      <div className="border-t border-gray-100 p-3">
+        <button
+          onClick={() => setFiltrosExpanded(!filtrosExpanded)}
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          {filtrosExpanded ? (
+            <ChevronDown className="w-4 h-4 text-gray-400" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          )}
+          <MapPin className="w-4 h-4 text-gray-500" />
+          <span className="flex-1 text-left text-sm font-medium text-gray-700">Filtros</span>
+        </button>
+
+        {filtrosExpanded && (
+          <div className="mt-2 ml-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">
+              Filtrar por Barrio
+            </label>
+            <select
+              value={mapFilters.barrio || ''}
+              onChange={(e) => setMapFilter('barrio', e.target.value)}
+              className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+            >
+              <option value="">Todos los barrios</option>
+              {barrios.map((b) => (
+                <option key={b.id} value={b.id}>{b.nombre}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Base Map Selector */}
