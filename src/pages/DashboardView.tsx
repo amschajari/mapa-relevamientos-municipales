@@ -16,12 +16,13 @@ import { useBarrioStore } from '@/stores'
 
 
 const SimuladorCampana = ({ luminariasRestantes }: { luminariasRestantes: number }) => {
+  const { config } = useBarrioStore()
 
-  // Valores de referencia (se configuran en la pestaña Equipos por el administrador)
-  const agentes = 3
-  const horas = 3
-  const rendimiento = 80
-  const diasLaborables = 5
+  // Valores desde la configuración del equipo (pestaña Equipos)
+  const agentes = config.agentesActuales
+  const horas = config.horasPorSalida
+  const rendimiento = config.luminariasPorSalida
+  const diasLaborables = config.salidasPorSemana
 
   const manHoursBase = 3 * 3; 
   const luminariasPorHoraHombre = rendimiento / manHoursBase;

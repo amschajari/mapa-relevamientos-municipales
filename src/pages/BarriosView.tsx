@@ -19,14 +19,22 @@ interface BarriosViewProps {
   onViewOnMap?: (barrio: Barrio) => void
 }
 
-type SortField = 'nombre' | 'estado' | 'progreso' | 'luminarias'
+type SortField = 'nombre' | 'estado' | 'luminarias'
 type SortDirection = 'asc' | 'desc'
+
+// Prioridad de estados para ordenamiento fijo
+const ESTADO_PRIORIDAD: Record<string, number> = {
+  'completado': 0,
+  'progreso': 1,
+  'pausado': 2,
+  'pendiente': 3
+}
 
 export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterEstado, setFilterEstado] = useState<string>('todos')
-  const [sortField, setSortField] = useState<SortField>('progreso')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [sortField, setSortField] = useState<SortField>('estado')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   
   const { selectedBarrio, setSelectedBarrio } = useBarrioStore()
 
@@ -37,6 +45,15 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
       return matchesSearch && matchesEstado
     })
     .sort((a, b) => {
+      // Orden fijo: Completados primero, luego En Progreso, luego ABC
+      const prioA = ESTADO_PRIORIDAD[a.estado] ?? 4
+      const prioB = ESTADO_PRIORIDAD[b.estado] ?? 4
+      
+      if (prioA !== prioB) {
+        return prioA - prioB
+      }
+      
+      // Si mismo estado, ordenar por el campo seleccionado
       let comparison = 0
       switch (sortField) {
         case 'nombre':
@@ -44,9 +61,6 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
           break
         case 'estado':
           comparison = a.estado.localeCompare(b.estado)
-          break
-        case 'progreso':
-          comparison = a.progreso - b.progreso
           break
         case 'luminarias':
           comparison = (a.luminariasRelevadas || 0) - (b.luminariasRelevadas || 0)
@@ -60,7 +74,7 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
       setSortField(field)
-      setSortDirection('desc')
+      setSortDirection('asc')
     }
   }
 
@@ -107,7 +121,6 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
     <th
       className={cn(
         "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors",
-        field === 'progreso' && "hidden sm:table-cell",
         field === 'luminarias' && "hidden md:table-cell"
       )}
       onClick={() => handleSort(field)}
@@ -172,8 +185,7 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
             <tr>
               <SortHeader field="nombre">Nombre</SortHeader>
               <SortHeader field="estado">Estado</SortHeader>
-              <SortHeader field="progreso">Progreso</SortHeader>
-              <SortHeader field="luminarias">Encontradas</SortHeader>
+              <SortHeader field="luminarias">Luminarias</SortHeader>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -189,21 +201,6 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                     <div className="min-w-0">
                       <p className="font-bold text-gray-900 truncate text-sm">{barrio.nombre}</p>
                       <p className="hidden sm:block text-[10px] text-gray-400 font-mono">ID: {barrio.id.substring(0, 8)}...</p>
-                      
-                      {/* Barra de progreso móvil */}
-                      <div className="sm:hidden mt-1 flex items-center gap-1.5">
-                         <div className="w-12 bg-gray-100 rounded-full h-1">
-                            <div
-                              className={cn(
-                                "h-full rounded-full",
-                                barrio.estado === 'completado' ? 'bg-green-500' : 
-                                barrio.estado === 'progreso' ? 'bg-amber-500' : 'bg-gray-300'
-                              )}
-                              style={{ width: `${barrio.progreso}%` }}
-                            />
-                         </div>
-                         <span className="text-[10px] font-black text-gray-400">{barrio.progreso}%</span>
-                      </div>
                     </div>
                   </div>
                 </td>
@@ -216,25 +213,6 @@ export const BarriosView = ({ barrios, onViewOnMap }: BarriosViewProps) => {
                   >
                     {getEstadoLabel(barrio.estado)}
                   </span>
-                </td>
-                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 lg:w-24 bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full ${
-                          barrio.estado === 'completado'
-                            ? 'bg-green-500'
-                            : barrio.estado === 'progreso'
-                            ? 'bg-amber-500'
-                            : 'bg-gray-400'
-                        }`}
-                        style={{ width: `${barrio.progreso}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">
-                      {barrio.progreso}%
-                    </span>
-                  </div>
                 </td>
                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                   <span className="text-sm font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</span>

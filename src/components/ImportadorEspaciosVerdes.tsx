@@ -18,7 +18,7 @@ export const ImportadorEspaciosVerdes = () => {
   const [nombreArchivo, setNombreArchivo] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
-  const [resultado, setResultado] = useState<{ creados: number; actualizados: number; errores: string[] } | null>(null)
+    const [resultado, setResultado] = useState<{ creados: number; actualizados: number; eliminados: number; errores: string[] } | null>(null)
   const [errorGlobal, setErrorGlobal] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -110,15 +110,19 @@ export const ImportadorEspaciosVerdes = () => {
     if (!featuresList.length) return
 
     setIsImporting(true)
-    const resultado = { creados: 0, actualizados: 0, errores: [] as string[] }
+    const resultado = { creados: 0, actualizados: 0, eliminados: 0, errores: [] as string[] }
 
     try {
-      // Obtener espacios existentes para comparar
+      // 1. Obtener espacios existentes para comparar
       const { data: existentes } = await supabase
         .from('espacios_verdes')
         .select('fid, nombre')
       
       const fidsExistentes = new Set(existentes?.map(e => e.fid) || [])
+      const fidsNuevos = new Set(featuresList.map((f: any) => f.properties?.fid).filter(Boolean))
+
+      // 2. Identificar FIDs a eliminar (existen pero no están en el nuevo GeoJSON)
+      const fidsAEliminar = existentes?.filter(e => !fidsNuevos.has(e.fid)).map(e => e.fid) || []
 
         for (const feature of featuresList) {
           const props = feature.properties || {}
@@ -145,6 +149,17 @@ export const ImportadorEspaciosVerdes = () => {
             resultado.errores.push(`FID ${fid}: ${err.message}`)
           }
         }
+
+      // 3. Eliminar espacios que ya no están en el GeoJSON
+      if (fidsAEliminar.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('espacios_verdes')
+          .delete()
+          .in('fid', fidsAEliminar)
+        
+        if (deleteError) throw deleteError
+        resultado.eliminados = fidsAEliminar.length
+      }
 
       setResultado(resultado)
     } catch (err: any) {
@@ -296,7 +311,7 @@ export const ImportadorEspaciosVerdes = () => {
             <CheckCircle className="w-6 h-6 text-green-600" />
             <h3 className="font-semibold text-green-800">Importación completada</h3>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-4 gap-4 text-sm">
             <div className="bg-white p-3 rounded-lg text-center">
               <p className="text-2xl font-bold text-green-600">{resultado.creados}</p>
               <p className="text-gray-500">Creados</p>
@@ -304,6 +319,10 @@ export const ImportadorEspaciosVerdes = () => {
             <div className="bg-white p-3 rounded-lg text-center">
               <p className="text-2xl font-bold text-blue-600">{resultado.actualizados}</p>
               <p className="text-gray-500">Actualizados</p>
+            </div>
+            <div className="bg-white p-3 rounded-lg text-center">
+              <p className="text-2xl font-bold text-orange-600">{resultado.eliminados}</p>
+              <p className="text-gray-500">Eliminados</p>
             </div>
             <div className="bg-white p-3 rounded-lg text-center">
               <p className="text-2xl font-bold text-red-600">{resultado.errores.length}</p>
