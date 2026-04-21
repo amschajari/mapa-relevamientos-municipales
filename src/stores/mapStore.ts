@@ -156,7 +156,7 @@ export const useMapStore = create<MapState>()(
   persist(
     (set, get) => ({
       layers: DEFAULT_DOMAINS.flatMap(d => d.layers),
-      domains: DEFAULT_DOMAINS,
+      domains: DEFAULT_DOMAINS.map(d => ({ ...d, layers: d.layers.map(l => ({ ...l })) })),
       activeBaseMap: 'osm',
       espaciosVerdes: [],
       sidebarOpen: true,
@@ -203,7 +203,13 @@ export const useMapStore = create<MapState>()(
         set((state) => ({
           layers: state.layers.map(l =>
             l.id === layerId ? { ...l, visible } : l
-          )
+          ),
+          domains: state.domains.map(d => ({
+            ...d,
+            layers: d.layers.map(l =>
+              l.id === layerId ? { ...l, visible } : l
+            )
+          }))
         }))
       },
 
@@ -211,7 +217,13 @@ export const useMapStore = create<MapState>()(
         set((state) => ({
           layers: state.layers.map(l =>
             l.id === layerId ? { ...l, opacity } : l
-          )
+          ),
+          domains: state.domains.map(d => ({
+            ...d,
+            layers: d.layers.map(l =>
+              l.id === layerId ? { ...l, opacity } : l
+            )
+          }))
         }))
       },
 
