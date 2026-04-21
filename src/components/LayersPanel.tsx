@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useMapStore } from '@/stores'
 import { useBarrioStore } from '@/stores/barrioStore'
-import { cn } from '@/lib/utils'
+import { cn, ESTADO_BASE_OPTIONS, FUNCIONAMIENTO_OPTIONS } from '@/lib/constants'
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Lightbulb,
@@ -32,6 +32,15 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
   const { barrios, mapFilters, setMapFilter } = useBarrioStore()
   const [baseMapExpanded, setBaseMapExpanded] = useState(true)
   const [filtrosExpanded, setFiltrosExpanded] = useState(true)
+
+  const toggleMapFilter = (key: 'estadosBase' | 'funcionamiento', value: string) => {
+    const current = (mapFilters[key] as string[]) || []
+    if (current.includes(value)) {
+      setMapFilter(key, current.filter(v => v !== value))
+    } else {
+      setMapFilter(key, [...current, value])
+    }
+  }
 
   console.log('[LayersPanel] domains:', domains.length, 'espaciosVerdes:', espaciosVerdes.length, 'layers:', domains.flatMap(d => d.layers).filter(l => l.visible).length, 'visible')
 
@@ -108,7 +117,7 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
         })}
       </div>
 
-      {/* Filtro de Barrio */}
+      {/* Filtros de Luminarias */}
       <div className="border-t border-gray-100 p-3">
         <button
           onClick={() => setFiltrosExpanded(!filtrosExpanded)}
@@ -120,24 +129,87 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
             <ChevronRight className="w-4 h-4 text-gray-400" />
           )}
           <MapPin className="w-4 h-4 text-gray-500" />
-          <span className="flex-1 text-left text-sm font-medium text-gray-700">Filtros</span>
+          <span className="flex-1 text-left text-sm font-medium text-gray-700">Filtros de Luminarias</span>
         </button>
 
         {filtrosExpanded && (
-          <div className="mt-2 ml-6 animate-in fade-in slide-in-from-top-2 duration-200">
-            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">
-              Filtrar por Barrio
-            </label>
-            <select
-              value={mapFilters.barrio || ''}
-              onChange={(e) => setMapFilter('barrio', e.target.value)}
-              className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
-            >
-              <option value="">Todos los barrios</option>
-              {barrios.map((b) => (
-                <option key={b.id} value={b.id}>{b.nombre}</option>
-              ))}
-            </select>
+          <div className="mt-2 ml-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            {/* Filtro por Barrio */}
+            <div>
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 block">
+                Por Barrio
+              </label>
+              <select
+                value={mapFilters.barrio || ''}
+                onChange={(e) => setMapFilter('barrio', e.target.value)}
+                className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+              >
+                <option value="">Todos los barrios</option>
+                {barrios.map((b) => (
+                  <option key={b.id} value={b.id}>{b.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filtro por Estado de Base */}
+            <div>
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                Estado de Base
+              </label>
+              <div className="space-y-1">
+                {ESTADO_BASE_OPTIONS.map(opt => {
+                  const isSelected = (mapFilters.estadosBase || []).includes(opt.value)
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => toggleMapFilter('estadosBase', opt.value)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
+                        isSelected 
+                          ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
+                          : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isSelected ? opt.color : "bg-gray-300"
+                      )} />
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Filtro por Funcionamiento */}
+            <div>
+              <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                Funcionamiento
+              </label>
+              <div className="space-y-1">
+                {FUNCIONAMIENTO_OPTIONS.map(opt => {
+                  const isSelected = (mapFilters.funcionamiento || []).includes(opt.value)
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => toggleMapFilter('funcionamiento', opt.value)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
+                        isSelected 
+                          ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
+                          : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isSelected ? opt.color : "bg-gray-300"
+                      )} />
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>
