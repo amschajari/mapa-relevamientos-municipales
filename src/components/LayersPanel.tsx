@@ -89,7 +89,10 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
                   {domain.layers.map((layer) => (
                     <button
                       key={layer.id}
-                      onClick={() => toggleLayer(layer.id)}
+                      onClick={() => {
+                        console.log('[LayersPanel] toggleLayer:', layer.id, 'current visible:', layer.visible)
+                        toggleLayer(layer.id)
+                      }}
                       className={cn(
                         "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all",
                         layer.visible

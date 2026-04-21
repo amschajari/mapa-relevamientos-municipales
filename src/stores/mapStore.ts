@@ -181,11 +181,22 @@ export const useMapStore = create<MapState>()(
       },
 
       toggleLayer: (layerId: string) => {
-        set((state) => ({
-          layers: state.layers.map(l =>
+        set((state) => {
+          // Actualizar tanto layers como domains para mantener sincronización
+          const updatedLayers = state.layers.map(l =>
             l.id === layerId ? { ...l, visible: !l.visible } : l
           )
-        }))
+          const updatedDomains = state.domains.map(d => ({
+            ...d,
+            layers: d.layers.map(l => 
+              l.id === layerId ? { ...l, visible: !l.visible } : l
+            )
+          }))
+          return {
+            layers: updatedLayers,
+            domains: updatedDomains
+          }
+        })
       },
 
       setLayerVisibility: (layerId: string, visible: boolean) => {
