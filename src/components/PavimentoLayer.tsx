@@ -48,15 +48,26 @@ const PavimentoLayer = () => {
   const geojsonData = useMemo(() => {
     if (!callesData.length) return null
 
-    const features = callesData.map(calle => ({
-      type: 'Feature' as const,
-      properties: {
-        fid: calle.fid,
-        nombre: calle.nombre,
-        longitud_m: calle.longitud_m
-      },
-      geometry: calle.geom
-    }))
+    const features = callesData.map(calle => {
+      // Limpiar geometría (quitar crs si existe)
+      let geom = calle.geom
+      if (geom && geom.crs) {
+        const { crs, ...cleanGeom } = geom
+        geom = cleanGeom
+      }
+      
+      return {
+        type: 'Feature' as const,
+        properties: {
+          fid: calle.fid,
+          nombre: calle.nombre,
+          longitud_m: calle.longitud_m
+        },
+        geometry: geom
+      }
+    })
+
+    console.log('[PavimentoLayer] geojsonData features:', features.length, 'sample:', features[0]?.geometry)
 
     return {
       type: 'FeatureCollection' as const,
