@@ -28,20 +28,22 @@ const PavimentoLayer = () => {
 
     const fetchCalles = async () => {
       try {
+        console.log('[PavimentoLayer] Fetching calles...')
         const { data, error } = await supabase
           .from('calles_pavimentadas')
           .select('*')
           .order('nombre')
         
+        console.log('[PavimentoLayer] Calles trae:', data?.length, 'error:', error)
         if (error) throw error
         setCallesData(data || [])
       } catch (err) {
-        console.error('Error fetching calles:', err)
+        console.error('[PavimentoLayer] Error fetching calles:', err)
       }
     }
 
     fetchCalles()
-  }, [callesVisible, avenidasVisible])
+  }, [callesVisible, callesData.length])
 
   const geojsonData = useMemo(() => {
     if (!callesData.length) return null
