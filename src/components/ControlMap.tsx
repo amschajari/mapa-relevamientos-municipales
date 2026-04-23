@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
 import { EspaciosVerdesLayer } from './EspaciosVerdesLayer'
+import PavimentoLayer from './PavimentoLayer'
 
 interface ControlMapProps {
   tareas?: TareaRelevamiento[]
@@ -607,6 +608,8 @@ export const ControlMap = ({
         <OfficialPointsLayer />
 
         <EspaciosVerdesLayer />
+
+        <PavimentoLayer />
 
         <div className="sm:hidden">
           <LayerControl />
