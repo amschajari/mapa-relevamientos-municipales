@@ -27,26 +27,26 @@ const PavimentoLayer = () => {
   const [callesData, setCallesData] = useState<CallePavimentada[]>([])
 
   useEffect(() => {
-    if (!callesVisible && !avenidasVisible) return
-
-    const fetchCalles = async () => {
-      try {
-        console.log('[PavimentoLayer] Fetching calles...')
-        const { data, error } = await supabase
-          .from('calles_pavimentadas')
-          .select('*')
-          .order('nombre')
-        
-        console.log('[PavimentoLayer] Calles trae:', data?.length, 'error:', error, 'first geom:', data?.[0]?.geom)
-        if (error) throw error
-        setCallesData(data || [])
-      } catch (err) {
-        console.error('[PavimentoLayer] Error fetching calles:', err)
+    // Siempre fetchear si no hay datos o si se pide visibilidad
+    if (!callesData.length || callesVisible || avenidasVisible) {
+      const fetchCalles = async () => {
+        try {
+          console.log('[PavimentoLayer] Fetching...')
+          const { data, error } = await supabase
+            .from('calles_pavimentadas')
+            .select('*')
+            .order('nombre')
+          
+          console.log('[PavimentoLayer] trae:', data?.length)
+          if (error) throw error
+          setCallesData(data || [])
+        } catch (err) {
+          console.error('[PavimentoLayer] Error:', err)
+        }
       }
+      fetchCalles()
     }
-
-    fetchCalles()
-  }, [callesVisible, avenidasVisible])
+  }, [callesVisible, avenidasVisible, callesData.length])
 
   const geojsonData = useMemo(() => {
     if (!callesData.length) return null
