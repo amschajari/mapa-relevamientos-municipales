@@ -83,23 +83,25 @@ const getStyle = (feature: any) => {
                     nombreLower.startsWith('ruta') ||
                     nombreLower.includes('ruta ')
     
+    let style
     if (isAvenida && avenidasVisible) {
-      return {
+      style = {
         color: '#374151',
         weight: 4,
         opacity: 1
       }
-    }
-
-    if (callesVisible) {
-      return {
+    } else if (callesVisible) {
+      style = {
         color: '#6b7280',
         weight: 3,
         opacity: 1
       }
+    } else {
+      style = { color: '#6b7280', weight: 3, opacity: 0 }
     }
 
-    return { color: '#6b7280', weight: 3, opacity: 0 }
+    console.log('[PavimentoLayer] getStyle:', nombre, 'isAvenida:', isAvenida, 'avenidasVisible:', avenidasVisible, 'callesVisible:', callesVisible, 'style:', style)
+    return style
   }
 
   if (!callesVisible && !avenidasVisible) return null
