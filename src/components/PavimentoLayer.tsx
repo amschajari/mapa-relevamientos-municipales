@@ -21,60 +21,48 @@ const PavimentoLayer = () => {
   const callesVisible = layerCalles?.visible ?? false
   const avenidasVisible = layerAvenidas?.visible ?? false
 
-  // DEBUG: forzar true para ver si renderiza
-  const showLayer = true
+  // Solo renderizar si alguna capa estávisible
+  const showLayer = callesVisible || avenidasVisible
 
   const [callesData, setCallesData] = useState<CallePavimentada[]>([])
 
   useEffect(() => {
-    // Siempre fetchear si no hay datos o si se pide visibilidad
-    if (!callesData.length || callesVisible || avenidasVisible) {
+    if (!callesData.length || showLayer) {
       const fetchCalles = async () => {
-        try {
-          console.log('[PavimentoLayer] Fetching...')
-          const { data, error } = await supabase
-            .from('calles_pavimentadas')
-            .select('*')
-            .order('nombre')
-          
-          console.log('[PavimentoLayer] trae:', data?.length)
-          if (error) throw error
-          setCallesData(data || [])
-        } catch (err) {
-          console.error('[PavimentoLayer] Error:', err)
+        const { data, error } = await supabase
+          .from('calles_pavimentadas')
+          .select('*')
+          .order('nombre')
+        
+        if (error) {
+          console.error('Error fetching calles:', error)
+          return
         }
+        setCallesData(data || [])
       }
       fetchCalles()
     }
-  }, [callesVisible, avenidasVisible, callesData.length])
+  }, [showLayer, callesData.length])
 
   const geojsonData = useMemo(() => {
     if (!callesData.length) return null
 
-    const features = callesData.map(calle => {
-      // Limpiar geometría (quitar crs si existe)
-      let geom = calle.geom
-      if (geom && geom.crs) {
-        const { crs, ...cleanGeom } = geom
-        geom = cleanGeom
-      }
-      
-      return {
-        type: 'Feature' as const,
-        properties: {
-          fid: calle.fid,
-          nombre: calle.nombre,
-          longitud_m: calle.longitud_m
-        },
-        geometry: geom
-      }
-    })
-
-    console.log('[PavimentoLayer] geojsonData features:', features.length, 'sample:', features[0]?.geometry)
-
     return {
       type: 'FeatureCollection' as const,
-      features
+      features: callesData.map(calle => {
+        // Limpiar crs de geometría
+        const geom = calle.geom?.crs ? { ...calle.geom, crs: undefined } : calle.geom
+        
+        return {
+          type: 'Feature' as const,
+          properties: {
+            fid: calle.fid,
+            nombre: calle.nombre,
+            longitud_m: calle.longitud_m
+          },
+          geometry: geom
+        }
+      })
     }
   }, [callesData])
 
@@ -86,25 +74,23 @@ const getStyle = (feature: any) => {
                     nombreLower.startsWith('ruta') ||
                     nombreLower.includes('ruta ')
     
-    let style
     if (isAvenida && avenidasVisible) {
-      style = {
+      return {
         color: '#374151',
         weight: 4,
         opacity: 1
       }
-    } else if (callesVisible) {
-      style = {
+    }
+
+    if (callesVisible) {
+      return {
         color: '#6b7280',
         weight: 3,
         opacity: 1
       }
-    } else {
-      style = { color: '#6b7280', weight: 3, opacity: 0 }
     }
 
-    console.log('[PavimentoLayer] getStyle:', nombre, 'isAvenida:', isAvenida, 'avenidasVisible:', avenidasVisible, 'callesVisible:', callesVisible, 'style:', style)
-    return style
+    return { color: '#6b7280', weight: 3, opacity: 0 }
   }
 
   if (!showLayer || (!callesVisible && !avenidasVisible)) return null
