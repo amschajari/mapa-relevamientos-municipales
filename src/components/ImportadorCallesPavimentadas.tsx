@@ -98,13 +98,14 @@ export const ImportadorCallesPavimentadas = () => {
     if (file) procesarArchivo(file)
   }
 
-  const confirmarImportacion = async () => {
+const confirmarImportacion = async () => {
     const validos = preview.filter(r => r.valido)
     if (validos.length === 0) return
 
     setIsImporting(true)
     const errores: string[] = []
     let creados = 0
+    const batchSize = 100 // Lotes de 100
 
     try {
       // Verificar existentes en Supabase
@@ -118,28 +119,31 @@ export const ImportadorCallesPavimentadas = () => {
       const nuevos = validos.filter(v => !fidsExistentes.has(v.fid))
       const actualizar = validos.filter(v => fidsExistentes.has(v.fid))
 
-      // Insertar nuevascalles
-      for (const calle of nuevos) {
-        const feature = featuresList.find(f => f.properties.fid === calle.fid)
-        if (!feature) continue
+      // Bulk insert de nuevos en lotes
+      for (let i = 0; i < nuevos.length; i += batchSize) {
+        const lote = nuevos.slice(i, i + batchSize)
+        const toInsert = lote.map(calle => {
+          const feature = featuresList.find(f => f.properties.fid === calle.fid)
+          return {
+            fid: calle.fid,
+            nombre: calle.nombre,
+            geom: feature?.geometry,
+            longitud_m: calle.longitudM
+          }
+        }).filter(c => c.geom)
 
         const { error } = await supabase
           .from('calles_pavimentadas')
-          .insert({
-            fid: calle.fid,
-            nombre: calle.nombre,
-            geom: feature.geometry,
-            longitud_m: calle.longitudM
-          })
+          .insert(toInsert)
 
         if (error) {
-          errores.push(`Error con ${calle.nombre}: ${error.message}`)
+          errores.push(`Error en lote ${i/batchSize + 1}: ${error.message}`)
         } else {
-          creados++
+          creados += lote.length
         }
       }
 
-      // Actualizar existentes (solo datos, no geometría para evitar problemas)
+      // Bulk update de existentes (solo datos, no geometría)
       for (const calle of actualizar) {
         const { error } = await supabase
           .from('calles_pavimentadas')
