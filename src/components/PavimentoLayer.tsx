@@ -21,6 +21,9 @@ const PavimentoLayer = () => {
   const callesVisible = layerCalles?.visible ?? false
   const avenidasVisible = layerAvenidas?.visible ?? false
 
+  // DEBUG: forzar true para ver si renderiza
+  const showLayer = true
+
   const [callesData, setCallesData] = useState<CallePavimentada[]>([])
 
   useEffect(() => {
@@ -104,7 +107,7 @@ const getStyle = (feature: any) => {
     return style
   }
 
-  if (!callesVisible && !avenidasVisible) return null
+  if (!showLayer || (!callesVisible && !avenidasVisible)) return null
 
   return (
     <GeoJSON
