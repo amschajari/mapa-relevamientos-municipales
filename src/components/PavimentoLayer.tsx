@@ -62,12 +62,14 @@ const PavimentoLayer = () => {
     }
   }, [callesData])
 
-  const getStyle = (feature: any) => {
+const getStyle = (feature: any) => {
     const nombre = feature?.properties?.nombre || ''
-    const isAvenida = nombre.toLowerCase().includes('avenida') || 
-                    nombre.toLowerCase().includes('av.') ||
-                    nombre.toLowerCase().startsWith('ruta')
-
+    const nombreLower = nombre.toLowerCase()
+    const isAvenida = nombreLower.includes('avenida') || 
+                    nombreLower.includes('av.') ||
+                    nombreLower.startsWith('ruta') ||
+                    nombreLower.includes('ruta ')
+    
     if (isAvenida && avenidasVisible) {
       return {
         color: '#374151',
