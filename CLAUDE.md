@@ -26,7 +26,7 @@ Sistema de control de relevamientos municipales para la **Municipalidad de Chaja
 - Tailwind CSS 3 + clsx/tailwind-merge para utilidades
 - Zustand con persistencia en localStorage
 - Leaflet + react-leaflet para mapas
-- Supabase (opcional - para sincronización futura)
+- Supabase (PostGIS) para datos geoespaciales
 - @turf/turf para cálculos geoespaciales
 
 ### Estructura de Código
@@ -34,56 +34,66 @@ Sistema de control de relevamientos municipales para la **Municipalidad de Chaja
 ```
 src/
 ├── components/       # Componentes UI reutilizables
-│   ├── ControlMap.tsx         # Mapa con polígonos de barrios
-│   ├── BarrioDetailModal.tsx  # Modal de edición de barrio
-│   ├── Sidebar.tsx            # Navegación lateral
-│   └── ...
-├── pages/            # Vistas principales
-│   ├── DashboardView.tsx      # Métricas y resumen
-│   └── BarriosView.tsx        # Lista con filtros
+│   ├── ControlMap.tsx         # Mapa principal
+│   ├── PavimentoLayer.tsx      # Capa de calles pavimentadas
+│   ├── ImportadorCallesPavimentadas.tsx  # Importador de calles
+│   ├── ImportadorEspaciosVerdes.tsx   # Importador de espacios verdes
+│   ├── ImportadorDatos.tsx   # Importador de luminarias
+│   ├── Sidebar.tsx           # Navegación lateral
+│   └── LayersPanel.tsx       # Panel de control de capas
 ├── stores/
-│   └── barrioStore.ts         # Estado global + lógica Supabase
+│   ├── barrioStore.ts       # Estado de barrios
+│   └── mapStore.ts         # Estado de capas y mapa
 ├── types/
-│   └── index.ts               # Tipos TypeScript
+│   └── index.ts            # Tipos TypeScript
 ├── data/
-│   └── barrios-chajari.json   # GeoJSON de barrios (45 barrios)
+│   ├── barrios-chajari.json   # GeoJSON de barrios (45 barrios)
+│   └── calles_ejido_reordenado.geojson  # Calles pavimentadas
 └── lib/
-    ├── utils.ts               # Utilidades UI (clsx + tailwind-merge)
-    ├── geoUtils.ts            # Utilidades geoespaciales
-    ├── projectionUtils.ts     # Proyección de estimados
-    └── supabase.ts            # Cliente Supabase
+    ├── utils.ts            # Utilidades UI
+    ├── geoUtils.ts         # Utilidades geoespaciales
+    └── supabase.ts          # Cliente Supabase
 ```
+
+### Tablas Supabase
+
+| Tabla | Tipo | Descripción |
+|-------|-----|-------------|
+| `barrios` | Polygon | Polígonos de barrios |
+| `puntos_relevamiento` | Point | Luminarias relevadas |
+| `espacios_verdes` | Polygon | Parques y plazas |
+| `calles_pavimentadas` | MultiLineString | Calles y avenidas |
 
 ### Flujo de Datos
 
-1. **Barrios** se cargan desde `barrios-chajari.json` (GeoJSON) + Supabase (estado/progreso)
-2. **Estado** se gestiona con Zustand (`barrioStore.ts`) con persistencia parcial en localStorage
-3. **Sincronización**: Al iniciar, se sincroniza GeoJSON con Supabase vía `initializeFromGeoJSON()`
-4. **Path aliases**: `@/*` mapea a `src/*` (configurado en `tsconfig.json` y `vite.config.ts`)
+1. **Barrios**: GeoJSON local + Supabase (estado/progreso)
+2. **Luminarias**: CSV de Odoo → Supabase con vinculación por nombre de barrio
+3. **Espacios Verdes**: GeoJSON → Supabase
+4. **Calles Pavimentadas**: GeoJSON → Supabase (MultiLineString)
 
-### Tipos Clave
+### Importadores
 
-```typescript
-type EstadoBarrio = 'pendiente' | 'progreso' | 'completado' | 'pausado'
+- **Luminarias** (`ImportadorDatos.tsx`): CSV/GeoJSON de Odoo
+- **Barrios** (`ImportadorPoligonos.tsx`): GeoJSON de polígonos
+- **Espacios Verdes** (`ImportadorEspaciosVerdes.tsx`): GeoJSON
+- **Calles Pavimentadas** (`ImportadorCallesPavimentadas.tsx`): GeoJSON MultiLineString
 
-interface Barrio {
-  id: string
-  nombre: string
-  estado: EstadoBarrio
-  progreso: number           // 0-100
-  superficie_ha?: number
-  luminariasEstimadas?: number
-  luminariasRelevadas?: number
-  geojson?: any              // Feature GeoJSON para validación espacial
-}
-```
+### Capas del Mapa (LayersPanel)
+
+| Dominio | Capas | Tipo Datos |
+|---------|--------|-----------|
+| Luminarias | Todas, Mapa de Calor | Supabase |
+| Espacios Verdes | Parques y Plazas | Supabase |
+| Calles Pavimentadas | Calles, Avenidas | Supabase |
+| Barrios | Polígonos | Supabase |
 
 ### Decisiones Técnicas
 
-- **Zustand + localStorage**: Prioriza velocidad y uso offline. Supabase es opcional para sincronización.
-- **Leaflet**: Open source, sin API key, compatible con GeoJSON local.
-- **Colores de barrios**: Pendiente (gris), En Progreso (naranja), Completado (verde), Pausado (rojo).
-- **Estimación de luminarias**: ~4 por hectárea (ajustable vía `projectionUtils.ts`).
+- **Zustand + localStorage**: Persistencia de estado UI
+- **PostGIS + Supabase**: Datos geoespaciales (NO localStorage para geometrías)
+- **Bulk insert**: Importadores usan lotes de 100 registros
+- **Coincidencia exacta**: Para vincular puntos a barrios (evitar subcadenas)
+- **Leaflet**: Open source, sin API key, compatible con GeoJSON
 
 ## Producción
 
@@ -93,10 +103,7 @@ interface Barrio {
 ## Notas para Desarrolladores
 
 - **Doble Ambiente**: El desarrollo se alterna entre **Oficina** (Chajarí) y **Casa**. Sincronizar siempre vía Git antes de iniciar.
-- **Flujo Odoo**: Las luminarias maestras residen en Odoo. El archivo `Luminaria (...).csv` es la referencia base para importaciones.
-- **D.R.Y. (Don't Repeat Yourself)**: 
-    - No duplicar constantes de UI (ej. colores, estados). Usar `@/lib/constants.ts`.
-    - Lógica de cálculo común debe residir en `@/lib/mapUtils.ts`.
-- **Estado Global**: Se persiste automáticamente en localStorage (parcial: barrios, tareas, activeBaseMap, mapFilters).
+- **Flujo Odoo**: Las luminarias maestras residen en Odoo.
+- **RLS**: Si hay error 403 en tablas, ejecutar `ALTER TABLE tabla DISABLE ROW LEVEL SECURITY;`
 - **Admin**: El usuario admin se determina por email: `a.m.saposnik@gmail.com`.
-- **Mapas**: Requiere conexión a internet para OpenStreetMap tiles. Max zoom fijado en 18 para evitar distorsión satelital.
+- **Mapas**: Requiere conexión a internet para OpenStreetMap tiles.
