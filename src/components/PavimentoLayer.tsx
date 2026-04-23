@@ -34,7 +34,7 @@ const PavimentoLayer = () => {
           .select('*')
           .order('nombre')
         
-        console.log('[PavimentoLayer] Calles trae:', data?.length, 'error:', error)
+        console.log('[PavimentoLayer] Calles trae:', data?.length, 'error:', error, 'first geom:', data?.[0]?.geom)
         if (error) throw error
         setCallesData(data || [])
       } catch (err) {
@@ -43,7 +43,7 @@ const PavimentoLayer = () => {
     }
 
     fetchCalles()
-  }, [callesVisible, callesData.length])
+  }, [callesVisible, avenidasVisible])
 
   const geojsonData = useMemo(() => {
     if (!callesData.length) return null
