@@ -12,8 +12,10 @@ Evolucionar de una herramienta de relevamiento a una **Plataforma de Gestión Es
 *Objetivo: Sentar bases sólidas sin romper la funcionalidad operativa.*
 - [x] **Gestión de Skills**: Implementado `autoskills` para sincronización Casa/Oficina.
 - [x] **Limpieza de UI**: Depuración del Login (Remoción de avisos redundantes y personalización).
+- [x] **Planificación Capa Vial**: Diseñado el esquema PostGIS y RPC para calles pavimentadas.
 - [ ] **Auditoría Espacial**: Reintroducir Turf.js para detectar puntos fuera de polígonos.
 - [ ] **Refactor de Datos**: Migrar Auth a tabla de usuarios con roles (SuperAdmin/Coordinador/Operario).
+- [ ] **Implementación Capa Calles**: Ejecutar SQL y crear componente `CallesPavimentadasLayer`.
 
 ### Fase 2: Modularización (La "Gran Limpieza")
 - [ ] **Split del Store**: Dividir `barrioStore.ts` en `authStore`, `mapStore`, `configStore` y `surveyStore`.
