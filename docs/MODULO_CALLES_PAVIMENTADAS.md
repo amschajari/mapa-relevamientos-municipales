@@ -36,8 +36,19 @@ CREATE TABLE calles_pavimentadas (
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ
 );
--- RLS deshabilitado para acceso público
-ALTER TABLE calles_pavimentadas DISABLE ROW LEVEL SECURITY;
+
+-- Políticas RLS (複製 desde barrios)
+CREATE POLICY "Lectura publica en calles_pavimentadas" ON calles_pavimentadas
+  FOR SELECT TO public USING (true);
+
+CREATE POLICY "Escritura admin en calles_pavimentadas" ON calles_pavimentadas
+  FOR ALL TO authenticated USING (
+    EXISTS (SELECT 1 FROM auth.users WHERE id = auth.uid() AND email = 'a.m.saposnik@gmail.com')
+  ) WITH CHECK (
+    EXISTS (SELECT 1 FROM auth.users WHERE id = auth.uid() AND email = 'a.m.saposnik@gmail.com')
+  );
+
+ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 ```
 
 ### Componentes
