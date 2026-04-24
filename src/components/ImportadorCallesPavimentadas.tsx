@@ -18,6 +18,7 @@ export const ImportadorCallesPavimentadas = () => {
   const [nombreArchivo, setNombreArchivo] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  const [importMode, setImportMode] = useState<'merge' | 'replace'>('replace')
   const [resultado, setResultado] = useState<{ creados: number; actualizados: number; eliminados: number; errores: string[] } | null>(null)
   const [errorGlobal, setErrorGlobal] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
@@ -105,18 +106,38 @@ const confirmarImportacion = async () => {
     setIsImporting(true)
     const errores: string[] = []
     let creados = 0
+    let eliminados = 0
     const batchSize = 100 // Lotes de 100
 
     try {
-      // Verificar existentes en Supabase
-      const { data: existentes } = await supabase
-        .from('calles_pavimentadas')
-        .select('fid')
-      
-      const fidsExistentes = new Set(existentes?.map(e => e.fid) || [])
+      // 1. Si modo es 'replace', borrar todos los registros
+      if (importMode === 'replace') {
+        const { error: deleteError } = await supabase
+          .from('calles_pavimentadas')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000') //.delete todo
+        
+        if (deleteError) {
+          console.error('Error deleting:', deleteError)
+        } else {
+          eliminados = preview.length // aproximación
+        }
+}
+
+      // 2. Verificar existentes en Supabase (solo para merge)
+      let fidsExistentes = new Set<number>()
+      if (importMode === 'merge') {
+        const { data: existentes } = await supabase
+          .from('calles_pavimentadas')
+          .select('fid')
+        
+        fidsExistentes = new Set(existentes?.map(e => e.fid) || [])
+      }
 
       // Separar en nuevos y existentes
-      const nuevos = validos.filter(v => !fidsExistentes.has(v.fid))
+      const nuevos = importMode === 'replace' 
+        ? validos 
+        : validos.filter(v => !fidsExistentes.has(v.fid))
       const actualizar = validos.filter(v => fidsExistentes.has(v.fid))
 
       // Bulk insert de nuevos en lotes
@@ -159,9 +180,9 @@ const confirmarImportacion = async () => {
       }
 
       setResultado({
-        creados: nuevos.length - errores.filter(e => e.includes('Error con')).length,
+        creados: nuevos.length - errores.filter(e => e.includes('Error en')).length,
         actualizados: actualizar.length - errores.filter(e => e.includes('actualizando')).length,
-        eliminados: 0,
+        eliminados: eliminados,
         errores
       })
     } catch (err: any) {
@@ -306,6 +327,34 @@ const confirmarImportacion = async () => {
                 </table>
               </div>
             )}
+
+            <div className="p-4 bg-primary-50/50 border-t border-primary-100">
+              <label className="text-sm font-semibold text-primary-900 block mb-2">Modo de Importación</label>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setImportMode('replace')}
+                  className={`flex-1 p-3 rounded-xl border-2 transition-all text-left ${
+                    importMode === 'replace' 
+                      ? "border-primary-500 bg-white shadow-sm ring-2 ring-primary-500/20" 
+                      : "border-gray-200 bg-gray-50 text-gray-400 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <p className="font-bold text-sm text-primary-700">Reemplazar Todo</p>
+                  <p className="text-[11px] leading-tight mt-0.5">Borra las calles existentes e importa las nuevas.</p>
+                </button>
+                <button
+                  onClick={() => setImportMode('merge')}
+                  className={`flex-1 p-3 rounded-xl border-2 transition-all text-left ${
+                    importMode === 'merge' 
+                      ? "border-amber-500 bg-white shadow-sm ring-2 ring-amber-500/20" 
+                      : "border-gray-200 bg-gray-50 text-gray-400 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <p className="font-bold text-sm text-amber-700">Mezclar (Update/Insert)</p>
+                  <p className="text-[11px] leading-tight mt-0.5">Suma las nuevas y actualiza las existentes.</p>
+                </button>
+              </div>
+            </div>
 
             <div className="p-4 border-t border-gray-100 flex justify-end gap-3">
               <button
