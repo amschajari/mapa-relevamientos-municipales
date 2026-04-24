@@ -6,18 +6,13 @@ import { cn } from '@/lib/utils';
 
 export const LayerControl = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { visibleLayers, toggleLayer, activeBaseMap, setActiveBaseMap } = useBarrioStore();
-  const { toggleLayer: toggleMapLayer, setActiveBaseMap: setMapBaseMap } = useMapStore();
+  const { activeBaseMap, setActiveBaseMap } = useBarrioStore();
+  const { layers, toggleLayer: toggleMapLayer, setActiveBaseMap: setMapBaseMap } = useMapStore();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Sincronizar toggle de capas con mapStore
-  const handleToggleLayer = (layer: 'barrios' | 'luminarias' | 'heatmap') => {
-    toggleLayer(layer)
-    // También actualizar mapStore para nuevas capas
-    if (layer === 'barrios') toggleMapLayer('barrios-poligonos')
-    if (layer === 'luminarias') toggleMapLayer('luminarias-todas')
-    if (layer === 'heatmap') toggleMapLayer('luminarias-calor')
-  }
+  const showBarrios = layers.find(l => l.id === 'barrios-poligonos')?.visible ?? false;
+  const showLuminarias = layers.find(l => l.id === 'luminarias-todas')?.visible ?? true;
+  const showHeatmap = layers.find(l => l.id === 'luminarias-calor')?.visible ?? false;
 
   // Sincronizar cambio de mapa base
   const handleSetBaseMap = (base: 'osm' | 'osm-dark' | 'satellite') => {
@@ -59,10 +54,10 @@ export const LayerControl = () => {
           </div>
           
           <button
-            onClick={() => handleToggleLayer('barrios')}
+            onClick={() => toggleMapLayer('barrios-poligonos')}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              visibleLayers.barrios 
+              showBarrios 
                 ? "bg-primary-50 text-primary-700" 
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -70,18 +65,18 @@ export const LayerControl = () => {
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                visibleLayers.barrios ? "bg-primary-500" : "bg-gray-300"
+                showBarrios ? "bg-primary-500" : "bg-gray-300"
               )} />
               Polígonos de Barrios
             </div>
-            {visibleLayers.barrios && <Check className="w-4 h-4" />}
+            {showBarrios && <Check className="w-4 h-4" />}
           </button>
 
           <button
-            onClick={() => handleToggleLayer('luminarias')}
+            onClick={() => toggleMapLayer('luminarias-todas')}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              visibleLayers.luminarias 
+              showLuminarias 
                 ? "bg-blue-50 text-blue-700" 
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -89,18 +84,18 @@ export const LayerControl = () => {
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                visibleLayers.luminarias ? "bg-blue-500" : "bg-gray-300"
+                showLuminarias ? "bg-blue-500" : "bg-gray-300"
               )} />
               Luminarias (Puntos)
             </div>
-            {visibleLayers.luminarias && <Check className="w-4 h-4" />}
+            {showLuminarias && <Check className="w-4 h-4" />}
           </button>
 
           <button
-            onClick={() => handleToggleLayer('heatmap')}
+            onClick={() => toggleMapLayer('luminarias-calor')}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              visibleLayers.heatmap 
+              showHeatmap 
                 ? "bg-orange-50 text-orange-700" 
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -108,11 +103,11 @@ export const LayerControl = () => {
             <div className="flex items-center gap-2">
               <Flame className={cn(
                 "w-4 h-4",
-                visibleLayers.heatmap ? "text-orange-500" : "text-gray-300"
+                showHeatmap ? "text-orange-500" : "text-gray-300"
               )} />
               Mapa de Calor
             </div>
-            {visibleLayers.heatmap && <Check className="w-4 h-4" />}
+            {showHeatmap && <Check className="w-4 h-4" />}
           </button>
 
           {/* Mapas Base */}
