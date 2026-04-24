@@ -75,27 +75,6 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
     ]
   },
   {
-    id: 'espacios_verdes',
-    name: 'Espacios Verdes',
-    icon: 'Trees',
-    expanded: true,
-    layers: [
-      {
-        id: 'espacios-verdes-todos',
-        name: 'Parques y Plazas',
-        type: 'polygon',
-        source: 'supabase',
-        visible: true,
-        domain: 'espacios_verdes',
-        sublayer: 'todos',
-        opacity: 100,
-        style: { fillColor: '#22c55e', fillOpacity: 0.4, color: '#16a34a', weight: 2 },
-        description: 'Parques, plazas y plazoletas de Chajarí',
-        dataSource: 'espacios_verdes'
-      }
-    ]
-  },
-  {
     id: 'pavimento',
     name: 'Calles Pavimentadas',
     icon: 'Route',
@@ -126,6 +105,27 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
         style: { color: '#374151', weight: 4 },
         description: 'Avenidas principales',
         dataSource: 'calles_pavimentadas'
+      }
+    ]
+  },
+  {
+    id: 'espacios_verdes',
+    name: 'Espacios Verdes',
+    icon: 'Trees',
+    expanded: true,
+    layers: [
+      {
+        id: 'espacios-verdes-todos',
+        name: 'Parques y Plazas',
+        type: 'polygon',
+        source: 'supabase',
+        visible: true,
+        domain: 'espacios_verdes',
+        sublayer: 'todos',
+        opacity: 100,
+        style: { fillColor: '#22c55e', fillOpacity: 0.4, color: '#16a34a', weight: 2 },
+        description: 'Parques, plazas y plazoletas de Chajarí',
+        dataSource: 'espacios_verdes'
       }
     ]
   },
