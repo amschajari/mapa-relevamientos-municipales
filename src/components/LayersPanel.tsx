@@ -98,9 +98,9 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
                       )}
                     >
                       {layer.visible ? (
-                        <Eye className="w-3.5 h-3.5 text-primary-600" />
-                      ) : (
                         <EyeOff className="w-3.5 h-3.5 text-gray-400" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5 text-primary-600" />
                       )}
                       <div 
                         className="w-2 h-2 rounded-full"
