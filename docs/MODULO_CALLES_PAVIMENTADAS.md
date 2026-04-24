@@ -1,14 +1,68 @@
 # MÓDULO CALLES PAVIMENTADAS - CHAJARÍ
 
-> **Estado:** Borrador inicial  
+> **Estado:** ✅ Implementado  
 > **Última actualización:** Abril 2026  
-> **Propósito:** Sistema de gestión de calles pavimentadas con historial por etapas y ordenanzas
+> **Propósito:** Sistema de gestión de calles pavimentadas con visualización en mapa
 
 ---
 
 ## 1. OBJETIVO
 
-Sistema de gestión espacial para el seguimiento de calles pavimentadas en la Municipalidad de Chajarí, permitiendo categorizar sectores por época de pavimentación y vincular con la normativa municipal (ordenanzas).
+Sistema de gestión espacial para visualización de calles pavimentadas en la Municipalidad de Chajarí.
+
+---
+
+## 2. DATOS CARGADOS
+
+| Campo | Origen | Cantidad |
+|-------|--------|-----------|
+| fid | GeoJSON | 875 |
+| nombre | GeoJSON | 875 |
+| geom | GeoJSON (MultiLineString) | 875 |
+| longitud_m | @turf/length | 875 |
+
+---
+
+## 3. ARQUITECTURA IMPLEMENTADA
+
+### Tabla Supabase
+```sql
+CREATE TABLE calles_pavimentadas (
+  id UUID PRIMARY KEY,
+  fid BIGINT UNIQUE,
+  nombre TEXT,
+  geom Geometry(MultiLineString, 4326),
+  longitud_m DOUBLE PRECISION,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+);
+-- RLS deshabilitado para acceso público
+ALTER TABLE calles_pavimentadas DISABLE ROW LEVEL SECURITY;
+```
+
+### Componentes
+- `ImportadorCallesPavimentadas.tsx` - Importador desde GeoJSON
+- `PavimentoLayer.tsx` - Renderizado en Leaflet
+- Capas: Calles (gris), Avenidas (oscuro, más grueso)
+
+### Ubicación de datos
+- GeoJSON fuente: `src/data/calles_ejido_reordenado.geojson`
+- Importado a Supabase: 875 segmentos
+
+---
+
+## 4. USO
+
+1. **Importar**: Importación > Calles Pavimentadas >_arrastrar GeoJSON > Importar
+2. **Visualizar**: Capas > Calles Pavimentadas > Activar Calles o Avenidas
+
+---
+
+## 5. TAREAS PENDIENTES
+
+- [ ] Agregar atributos adicionales (año, ordenanza, etc.)
+- [ ] Vincular con barrios
+- [ ] Mejoras de edición
 
 ---
 

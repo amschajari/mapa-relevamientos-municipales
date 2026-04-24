@@ -28,7 +28,7 @@ interface LayersPanelProps {
 }
 
 export const LayersPanel = ({ className }: LayersPanelProps) => {
-  const { domains, toggleDomain, toggleLayer, activeBaseMap, setActiveBaseMap, espaciosVerdes } = useMapStore()
+  const { domains, toggleDomain, toggleLayer, activeBaseMap, setActiveBaseMap } = useMapStore()
   const { barrios, mapFilters, setMapFilter } = useBarrioStore()
   const [baseMapExpanded, setBaseMapExpanded] = useState(true)
   const [filtrosExpanded, setFiltrosExpanded] = useState(true)
@@ -41,8 +41,6 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
       setMapFilter(key, [...current, value])
     }
   }
-
-  console.log('[LayersPanel] domains:', domains.length, 'espaciosVerdes:', espaciosVerdes.length, 'layers:', domains.flatMap(d => d.layers).filter(l => l.visible).length, 'visible')
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
@@ -90,7 +88,6 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
                     <button
                       key={layer.id}
                       onClick={() => {
-                        console.log('[LayersPanel] toggleLayer:', layer.id, 'current visible:', layer.visible)
                         toggleLayer(layer.id)
                       }}
                       className={cn(
@@ -101,9 +98,9 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
                       )}
                     >
                       {layer.visible ? (
-                        <Eye className="w-3.5 h-3.5 text-primary-600" />
+                        <EyeOff className="w-3.5 h-3.5 text-gray-400" />
                       ) : (
-                        <EyeOff className="w-3.5 h-3.5 text-gray-300" />
+                        <Eye className="w-3.5 h-3.5 text-primary-600" />
                       )}
                       <div 
                         className="w-2 h-2 rounded-full"

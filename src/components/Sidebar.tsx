@@ -34,8 +34,6 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
   
   const { user, logout, officialPoints, activeTab, setActiveTab } = useBarrioStore()
 
-  console.log('[Sidebar] activeSection:', activeSection, 'activeTab:', activeTab)
-
   // Calcular última actualización
   const lastUpdate = useMemo(() => {
     if (!officialPoints || officialPoints.length === 0) return null
