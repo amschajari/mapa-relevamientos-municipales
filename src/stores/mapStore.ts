@@ -270,7 +270,25 @@ export const useMapStore = create<MapState>()(
         sidebarOpen: state.sidebarOpen,
         layersPanelOpen: state.layersPanelOpen,
         layers: state.layers.map(l => ({ ...l, visible: l.visible, opacity: l.opacity }))
-      })
+      }),
+      merge: (persistedState: any, currentState) => {
+        if (!persistedState) return currentState
+        // Forzar sincronización de layers con domains
+        const layers = persistedState.layers || currentState.layers
+        const domains = (persistedState.domains || currentState.domains).map((d: any) => ({
+          ...d,
+          layers: d.layers.map((l: any) => {
+            const savedLayer = layers.find((saved: any) => saved.id === l.id)
+            return savedLayer ? { ...l, visible: savedLayer.visible, opacity: savedLayer.opacity } : l
+          })
+        }))
+        return {
+          ...currentState,
+          ...persistedState,
+          domains,
+          layers
+        }
+      }
     }
   )
 )
