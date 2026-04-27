@@ -190,26 +190,25 @@ export const ImportadorDatos = () => {
       }, {} as Record<string, typeof validos[0]>)
     )
 
-    deduplicatedValidos.forEach(registro => {
-      if (registro.barrio) {
-        const nOdoo = normalizarNombre(registro.barrio)
-        const found = barrios.find(
-          b => normalizarNombre(b.nombre) === nOdoo || normalizarNombre(b.nombre).includes(nOdoo)
-        )
-        if (found) affectedBarrioIds.add(found.id)
-      }
-    })
-
     const nombres = deduplicatedValidos.map(r => r.nombre)
 
-    try {
-      // 1. Si modo es 'replace', borrar puntos previos de los barrios afectados
+      // 1. Identificar barrios afectados para el modo replace
+      deduplicatedValidos.forEach(registro => {
+        if (registro.barrio) {
+          const nOdoo = normalizarNombre(registro.barrio)
+          const found = barrios.find(b => normalizarNombre(b.nombre) === nOdoo)
+          if (found) affectedBarrioIds.add(found.id)
+        }
+      })
+
+      try {
+      // 2. Si modo es 'replace', borrar puntos previos de los barrios afectados
       if (importMode === 'replace' && affectedBarrioIds.size > 0) {
         const ids = Array.from(affectedBarrioIds)
         await useBarrioStore.getState().bulkDeleteByBarrios(ids)
       }
 
-      // 2. Buscar existentes en la DB para resolver si es Insert o Update
+      // 3. Buscar existentes en la DB para resolver si es Insert o Update
       const existentesMap = new Map<string, string>()
       const batchSize = 500 // Lotes de 500 para evitar queries gigantes
       
@@ -236,12 +235,11 @@ export const ImportadorDatos = () => {
         if (registro.barrio) {
           const nOdoo = normalizarNombre(registro.barrio)
           const found = barrios.find(
-            b => normalizarNombre(b.nombre) === nOdoo || normalizarNombre(b.nombre).includes(nOdoo)
+            b => normalizarNombre(b.nombre) === nOdoo
           )
           if (found) {
             barrio_id = found.id
             barrioNombreFinal = found.nombre
-            affectedBarrioIds.add(found.id)
           }
         }
 
