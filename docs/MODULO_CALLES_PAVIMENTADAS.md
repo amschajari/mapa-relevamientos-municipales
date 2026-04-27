@@ -1,8 +1,8 @@
 # MÓDULO CALLES PAVIMENTADAS - CHAJARÍ
 
-> **Estado:** ✅ Implementado  
+> **Estado:** ✅ Fase 1 completada - Fase 2 en desarrollo  
 > **Última actualización:** Abril 2026  
-> **Propósito:** Sistema de gestión de calles pavimentadas con visualización en mapa
+> **Propósito:** Sistema de gestión de calles pavimentadas con visualización en mapa, editor de clasificación por tramos y herramientas de segmentación
 
 ---
 
@@ -64,8 +64,27 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 ## 4. USO
 
+### 4.1 Visualización básica
 1. **Importar**: Importación > Calles Pavimentadas >_arrastrar GeoJSON > Importar
 2. **Visualizar**: Capas > Calles Pavimentadas > Activar Calles o Avenidas
+
+### 4.2 Editor avanzado de clasificación (v2)
+Para clasificación detallada por tramos y edición de atributos:
+1. Abrir el editor: http://localhost:8000/editor_calles_pavimentadas_v2.html
+2. Carga automática del GeoJSON segmentado (2422 tramos)
+3. Herramientas disponibles:
+   - **Selección**: Click individual, Shift+click (rango), Ctrl+click (múltiple), Box selection (arrastrar)
+   - **Clasificación**: 
+     - ✓ Conservar (verde) = tramo pavimentado
+     - ✗ Descartar (rojo) = tramo no pavimentado
+     - Doble click para cambiar estado
+   - **Herramienta de corte** (✂️): Dividir tramos en puntos específicos
+   - **Panel de atributos**: Al seleccionar tramo(s):
+     - Tipo obra: Hormigón / Pavimento asfáltico
+     - Entre calle 1/2: Detectado automáticamente por intersección
+     - Fechas de aprobación e inauguración
+     - Observaciones libres
+   - **Export**: Solo segmentos conservados listo para Supabase
 
 ---
 
@@ -73,7 +92,60 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 - [ ] Agregar atributos adicionales (año, ordenanza, etc.)
 - [ ] Vincular con barrios
-- [ ] Mejoras de edición
+- [ ] Mejoras de edición en el editor v2
+
+---
+
+## 6. EDITOR DE CLASIFICACIÓN AVANZADA (v2)
+
+### 6.1 Archivos generados
+
+| Archivo | Descripción | Cantidad |
+|---------|------------|----------|
+| `calles_segmentadas.geojson` | GeoJSON segmentado (tramos entre intersecciones) | 2422 features |
+| `editor_calles_pavimentadas_v2.html` | Editor web interactivo | - |
+
+### 6.2 Cómo usar el editor
+
+**Paso 1: Iniciar servidor HTTP local**
+```bash
+cd docs
+python -m http.server 8000
+```
+Luego abrir en navegador: http://localhost:8000/editor_calles_pavimentadas_v2.html
+
+**Paso 2: Herramientas de selección**
+
+| Acción | Cómo acceder |
+|--------|-------------|
+| Seleccionar uno | Click en el segmento |
+| Seleccionar rango | Shift + click |
+| Agregar/quitar de selección | Ctrl + click |
+| Seleccionar todos | Ctrl + A |
+| Box selection | Click en herramienta ⬜ y arrastrar |
+
+**Paso 3: Clasificar segmentos**
+
+| Estado | Color | Significado |
+|--------|-------|-------------|
+| Pendiente | Amarillo | Sin clasificar |
+| ✓ Conservar | Verde | Pavimentado (se exporta) |
+| ✗ Descartar | Rojo | No pavimentado (se excluye) |
+
+- Para clasificar: seleccionar segmentos → click en botón ✓ o ✗
+- Doble click en segmento: cicla estado
+
+**Paso 4: Completar atributos**
+Al seleccionar segmentos, el panel lateral permite editar:
+- Tipo de obra (Hormigón / Pavimento asfáltico)
+- Entre calle 1 (se detecta automáticamente)
+- Entre calle 2 (se detecta automáticamente)
+- Fecha aprobación Concejal
+- Fecha inauguración
+- Observaciones
+
+**Paso 5: Exportar**
+Click en "Exportar GeoJSON" → descarga archivo con solo los segmentos "Conservar".
 
 ---
 
