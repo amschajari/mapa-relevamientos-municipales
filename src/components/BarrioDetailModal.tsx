@@ -234,24 +234,12 @@ export const BarrioDetailModal = ({
             </div>
           </div>
 
-          {/* Luminarias encontradas: dato real, no calculado */}
-          <div className="bg-gray-50 p-4 rounded-xl space-y-1">
-            <p className="text-sm font-medium text-gray-600">Luminarias encontradas</p>
-            <p className="text-3xl font-black text-gray-800">{barrio.luminariasRelevadas?.toLocaleString('es-AR') || 0}</p>
-            {barrio.superficie_ha && barrio.luminariasRelevadas ? (
-              <p className="text-xs text-gray-400">
-                {(barrio.luminariasRelevadas / barrio.superficie_ha).toFixed(1)} lum/Ha
-              </p>
-            ) : null}
-          </div>
-
           {/* Conteo de Luminarias */}
           <div className="grid grid-cols-2 gap-4">
-          {/* Luminarias encontradas y densidad (solo lectura, dato real) */}
           <div className="bg-gray-50 p-4 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <MapPin className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-medium text-gray-600">Luminarias encontradas</span>
+              <span className="text-sm font-medium text-gray-600">Luminarias</span>
             </div>
             <p className="text-2xl font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</p>
             <p className="text-[10px] text-gray-400 mt-1">Conteo real importado</p>

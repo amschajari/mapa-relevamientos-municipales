@@ -108,10 +108,6 @@ function App() {
                   tareas={tareas}
                   onBarrioClick={handleBarrioClick}
                   selectedBarrio={selectedBarrio}
-                  onEditBarrio={(barrio) => {
-                    setSelectedBarrio(barrio)
-                    setShowEditModal(true)
-                  }}
                 />
               )}
             </div>
