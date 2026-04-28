@@ -884,19 +884,47 @@ async function guardarEnSupabase(){
  })));
 
  try {
- // Usar upsert para insertar o actualizar
- const { data, error } = await supabaseClient
+ // Usar upsert en lotes de 100
+ const batchSize = 100;
+ let saved = 0;
+ let failedBatches = [];
+ 
+ for(let i = 0; i < records.length; i += batchSize){
+ const batch = records.slice(i, i + batchSize);
+ const batchNum = Math.floor(i / batchSize) + 1;
+ 
+ try {
+ const { error } = await supabaseClient
  .from('calles_pavimentadas')
- .upsert(records, { onConflict: 'fid' });
-
- if(error) throw error;
+ .upsert(batch, { onConflict: 'fid' });
+ 
+ if(error) {
+ console.error(`Error en lote ${batchNum}:`, error);
+ failedBatches.push({ batchNum, error: error.message });
+ } else {
+ saved += batch.length;
+ console.log(`Progreso upsert: ${saved}/${records.length}`);
+ }
+ } catch(e) {
+ console.error(`Error inesperado en lote ${batchNum}:`, e);
+ failedBatches.push({ batchNum, error: e.message });
+ }
+ }
 
  const conservados = segments.filter(s=>s.props.estado==='conservado').length;
  const descartados = segments.filter(s=>s.props.estado==='descartado').length;
  const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
 
- showToast(`✅ Guardado en Supabase: ${records.length} segmentos`);
- console.log(`Guardados ${records.length} segmentos en Supabase`);
+ const msgFinal = failedBatches.length > 0 
+ ? `✅ Guardados ${saved}/${records.length}. Fallaron ${failedBatches.length} lotes.`
+ : `✅ Guardados ${saved} segmentos en Supabase`;
+ 
+ showToast(msgFinal);
+ console.log(msgFinal);
+ 
+ if (failedBatches.length > 0) {
+ console.error('Lotes fallidos:', failedBatches);
+ }
  } catch(e) {
  console.error('Error guardando en Supabase:', e);
  showToast('❌ Error al guardar: '+e.message);
