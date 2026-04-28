@@ -41,6 +41,7 @@ const PavimentoLayer = () => {
  .from('calles_pavimentadas')
  .select('*')
  .order('nombre')
+ .limit(10000) // Traer todos, no solo 1000
 
  if (error) {
  console.error('Error fetching calles:', error)
@@ -63,6 +64,7 @@ const PavimentoLayer = () => {
  .from('calles_pavimentadas')
  .select('*')
  .order('nombre')
+ .limit(10000)
 
  if (error) {
  console.error('Error polling calles:', error)

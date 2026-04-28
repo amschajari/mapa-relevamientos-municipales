@@ -228,7 +228,8 @@ async function loadGeoJSON(){
  console.log('Intentando sincronizar estados desde Supabase...');
  const { data, error } = await supabaseClient
  .from('calles_pavimentadas')
- .select('fid,estado,tipo_obra,entre_calle_1,entre_calle_2');
+ .select('fid,estado,tipo_obra,entre_calle_1,entre_calle_2')
+ .limit(10000); // Traer todos los registros, no solo 1000
 
  if (error) {
  console.log('Error consultando Supabase:', error);
