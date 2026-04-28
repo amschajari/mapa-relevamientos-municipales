@@ -178,7 +178,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
  </div>
  <div class="footer" style="border-top:none;padding-top:0;">
  <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importar Segmentos</button>
- <input type="file" id="import-file" accept=".geojson" style="display:none" onchange="importarSegmentosNuevos(event)">
+ <input type="file" id="import-file" accept=".geojson" style="display:none">
  <button class="btn btn-secondary" onclick="sincronizarDesdeSupabase()">🔄 Sincronizar</button>
  </div>
   </div>
@@ -198,7 +198,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
 // ==================== SUPABASE ====================
 const SUPABASE_URL = 'https://elczfqaevdnomwflgvka.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsY3pmcWFldmRub213ZmxndmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NDQ4ODMsImV4cCI6MjA4NzAyMDg4M30.HL9I0zzJTmhxVMd2oTbYLupgNfio_yLZ1StG9voexWQ';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ==================== CARGA DE DATOS ====================
 let geojson = null;
@@ -221,7 +221,7 @@ async function loadGeoJSON(){
     console.log('Intentando cargar desde Supabase...');
     showToast('Cargando datos desde Supabase...');
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('calles_pavimentadas')
       .select('*');
 
@@ -821,7 +821,7 @@ async function guardarEnSupabase(){
 
  try {
  // Usar upsert para insertar o actualizar
- const { data, error } = await supabase
+ const { data, error } = await supabaseClient
  .from('calles_pavimentadas')
  .upsert(records, { onConflict: 'fid' });
 
@@ -991,9 +991,12 @@ document.addEventListener('keydown',e=>{
 });
 
 document.addEventListener('keyup',e=>{
-  if(e.key==='Shift') isShiftDown = false;
-  if(e.key==='Control') isCtrlDown = false;
+ if(e.key==='Shift') isShiftDown = false;
+ if(e.key==='Control') isCtrlDown = false;
 });
+
+// Event listeners para inputs file
+document.getElementById('import-file')?.addEventListener('change', importarSegmentosNuevos);
 
 // Iniciar
 loadGeoJSON();
