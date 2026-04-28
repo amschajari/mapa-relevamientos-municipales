@@ -208,21 +208,25 @@ export const ImportadorDatos = () => {
         await useBarrioStore.getState().bulkDeleteByBarrios(ids)
       }
 
-      // 3. Buscar existentes en la DB para resolver si es Insert o Update
-      const existentesMap = new Map<string, string>()
-      const batchSize = 500 // Lotes de 500 para evitar queries gigantes
-      
-      for (let i = 0; i < nombres.length; i += batchSize) {
-        const batchNames = nombres.slice(i, i + batchSize)
-        const { data } = await supabase
-          .from('puntos_relevamiento')
-          .select('id, nombre')
-          .in('nombre', batchNames)
-        
-        if (data) {
-          data.forEach(e => existentesMap.set(e.nombre, e.id))
-        }
+    // 3. Buscar existentes en la DB para resolver si es Insert o Update
+    const existentesMap = new Map<string, string>()
+    const batchSize = 200 // REDUCIDO: Supabase free tiene límites
+
+    for (let i = 0; i < nombres.length; i += batchSize) {
+      const batchNames = nombres.slice(i, i + batchSize)
+      const { data, error: queryError } = await supabase
+        .from('puntos_relevamiento')
+        .select('id, nombre')
+        .in('nombre', batchNames)
+
+      if (queryError) {
+        console.error('[IMPORT] Error buscando existentes:', queryError)
       }
+
+      if (data) {
+        data.forEach(e => existentesMap.set(e.nombre, e.id))
+      }
+    }
 
       // 3. Separar registros en Updates e Inserts para mantener homogeneidad de columnas en los lotes
       const toInsert: any[] = []
@@ -283,26 +287,28 @@ export const ImportadorDatos = () => {
         }
       })
 
-      // 4. Ejecutar Bulk Insert y Bulk Update por separado para no mezclar esquemas de objetos
-      for (let i = 0; i < toInsert.length; i += batchSize) {
-        const batch = toInsert.slice(i, i + batchSize)
-        const { error } = await supabase.from('puntos_relevamiento').insert(batch)
-        if (error) { 
-          console.error('Bulk insert error:', error); 
-          err += batch.length 
-        }
-        else ok += batch.length
+    // 4. Ejecutar Bulk Insert y Bulk Update por separado para no mezclar esquemas de objetos
+    const insertBatchSize = 100 // Más pequeño para evitar timeouts
+    for (let i = 0; i < toInsert.length; i += insertBatchSize) {
+      const batch = toInsert.slice(i, i + insertBatchSize)
+      const { error } = await supabase.from('puntos_relevamiento').insert(batch)
+      if (error) {
+        console.error('[IMPORT] Bulk insert error:', error);
+        err += batch.length
       }
+      else ok += batch.length
+    }
 
-      for (let i = 0; i < toUpdate.length; i += batchSize) {
-        const batch = toUpdate.slice(i, i + batchSize)
-        const { error } = await supabase.from('puntos_relevamiento').upsert(batch)
-        if (error) { 
-          console.error('Bulk update error:', error); 
-          err += batch.length 
-        }
-        else ok += batch.length
+    const updateBatchSize = 100
+    for (let i = 0; i < toUpdate.length; i += updateBatchSize) {
+      const batch = toUpdate.slice(i, i + updateBatchSize)
+      const { error } = await supabase.from('puntos_relevamiento').upsert(batch)
+      if (error) {
+        console.error('[IMPORT] Bulk update error:', error);
+        err += batch.length
       }
+      else ok += batch.length
+    }
 
       // Recalcular estadísticas
       if (affectedBarrioIds.size > 0) {
