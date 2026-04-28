@@ -1094,8 +1094,19 @@ async function reemplazarTodoEnSupabase(){
  // Paso 2: Preparar registros nuevos
  console.log('Preparando registros...');
  const records = segments.map(seg => {
- // Convertir geometría a MultiLineString si es LineString
+ // Asegurar que geom es un objeto
  let geom = seg.geom;
+ if (typeof geom === 'string') {
+ try { geom = JSON.parse(geom); } catch(e) { geom = null; }
+ }
+ 
+ // Verificar que geom es válido
+ if (!geom || !geom.type) {
+ console.warn('Segmento sin geometría válida:', seg.id);
+ return null;
+ }
+ 
+ // Convertir geometría a MultiLineString si es LineString
  if(geom.type === 'LineString') {
  geom = {
  type: 'MultiLineString',
@@ -1116,7 +1127,7 @@ async function reemplazarTodoEnSupabase(){
  geom: geom,
  longitud_m: calcularLongitud(seg.geom)
  };
- });
+ }).filter(r => r !== null);
 
  // Paso 3: Insertar en lotes de 100
  console.log(`Insertando ${records.length} registros...`);
