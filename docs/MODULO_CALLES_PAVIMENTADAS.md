@@ -1,8 +1,9 @@
 # MÓDULO CALLES PAVIMENTADAS - CHAJARÍ
 
-> **Estado:** ✅ Fase 1 completada - Fase 2 en desarrollo  
+> **Estado:** ✅ Fase 1 completada - Fase 2 en desarrollo - Fase 3 (Integración Supabase) planificada  
 > **Última actualización:** Abril 2026  
 > **Propósito:** Sistema de gestión de calles pavimentadas con visualización en mapa, editor de clasificación por tramos y herramientas de segmentación
+> **Rama activa:** `feature/ui-ide-sidebar`
 
 ---
 
@@ -96,7 +97,110 @@ Para clasificación detallada por tramos y edición de atributos:
 
 ---
 
-## 6. EDITOR DE CLASIFICACIÓN AVANZADA (v2)
+## 6. FASE 3: INTEGRACIÓN CON SUPABASE (EN DESARROLLO)
+
+### 6.1 Contexto y Objetivo
+
+**Situación actual:**
+- Supabase tiene 875 segmentos cargados (datos iniciales)
+- El editor HTML trabaja con 2422 segmentos segmentados (GeoJSON local en `docs/calles_segmentadas.geojson`)
+- Se estima que ~70% se descartará, conservando solo calles realmente pavimentadas (~30%)
+
+**Objetivo:** Integrar el editor HTML con Supabase para:
+1. Clasificación en tiempo real (estado: `pendiente` → `conservado` / `descartado`)
+2. Importar segmentos nuevos que faltan (desde GeoJSON de QGIS)
+3. Sincronizar cambios con otras interfaces (mapa React en la app principal)
+
+### 6.2 Cambios en la Base de Datos
+
+**Nueva columna requerida:**
+```sql
+-- Agregar columna estado
+ALTER TABLE calles_pavimentadas 
+ADD COLUMN estado TEXT DEFAULT 'pendiente';
+-- Valores: 'pendiente', 'conservado', 'descartado'
+
+-- Agregar columnas de atributos (opcional)
+ALTER TABLE calles_pavimentadas
+ADD COLUMN tipo_obra TEXT,
+ADD COLUMN entre_calle_1 TEXT,
+ADD COLUMN entre_calle_2 TEXT,
+ADD COLUMN fecha_aprobacion_concejo DATE,
+ADD COLUMN fecha_inauguracion DATE,
+ADD COLUMN observaciones TEXT;
+```
+
+### 6.3 Workflow de Integración
+
+```
+┌──────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  QGIS (opcional) │────▶│  Editor HTML    │────▶│   Supabase      │
+│  Importar nuevos │     │  Clasificar +   │     │   Persistencia  │
+│  segmentos       │     │  Atributos      │     │   centralizada  │
+└──────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                                                        ▼
+                                              ┌─────────────────┐
+                                              │  App React      │
+                                              │  (mapa principal│
+                                              │   con polling)  │
+                                              └─────────────────┘
+```
+
+### 6.4 Funcionalidades del Editor HTML (v2.1 - Con Supabase)
+
+| Funcionalidad | Descripción | Estado |
+|---------------|-------------|--------|
+| Carga inicial | Lee desde `calles_segmentadas.geojson` local | ✅ Implementado |
+| Importar segmentos | Fusiona GeoJSON externo (QGIS) con fid nuevos | 📝 Pendiente |
+| Clasificación | Cambiar estado (conservado/descartado/pendiente) | ✅ Local |
+| Guardar en Supabase | Upsert: inserta nuevos, actualiza existentes | 📝 Pendiente |
+| Atributos | Editar tipo_obra, entre_calles, fechas, obs | ✅ Local |
+| Exportar | Descarga GeoJSON con solo conservados | ✅ Implementado |
+
+### 6.5 Variables de Entorno
+
+El editor necesita las mismas credenciales que la app React:
+
+```env
+VITE_SUPABASE_URL=https://elczfqaevdnomwflgvka.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Nota:** El editor HTML es standalone (no usa Vite), así que las credenciales se embeberán directamente en el HTML o se cargarán desde un archivo `.env` separado.
+
+### 6.6 Consideraciones Técnicas
+
+1. **Identificación de segmentos:**
+   - `fid` es la clave única (BIGINT UNIQUE en Supabase)
+   - Nuevos segmentos desde QGIS deben tener fid incremental
+
+2. **Sincronización:**
+   - El editor HTML guarda cambios vía REST API de Supabase
+   - La app React puede usar polling (cada 30s) o Realtime subscriptions
+
+3. **Permisos:**
+   - RLS requiere usuario autenticado con email `a.m.saposnik@gmail.com`
+   - Para desarrollo, se puede deshabilitar RLS temporalmente
+
+### 6.7 Pasos para Continuar el Desarrollo
+
+1. **Base de datos:** Ejecutar SQL para agregar columnas `estado` y atributos
+2. **Editor HTML:** 
+   - Agregar conexión a Supabase (CDN script)
+   - Modificar `guardarProgreso()` para upsert a Supabase
+   - Agregar botón "Importar segmentos adicionales"
+3. **App React:** 
+   - Agregar polling a `PavimentoLayer.tsx` o usar Supabase Realtime
+4. **Testing:** Verificar que cambios en editor se reflejen en el mapa
+
+---
+
+## 7. EDITOR DE CLASIFICACIÓN AVANZADA (v2)
+
+---
+
+## 7. EDITOR DE CLASIFICACIÓN AVANZADA (v2)
 
 ### 6.1 Archivos generados
 
@@ -149,7 +253,7 @@ Click en "Exportar GeoJSON" → descarga archivo con solo los segmentos "Conserv
 
 ---
 
-## 2. FUENTE DE DATOS OFICIAL
+## 8. FUENTE DE DATOS OFICIAL
 
 | Fuente | URL | Datos a Extraer |
 |--------|-----|-----------------|
@@ -159,7 +263,7 @@ Click en "Exportar GeoJSON" → descarga archivo con solo los segmentos "Conserv
 
 ---
 
-## 3. WORKFLOW PROPUESTO
+## 9. WORKFLOW PROPUESTO
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -174,7 +278,7 @@ Click en "Exportar GeoJSON" → descarga archivo con solo los segmentos "Conserv
 
 ---
 
-## 4. ESQUEMA DE DATOS (PROPUESTO - PENDIENTE CONFIRMACIÓN)
+## 10. ESQUEMA DE DATOS (PROPUESTO - PENDIENTE CONFIRMACIÓN)
 
 | Campo | Tipo | Descripción | Estado |
 |-------|------|-------------|--------|
@@ -195,7 +299,7 @@ Click en "Exportar GeoJSON" → descarga archivo con solo los segmentos "Conserv
 
 ---
 
-## 5. CONSULTA OVERPASS TURBO
+## 11. CONSULTA OVERPASS TURBO
 
 Query lista para copiar y pegar en [Overpass Turbo](https://overpass-turbo.eu/):
 
@@ -241,7 +345,7 @@ out skel qt;
 
 ---
 
-## 6. TAREAS PENDIENTES
+## 12. TAREAS PENDIENTES
 
 ### Fase 1: Investigación
 - [ ] Estudiar https://digesto.chajari.gob.ar/normas
@@ -263,7 +367,7 @@ out skel qt;
 
 ---
 
-## 7. NOTAS TÉCNICAS
+## 13. NOTAS TÉCNICAS
 
 | Aspecto | Valor | Notas |
 |---------|-------|-------|
@@ -274,7 +378,7 @@ out skel qt;
 
 ---
 
-## 8. RECURSOS ADICIONALES
+## 14. RECURSOS ADICIONALES
 
 ### Documentación relacionada
 - `PROPUESTA_EVOLUCION_PLATAFORMA_GIS.md` - Roadmap general del sistema
@@ -288,7 +392,7 @@ out skel qt;
 
 ---
 
-## 9. HISTORIAL DE CAMBIOS
+## 15. HISTORIAL DE CAMBIOS
 
 | Fecha | Autor | Cambio |
 |-------|-------|--------|
