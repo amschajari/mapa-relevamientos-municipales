@@ -227,40 +227,46 @@ async function loadGeoJSON(){
 
     if (error) throw error;
 
-    if (data && data.length > 0) {
-      geojson = { type: 'FeatureCollection', features: [] };
-      segments = data.map((row, i) => {
-        const feature = {
-          type: 'Feature',
-          properties: {
-            fid: row.fid,
-            name: row.nombre,
-            estado: row.estado || 'pendiente',
-            tipo_obra: row.tipo_obra,
-            entre_calle_1: row.entre_calle_1,
-            entre_calle_2: row.entre_calle_2,
-            fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
-            fecha_inauguracion: row.fecha_inauguracion,
-            observaciones: row.observaciones
-          },
-          geometry: row.geom
-        };
-        geojson.features.push(feature);
-        return {
-          id: row.fid || i + 1,
-          name: row.nombre || '',
-          props: {
-            estado: row.estado || 'pendiente',
-            tipo_obra: row.tipo_obra,
-            entre_calle_1: row.entre_calle_1,
-            entre_calle_2: row.entre_calle_2,
-            fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
-            fecha_inauguracion: row.fecha_inauguracion,
-            observaciones: row.observaciones
-          },
-          geom: row.geom
-        };
-      });
+ if (data && data.length > 0) {
+ geojson = { type: 'FeatureCollection', features: [] };
+ segments = data.map((row, i) => {
+ // Normalizar geometría desde Supabase
+ let geom = row.geom;
+ if (typeof geom === 'string') {
+ try { geom = JSON.parse(geom); } catch(e) { geom = null; }
+ }
+ 
+ const feature = {
+ type: 'Feature',
+ properties: {
+ fid: row.fid,
+ name: row.nombre,
+ estado: row.estado || 'pendiente',
+ tipo_obra: row.tipo_obra,
+ entre_calle_1: row.entre_calle_1,
+ entre_calle_2: row.entre_calle_2,
+ fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+ fecha_inauguracion: row.fecha_inauguracion,
+ observaciones: row.observaciones
+ },
+ geometry: geom
+ };
+ geojson.features.push(feature);
+ return {
+ id: row.fid || i + 1,
+ name: row.nombre || '',
+ props: {
+ estado: row.estado || 'pendiente',
+ tipo_obra: row.tipo_obra,
+ entre_calle_1: row.entre_calle_1,
+ entre_calle_2: row.entre_calle_2,
+ fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+ fecha_inauguracion: row.fecha_inauguracion,
+ observaciones: row.observaciones
+ },
+ geom: geom
+ };
+ }).filter(s => s.geom !== null);
 
       console.log(`Cargados ${segments.length} segmentos desde Supabase`);
       showToast(`Cargados ${segments.length} segmentos desde Supabase`);
@@ -307,23 +313,38 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'�
 const layerGroup = L.layerGroup().addTo(map);
 
 function buildLayers(){
-  layerGroup.clearLayers();
-  segmentLayers = {};
-  segments.forEach(seg=>{
-    const coords = seg.geom.type==='LineString'?seg.geom.coordinates:seg.geom.coordinates[0];
-    const latlngs = coords.map(c=>[c[1],c[0]]);
-    const line = L.polyline(latlngs,{
-      color: COLORS[seg.props.estado],
-      weight: WEIGHTS[seg.props.estado],
-      opacity: OPACITIES[seg.props.estado]
-    });
-    line.on('click',e=>handleSegmentClick(seg.id,e));
-    line.on('dblclick',e=>handleSegmentDoubleClick(seg.id,e));
-    line.segId = seg.id;
-    layerGroup.addLayer(line);
-    segmentLayers[seg.id] = line;
-  });
-  renderList();
+ layerGroup.clearLayers();
+ segmentLayers = {};
+ segments.forEach(seg=>{
+ // Normalizar geometría
+ let coords;
+ if (!seg.geom) return;
+ 
+ if (seg.geom.type === 'LineString') {
+ coords = seg.geom.coordinates;
+ } else if (seg.geom.type === 'MultiLineString') {
+ // Para MultiLineString, usar la primera línea o concatenar todas
+ coords = seg.geom.coordinates[0] || [];
+ } else {
+ console.warn('Tipo de geometría no soportado:', seg.geom.type);
+ return;
+ }
+ 
+ if (!coords || coords.length < 2) return;
+ 
+ const latlngs = coords.map(c=>[c[1],c[0]]);
+ const line = L.polyline(latlngs,{
+ color: COLORS[seg.props.estado],
+ weight: WEIGHTS[seg.props.estado],
+ opacity: OPACITIES[seg.props.estado]
+ });
+ line.on('click',e=>handleSegmentClick(seg.id,e));
+ line.on('dblclick',e=>handleSegmentDoubleClick(seg.id,e));
+ line.segId = seg.id;
+ layerGroup.addLayer(line);
+ segmentLayers[seg.id] = line;
+ });
+ renderList();
 }
 
 function updateLayerColor(id){
@@ -521,38 +542,53 @@ function rebuildAll(){
 let intersections = [];
 
 function detectIntersections(){
-  console.log('Detectando intersecciones...');
-  const allLines = segments.map(s=>({
-    id:s.id,
-    coords:s.geom.coordinates,
-    name:s.name
-  }));
-  
-  intersections = [];
-  
-  for(let i=0;i<allLines.length;i++){
-    for(let j=i+1;j<allLines.length;j++){
-      const l1 = allLines[i];
-      const l2 = allLines[j];
-      
-      // Si son la misma calle, no contar
-      if(l1.name.toLowerCase()===l2.name.toLowerCase()) continue;
-      
-      // Buscar puntos compartidos
-      const pts1 = new Set(l1.coords.map(c=>`${c[0].toFixed(5)},${c[1].toFixed(5)}`));
-      const shared = l2.coords.filter(c=>pts1.has(`${c[0].toFixed(5)},${c[1].toFixed(5)}`));
-      
-      if(shared.length>0){
-        intersections.push({
-          seg1: l1.id,
-          seg2: l2.id,
-          puntos: shared
-        });
-      }
-    }
-  }
-  
-  console.log(`Encontradas ${intersections.length} intersecciones`);
+ console.log('Detectando intersecciones...');
+ const allLines = segments.map(s=>{
+ // Normalizar coordenadas a array de [lon, lat] números
+ const rawCoords = s.geom.coordinates;
+ let coords;
+ if (Array.isArray(rawCoords[0])) {
+ // MultiLineString o LineString
+ coords = rawCoords[0][0] !== undefined && typeof rawCoords[0][0] === 'number' 
+ ? rawCoords // Ya es LineString
+ : rawCoords[0]; // Es MultiLineString, tomar primera línea
+ } else {
+ // Formato inesperado
+ coords = [];
+ }
+ 
+ return {
+ id:s.id,
+ coords:coords,
+ name:s.name
+ };
+ }).filter(s => s.coords.length > 0);
+
+ intersections = [];
+
+ for(let i=0;i<allLines.length;i++){
+ for(let j=i+1;j<allLines.length;j++){
+ const l1 = allLines[i];
+ const l2 = allLines[j];
+
+ // Si son la misma calle, no contar
+ if(l1.name.toLowerCase()===l2.name.toLowerCase()) continue;
+
+ // Buscar puntos compartidos
+ const pts1 = new Set(l1.coords.map(c=>`${Number(c[0]).toFixed(5)},${Number(c[1]).toFixed(5)}`));
+ const shared = l2.coords.filter(c=>pts1.has(`${Number(c[0]).toFixed(5)},${Number(c[1]).toFixed(5)}`));
+
+ if(shared.length>0){
+ intersections.push({
+ seg1: l1.id,
+ seg2: l2.id,
+ puntos: shared
+ });
+ }
+ }
+ }
+
+ console.log(`Encontradas ${intersections.length} intersecciones`);
 }
 
 // ==================== ATRIBUTOS ====================
