@@ -818,7 +818,17 @@ async function guardarEnSupabase(){
 
  showToast('Subiendo a Supabase...');
 
- const records = segments.map(seg => ({
+ const records = segments.map(seg => {
+ // Convertir geometría a MultiLineString si es LineString
+ let geom = seg.geom;
+ if(geom.type === 'LineString') {
+ geom = {
+ type: 'MultiLineString',
+ coordinates: [geom.coordinates]
+ };
+ }
+ 
+ return {
  fid: seg.id,
  nombre: seg.name,
  estado: seg.props.estado || 'pendiente',
@@ -828,9 +838,10 @@ async function guardarEnSupabase(){
  fecha_aprobacion_concejo: seg.props.fecha_aprobacion_concejo || null,
  fecha_inauguracion: seg.props.fecha_inauguracion || null,
  observaciones: seg.props.observaciones || null,
- geom: seg.geom,
+ geom: geom,
  longitud_m: calcularLongitud(seg.geom)
- }));
+ };
+ });
 
  try {
  // Usar upsert para insertar o actualizar
@@ -1082,7 +1093,17 @@ async function reemplazarTodoEnSupabase(){
 
  // Paso 2: Preparar registros nuevos
  console.log('Preparando registros...');
- const records = segments.map(seg => ({
+ const records = segments.map(seg => {
+ // Convertir geometría a MultiLineString si es LineString
+ let geom = seg.geom;
+ if(geom.type === 'LineString') {
+ geom = {
+ type: 'MultiLineString',
+ coordinates: [geom.coordinates]
+ };
+ }
+ 
+ return {
  fid: seg.id,
  nombre: seg.name,
  estado: seg.props.estado || 'pendiente',
@@ -1092,9 +1113,10 @@ async function reemplazarTodoEnSupabase(){
  fecha_aprobacion_concejo: seg.props.fecha_aprobacion_concejo || null,
  fecha_inauguracion: seg.props.fecha_inauguracion || null,
  observaciones: seg.props.observaciones || null,
- geom: seg.geom,
+ geom: geom,
  longitud_m: calcularLongitud(seg.geom)
- }));
+ };
+ });
 
  // Paso 3: Insertar en lotes de 100
  console.log(`Insertando ${records.length} registros...`);
