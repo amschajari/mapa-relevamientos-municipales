@@ -543,18 +543,36 @@ export const useBarrioStore = create<BarrioState>()(
         }))
       },
 
-      fetchOfficialPoints: async () => {
-        try {
-          const { data, error } = await supabase
-            .from('puntos_relevamiento')
-            .select('*')
+  fetchOfficialPoints: async () => {
+    try {
+      // Paginación para evitar el límite de 1000 filas de Supabase
+      const allPoints: any[] = []
+      const pageSize = 1000
+      let offset = 0
+      let hasMore = true
 
-          if (error) throw error
-          set({ officialPoints: data || [] })
-        } catch (error: any) {
-          console.error('Error fetching official points:', error)
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('puntos_relevamiento')
+          .select('*')
+          .range(offset, offset + pageSize - 1)
+
+        if (error) throw error
+
+        if (data && data.length > 0) {
+          allPoints.push(...data)
+          offset += pageSize
+          hasMore = data.length === pageSize
+        } else {
+          hasMore = false
         }
-      },
+      }
+
+      set({ officialPoints: allPoints })
+    } catch (error: any) {
+      console.error('Error fetching official points:', error)
+    }
+  },
 
       resetOfficialPoints: async (barrioId: string) => {
         if (!confirm('¿Estás seguro de que deseas eliminar TODOS los puntos oficiales de este barrio? Esta acción no se puede deshacer.')) return
@@ -608,24 +626,24 @@ export const useBarrioStore = create<BarrioState>()(
         }
       },
 
-      bulkDeleteByBarrios: async (barrioIds: string[]) => {
-        if (!barrioIds || barrioIds.length === 0) return
-        
-        try {
-          const { error } = await supabase
-            .from('puntos_relevamiento')
-            .delete()
-            .in('barrio_id', barrioIds)
+  bulkDeleteByBarrios: async (barrioIds: string[]) => {
+    if (!barrioIds || barrioIds.length === 0) return
 
-          if (error) throw error
-          
-          // No alertamos aquí porque suele ser parte de un proceso más grande (importación)
-          await get().recalculateBarrioStats(barrioIds)
-        } catch (error: any) {
-          console.error('Error in bulk delete:', error)
-          throw error
-        }
-      },
+    try {
+      const { error } = await supabase
+        .from('puntos_relevamiento')
+        .delete()
+        .in('barrio_id', barrioIds)
+
+      if (error) throw error
+
+      // No alertamos aquí porque suele ser parte de un proceso más grande (importación)
+      await get().recalculateBarrioStats(barrioIds)
+    } catch (error: any) {
+      console.error('Error in bulk delete:', error)
+      throw error
+    }
+  },
 
       setActiveBaseMap: (baseMap: 'osm' | 'satellite' | 'osm-dark') => set({ activeBaseMap: baseMap }),
 
