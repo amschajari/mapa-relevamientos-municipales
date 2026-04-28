@@ -225,16 +225,27 @@ async function loadGeoJSON(){
  // Una vez cargado, opcionalmente intentar sincronizar estados desde Supabase
  // (solo actualiza los estados de los segmentos que existen en ambos)
  try {
+ console.log('Intentando sincronizar estados desde Supabase...');
  const { data, error } = await supabaseClient
  .from('calles_pavimentadas')
  .select('fid,estado,tipo_obra,entre_calle_1,entre_calle_2');
+
+ if (error) {
+ console.log('Error consultando Supabase:', error);
+ return;
+ }
  
- if (!error && data && data.length > 0) {
+ console.log(`Datos en Supabase: ${data?.length || 0} registros`);
+ console.log(`Segmentos locales: ${segments.length}`);
+
+ if (data && data.length > 0) {
  // Crear mapa de fids de Supabase
  const supabaseMap = new Map(data.map(row => [row.fid, row]));
- 
+ console.log(`Mapa de Supabase tiene ${supabaseMap.size} fids`);
+
  // Actualizar estados de segmentos locales que existen en Supabase
  let actualizados = 0;
+ let noEncontrados = 0;
  segments.forEach(seg => {
  const supabaseData = supabaseMap.get(seg.id);
  if (supabaseData) {
@@ -243,13 +254,23 @@ async function loadGeoJSON(){
  seg.props.entre_calle_1 = supabaseData.entre_calle_1 || seg.props.entre_calle_1;
  seg.props.entre_calle_2 = supabaseData.entre_calle_2 || seg.props.entre_calle_2;
  actualizados++;
+ } else {
+ noEncontrados++;
  }
  });
- 
+
+ console.log(`Sincronización: ${actualizados} actualizados, ${noEncontrados} no encontrados en Supabase`);
+
  if (actualizados > 0) {
  showToast(`Sincronizados ${actualizados} segmentos desde Supabase`);
  rebuildAll();
+ } else {
+ console.log('No se encontraron segmentos coincidentes para sincronizar');
+ console.log('Primeros fids locales:', segments.slice(0, 5).map(s => s.id));
+ console.log('Primeros fids en Supabase:', data.slice(0, 5).map(r => r.fid));
  }
+ } else {
+ console.log('No hay datos en Supabase para sincronizar');
  }
  } catch (e) {
  console.log('No se pudieron sincronizar estados desde Supabase:', e.message);
