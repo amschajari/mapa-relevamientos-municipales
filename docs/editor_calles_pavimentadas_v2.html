@@ -179,6 +179,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
  <div class="footer" style="border-top:none;padding-top:0;">
  <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importar Segmentos</button>
  <input type="file" id="import-file" accept=".geojson" style="display:none">
+ <button class="btn btn-secondary" onclick="cargarArchivoOficial()">📂 Cargar Oficial (893)</button>
  <button class="btn btn-secondary" onclick="sincronizarDesdeSupabase()">🔄 Sincronizar</button>
  <button class="btn btn-secondary" style="background:#dc2626;color:#fff" onclick="reemplazarTodoEnSupabase()">⚠️ Reemplazar Todo</button>
  </div>
@@ -1027,6 +1028,63 @@ async function importarSegmentosNuevos(event){
  }
  };
  reader.readAsText(file);
+}
+
+// Cargar archivo oficial de calles pavimentadas (893 segmentos)
+async function cargarArchivoOficial(){
+ if(!confirm('¿Cargar el archivo oficial de 893 calles pavimentadas?\n\nEsto reemplazará los datos actuales del editor.')){
+ return;
+ }
+
+ showToast('Cargando archivo oficial...');
+
+ try {
+ // Cargar desde la ruta del proyecto
+ const response = await fetch('../src/data/calle_pavim_edit_280426.geojson');
+ if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+ 
+ const geojsonData = await response.json();
+ 
+ if(!geojsonData.features || !Array.isArray(geojsonData.features)){
+ showToast('Archivo GeoJSON inválido');
+ return;
+ }
+
+ // Procesar los 893 segmentos
+ geojson = geojsonData;
+ segments = geojson.features.map((f, i) => ({
+ id: f.properties.fid || i + 1,
+ name: f.properties.name || f.properties.calle || '',
+ props: {
+ fid: f.properties.fid || i + 1,
+ estado: f.properties.estado || 'pendiente',
+ tipo_obra: f.properties.tipo_obra || '',
+ entre_calle_1: f.properties.entre_calle_1 || '',
+ entre_calle_2: f.properties.entre_calle_2 || '',
+ fecha_aprobacion_concejo: f.properties.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: f.properties.fecha_inauguracion || null,
+ observaciones: f.properties.observaciones || ''
+ },
+ geom: f.geometry
+ })).filter(s => s.geom && (s.geom.type === 'LineString' || s.geom.type === 'MultiLineString'));
+
+ document.getElementById('total-segs').textContent = segments.length;
+ rebuildAll();
+
+ const conservados = segments.filter(s=>s.props.estado==='conservado').length;
+ const descartados = segments.filter(s=>s.props.estado==='descartado').length;
+ const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ showToast(`✅ Cargados ${segments.length} segmentos oficiales`);
+ console.log(`Archivo oficial cargado: ${segments.length} segmentos`);
+ console.log(`- Conservados: ${conservados}`);
+ console.log(`- Descartados: ${descartados}`);
+ console.log(`- Pendientes: ${pendientes}`);
+
+ } catch(e) {
+ console.error('Error cargando archivo oficial:', e);
+ showToast('❌ Error al cargar: '+e.message);
+ }
 }
 
 // Comparar si dos geometrías son similares (para detectar duplicados)
