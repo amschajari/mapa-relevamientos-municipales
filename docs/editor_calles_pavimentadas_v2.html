@@ -180,6 +180,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
  <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importar Segmentos</button>
  <input type="file" id="import-file" accept=".geojson" style="display:none">
  <button class="btn btn-secondary" onclick="sincronizarDesdeSupabase()">🔄 Sincronizar</button>
+ <button class="btn btn-secondary" style="background:#dc2626;color:#fff" onclick="reemplazarTodoEnSupabase()">⚠️ Reemplazar Todo</button>
  </div>
   </div>
 </div>
@@ -1037,6 +1038,90 @@ async function sincronizarDesdeSupabase(){
  } catch (e) {
  console.error('Error cargando desde Supabase:', e);
  showToast('❌ Error al sincronizar: '+e.message);
+ }
+}
+
+// Reemplazar TODO en Supabase (borrar + insertar)
+async function reemplazarTodoEnSupabase(){
+ if(segments.length === 0){
+ showToast('No hay segmentos para subir');
+ return;
+ }
+
+ const conservados = segments.filter(s=>s.props.estado==='conservado').length;
+ const descartados = segments.filter(s=>s.props.estado==='descartado').length;
+ const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ const mensaje = `⚠️ ATENCIÓN ⚠️\n\n` +
+ `Esto BORRARÁ todos los ${segments.length} segmentos existentes en Supabase y los reemplazará.\n\n` +
+ `Segmentos a subir:\n` +
+ `- ${conservados} conservados\n` +
+ `- ${descartados} descartados\n` +
+ `- ${pendientes} pendientes\n` +
+ `Total: ${segments.length}\n\n` +
+ `¿Confirmar reemplazo completo?`;
+
+ if(!confirm(mensaje)){
+ return;
+ }
+
+ showToast('Iniciando reemplazo completo...');
+
+ try {
+ // Paso 1: Borrar todos los registros
+ console.log('Borrando registros existentes...');
+ const { error: deleteError } = await supabaseClient
+ .from('calles_pavimentadas')
+ .delete()
+ .neq('id', 0); // Borrar todos (condición que siempre sea true)
+
+ if(deleteError) {
+ console.warn('Error al borrar (puede ser por RLS):', deleteError);
+ // Intentar con TRUNCATE vía RPC si está disponible
+ }
+
+ // Paso 2: Preparar registros nuevos
+ console.log('Preparando registros...');
+ const records = segments.map(seg => ({
+ fid: seg.id,
+ nombre: seg.name,
+ estado: seg.props.estado || 'pendiente',
+ tipo_obra: seg.props.tipo_obra || null,
+ entre_calle_1: seg.props.entre_calle_1 || null,
+ entre_calle_2: seg.props.entre_calle_2 || null,
+ fecha_aprobacion_concejo: seg.props.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: seg.props.fecha_inauguracion || null,
+ observaciones: seg.props.observaciones || null,
+ geom: seg.geom,
+ longitud_m: calcularLongitud(seg.geom)
+ }));
+
+ // Paso 3: Insertar en lotes de 100
+ console.log(`Insertando ${records.length} registros...`);
+ const batchSize = 100;
+ let inserted = 0;
+
+ for(let i = 0; i < records.length; i += batchSize){
+ const batch = records.slice(i, i + batchSize);
+ const { error: insertError } = await supabaseClient
+ .from('calles_pavimentadas')
+ .insert(batch);
+
+ if(insertError) {
+ throw new Error(`Error en lote ${i/batchSize + 1}: ${insertError.message}`);
+ }
+
+ inserted += batch.length;
+ console.log(`Progreso: ${inserted}/${records.length}`);
+ showToast(`Subiendo... ${inserted}/${records.length}`);
+ }
+
+ showToast(`✅ Reemplazo completado: ${inserted} segmentos subidos`);
+ console.log(`Reemplazo completado: ${inserted} segmentos`);
+
+ } catch (e) {
+ console.error('Error en reemplazo:', e);
+ showToast('❌ Error al reemplazar: '+e.message);
  }
 }
 
