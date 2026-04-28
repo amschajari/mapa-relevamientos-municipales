@@ -6,6 +6,8 @@
 <title>Editor de Calles Pavimentadas – Chajarí v2</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Supabase JS Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --cons:#16a34a;--cons-bg:#dcfce7;--cons-dark:#14532d;
@@ -45,7 +47,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
 .search-icon{position:absolute;left:8px;top:8px;font-size:11px;pointer-events:none}
 
 .filter-tabs{display:flex;gap:4px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
-.filter-tab{flex:1;padding:5px 4px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-m);font-size:11px;cursor pointer;text-align:center;transition:all .15s}
+.filter-tab{flex:1;padding:5px 4px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-m);font-size:11px;cursor:pointer;text-align:center;transition:all .15s}
 .filter-tab.active{color:#fff;border-color:transparent}
 .filter-tab[data-cat="all"].active{background:#475569}
 .filter-tab[data-cat="conservado"].active{background:var(--cons)}
@@ -103,7 +105,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
 </head>
 <body>
 <header>
-  <h1>🗑 Editor Calles Pavimentadas – Chajarí v2</h1>
+  <h1>🗑 Editor Calles Pavimentadas – Chajarí v2.1 (Supabase)</h1>
   <div class="stats">
     <div class="stat"><div class="stat-dot cons"></div><span id="cnt-cons">0</span> Conservados</div>
     <div class="stat"><div class="stat-dot desc"></div><span id="cnt-desc">0</span> Descartados</div>
@@ -127,6 +129,8 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
   <div class="sidebar">
     <div class="sidebar-header">
       <h2>Segmentos – <span id="total-segs">0</span> total</h2>
+      <input type="file" id="file-input" accept=".geojson" style="display:none" onchange="cargarProgreso(event)">
+      <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;margin-top:4px" onclick="document.getElementById('file-input').click()">📂 Cargar Progreso</button>
       <div class="search-box">
         <span class="search-icon">🔍</span>
         <input type="text" id="search" placeholder="Buscar calle..." oninput="renderList()">
@@ -167,10 +171,16 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
       </div>
       <button class="attr-btn cons" onclick="aplicarAtributos()">Aplicar a seleccionados</button>
     </div>
-    <div class="footer">
-      <button class="btn btn-secondary" onclick="exportGeoJSON()">⬇ Exportar GeoJSON</button>
-      <button class="btn btn-secondary" onclick="resetSeleccion()">Limpiar selecci\u00f3n</button>
-    </div>
+ <div class="footer">
+ <button class="btn btn-secondary" onclick="exportGeoJSON()">⬇ Exportar Final</button>
+ <button class="btn btn-secondary" onclick="guardarProgreso()">💾 Guardar Progreso</button>
+ <button class="btn btn-primary" onclick="guardarEnSupabase()">☁ Subir a Supabase</button>
+ </div>
+ <div class="footer" style="border-top:none;padding-top:0;">
+ <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importar Segmentos</button>
+ <input type="file" id="import-file" accept=".geojson" style="display:none" onchange="importarSegmentosNuevos(event)">
+ <button class="btn btn-secondary" onclick="sincronizarDesdeSupabase()">🔄 Sincronizar</button>
+ </div>
   </div>
 </div>
 
@@ -185,6 +195,11 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
 <div class="info-box" id="info-box"></div>
 
 <script>
+// ==================== SUPABASE ====================
+const SUPABASE_URL = 'https://elczfqaevdnomwflgvka.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsY3pmcWFldmRub213ZmxndmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NDQ4ODMsImV4cCI6MjA4NzAyMDg4M30.HL9I0zzJTmhxVMd2oTbYLupgNfio_yLZ1StG9voexWQ';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // ==================== CARGA DE DATOS ====================
 let geojson = null;
 let segments = [];
@@ -200,13 +215,76 @@ const COLORS = {conservado:'#16a34a',descartado:'#dc2626',pendiente:'#f59e0b'};
 const WEIGHTS = {conservado:4,descartado:2,pendiente:3};
 const OPACITIES = {conservado:0.9,descartado:0.3,pendiente:0.7};
 
-// Cargar GeoJSON desde mismo dominio
+// Cargar datos: intenta desde Supabase primero, fallback a archivo local
 async function loadGeoJSON(){
-  try{
-    const response = await fetch('./calles_segmentadas.geojson');
-    if(!response.ok){
-      throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    console.log('Intentando cargar desde Supabase...');
+    showToast('Cargando datos desde Supabase...');
+
+    const { data, error } = await supabase
+      .from('calles_pavimentadas')
+      .select('*');
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      geojson = { type: 'FeatureCollection', features: [] };
+      segments = data.map((row, i) => {
+        const feature = {
+          type: 'Feature',
+          properties: {
+            fid: row.fid,
+            name: row.nombre,
+            estado: row.estado || 'pendiente',
+            tipo_obra: row.tipo_obra,
+            entre_calle_1: row.entre_calle_1,
+            entre_calle_2: row.entre_calle_2,
+            fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+            fecha_inauguracion: row.fecha_inauguracion,
+            observaciones: row.observaciones
+          },
+          geometry: row.geom
+        };
+        geojson.features.push(feature);
+        return {
+          id: row.fid || i + 1,
+          name: row.nombre || '',
+          props: {
+            estado: row.estado || 'pendiente',
+            tipo_obra: row.tipo_obra,
+            entre_calle_1: row.entre_calle_1,
+            entre_calle_2: row.entre_calle_2,
+            fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+            fecha_inauguracion: row.fecha_inauguracion,
+            observaciones: row.observaciones
+          },
+          geom: row.geom
+        };
+      });
+
+      console.log(`Cargados ${segments.length} segmentos desde Supabase`);
+      showToast(`Cargados ${segments.length} segmentos desde Supabase`);
+    } else {
+      await loadFromLocalFile();
     }
+
+    document.getElementById('total-segs').textContent = segments.length;
+    buildLayers();
+    detectIntersections();
+    updateStats();
+
+  } catch (e) {
+    console.error('Error cargando desde Supabase:', e);
+    console.log('Cargando desde archivo local...');
+    await loadFromLocalFile();
+  }
+}
+
+// Cargar desde archivo local (fallback)
+async function loadFromLocalFile(){
+  try {
+    const response = await fetch('./calles_segmentadas.geojson');
+    if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const geojsonData = await response.json();
     geojson = geojsonData;
     segments = geojson.features.map((f,i)=>({
@@ -215,14 +293,10 @@ async function loadGeoJSON(){
       props: {...f.properties, estado: f.properties.estado || 'pendiente'},
       geom: f.geometry
     }));
-    document.getElementById('total-segs').textContent = segments.length;
-    console.log(`Cargados ${segments.length} segmentos`);
-    buildLayers();
-    detectIntersections();
-    updateStats();
-  }catch(e){
-    console.error('Error cargando:',e);
-    showToast('Error cargando GeoJSON: Asegurate de estar sirviendo los archivos con un servidor HTTP local (ej: python -m http.server)');
+    console.log(`Cargados ${segments.length} segmentos desde archivo local`);
+  } catch(e) {
+    console.error('Error cargando archivo local:', e);
+    showToast('Error cargando GeoJSON local');
   }
 }
 
@@ -349,6 +423,9 @@ function updateSelectionUI(){
 map.on('mousedown',e=>{
   if(currentTool!=='box')return;
   if(e.originalEvent.target.closest('.sidebar')) return;
+  
+  // Desactivar drag del mapa mientras dibujamos box
+  map.dragging.disable();
   boxSelection = L.rectangle(L.latLngBounds(e.latlng,e.latlng),{color:'#38bdf8',weight:1,fillOpacity:0.1});
   boxSelection.addTo(map);
 });
@@ -370,6 +447,8 @@ map.on('mouseup',e=>{
   });
   map.removeLayer(boxSelection);
   boxSelection = null;
+  // Reactivar drag del mapa
+  map.dragging.enable();
   updateSelectionUI();
   showToast(`${selectedIds.size} segmentos seleccionados`);
 });
@@ -645,6 +724,246 @@ function exportGeoJSON(){
   URL.revokeObjectURL(url);
   
   showToast(`Exportado: ${conserved.length} segmentos conservados`);
+}
+
+function guardarProgreso(){
+  // Exporta TODOS los segmentos con su estado actual (para continuar después)
+  const exportFeatures = segments.map(seg=>({
+    type:'Feature',
+    properties:{...seg.props},
+    geometry:seg.geom
+  }));
+  
+  const output = {
+    type:'FeatureCollection',
+    name:'calles_segmentadas_progreso',
+    features:exportFeatures
+  };
+  
+  const blob = new Blob([JSON.stringify(output,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'calles_segmentadas_PROGRESO.geojson';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  const cons = segments.filter(s=>s.props.estado==='conservado').length;
+  const desc = segments.filter(s=>s.props.estado==='descartado').length;
+  const pend = segments.filter(s=>s.props.estado==='pendiente').length;
+  
+  showToast(`Progreso guardado: ${cons} cons, ${desc} desc, ${pend} pend`);
+}
+
+function cargarProgreso(event){
+ const file = event.target.files[0];
+ if(!file) return;
+
+ const reader = new FileReader();
+ reader.onload = function(e){
+ try{
+ const gj = JSON.parse(e.target.result);
+ if(!gj.features || !Array.isArray(gj.features)){
+ showToast('Archivo GeoJSON inválido');
+ return;
+ }
+
+ // Recargar segmentos con estados guardados
+ segments = gj.features.map((f,i)=>({
+ id: f.properties.fid || i+1,
+ name: f.properties.name || '',
+ props: {...f.properties, estado: f.properties.estado || 'pendiente'},
+ geom: f.geometry
+ }));
+
+ // Reconstruir capas
+ buildLayers();
+ detectIntersections();
+ updateStats();
+ renderList();
+
+ const cons = segments.filter(s=>s.props.estado==='conservado').length;
+ const desc = segments.filter(s=>s.props.estado==='descartado').length;
+ const pend = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ showToast(`Progreso cargado: ${cons} cons, ${desc} desc, ${pend} pend`);
+ }catch(err){
+ showToast('Error al cargar: '+err.message);
+ }
+ };
+ reader.readAsText(file);
+}
+
+// ==================== SINCRONIZACIÓN CON SUPABASE ====================
+
+// Guardar todos los segmentos en Supabase (upsert)
+async function guardarEnSupabase(){
+ if(segments.length === 0){
+ showToast('No hay segmentos para guardar');
+ return;
+ }
+
+ showToast('Subiendo a Supabase...');
+
+ const records = segments.map(seg => ({
+ fid: seg.id,
+ nombre: seg.name,
+ estado: seg.props.estado || 'pendiente',
+ tipo_obra: seg.props.tipo_obra || null,
+ entre_calle_1: seg.props.entre_calle_1 || null,
+ entre_calle_2: seg.props.entre_calle_2 || null,
+ fecha_aprobacion_concejo: seg.props.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: seg.props.fecha_inauguracion || null,
+ observaciones: seg.props.observaciones || null,
+ geom: seg.geom,
+ longitud_m: calcularLongitud(seg.geom)
+ }));
+
+ try {
+ // Usar upsert para insertar o actualizar
+ const { data, error } = await supabase
+ .from('calles_pavimentadas')
+ .upsert(records, { onConflict: 'fid' });
+
+ if(error) throw error;
+
+ const conservados = segments.filter(s=>s.props.estado==='conservado').length;
+ const descartados = segments.filter(s=>s.props.estado==='descartado').length;
+ const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ showToast(`✅ Guardado en Supabase: ${records.length} segmentos`);
+ console.log(`Guardados ${records.length} segmentos en Supabase`);
+ } catch(e) {
+ console.error('Error guardando en Supabase:', e);
+ showToast('❌ Error al guardar: '+e.message);
+ }
+}
+
+// Calcular longitud de una línea en metros (aproximación)
+function calcularLongitud(geom){
+ if(!geom || !geom.coordinates) return 0;
+ const coords = geom.type === 'LineString' ? geom.coordinates : geom.coordinates[0];
+ if(!coords || coords.length < 2) return 0;
+
+ let length = 0;
+ for(let i=1; i<coords.length; i++){
+ const [lon1, lat1] = coords[i-1];
+ const [lon2, lat2] = coords[i];
+ length += haversineDistance(lat1, lon1, lat2, lon2);
+ }
+ return Math.round(length);
+}
+
+// Distancia Haversine en metros
+function haversineDistance(lat1, lon1, lat2, lon2){
+ const R = 6371000; // Radio de la Tierra en metros
+ const toRad = x => x * Math.PI / 180;
+ const dLat = toRad(lat2 - lat1);
+ const dLon = toRad(lon2 - lon1);
+ const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+ return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Importar segmentos nuevos desde un GeoJSON (ej: desde QGIS)
+async function importarSegmentosNuevos(event){
+ const file = event.target.files[0];
+ if(!file) return;
+
+ showToast('Importando segmentos...');
+
+ const reader = new FileReader();
+ reader.onload = async function(e){
+ try{
+ const gj = JSON.parse(e.target.result);
+ if(!gj.features || !Array.isArray(gj.features)){
+ showToast('Archivo GeoJSON inválido');
+ return;
+ }
+
+ // Encontrar el fid máximo actual
+ const maxFid = segments.length > 0 ? Math.max(...segments.map(s=>s.id)) : 0;
+
+ let importados = 0;
+ let duplicados = 0;
+
+ gj.features.forEach((f, i) => {
+ // Verificar si ya existe (por nombre y geometría similar)
+ const esDuplicado = segments.some(s => 
+ s.name.toLowerCase() === (f.properties.name || '').toLowerCase() &&
+ geometriaSimilar(s.geom, f.geometry)
+ );
+
+ if(esDuplicado){
+ duplicados++;
+ return;
+ }
+
+ // Crear nuevo segmento
+ const newId = maxFid + i + 1 - duplicados;
+ const newSeg = {
+ id: newId,
+ name: f.properties.name || `Segmento_${newId}`,
+ props: {
+ fid: newId,
+ estado: f.properties.estado || 'pendiente',
+ tipo_obra: f.properties.tipo_obra || null,
+ entre_calle_1: f.properties.entre_calle_1 || null,
+ entre_calle_2: f.properties.entre_calle_2 || null,
+ fecha_aprobacion_concejo: f.properties.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: f.properties.fecha_inauguracion || null,
+ observaciones: f.properties.observaciones || null
+ },
+ geom: f.geometry
+ };
+
+ segments.push(newSeg);
+ importados++;
+ });
+
+ // Reconstruir todo
+ rebuildAll();
+
+ showToast(`✅ Importados: ${importados} | Duplicados omitidos: ${duplicados}`);
+ console.log(`Importados ${importados} segmentos nuevos`);
+
+ // Limpiar input
+ event.target.value = '';
+
+ }catch(err){
+ console.error('Error importando:', err);
+ showToast('❌ Error al importar: '+err.message);
+ }
+ };
+ reader.readAsText(file);
+}
+
+// Comparar si dos geometrías son similares (para detectar duplicados)
+function geometriaSimilar(geom1, geom2){
+ if(!geom1 || !geom2) return false;
+ const coords1 = geom1.type === 'LineString' ? geom1.coordinates : geom1.coordinates[0];
+ const coords2 = geom2.type === 'LineString' ? geom2.coordinates : geom2.coordinates[0];
+ 
+ if(!coords1 || !coords2) return false;
+ if(coords1.length !== coords2.length) return false;
+
+ // Comparar primer y último punto (dentro de una tolerancia)
+ const tol = 0.0001; // ~10 metros
+ const prim1 = coords1[0];
+ const prim2 = coords2[0];
+ const ult1 = coords1[coords1.length-1];
+ const ult2 = coords2[coords2.length-1];
+
+ const mismoInicio = Math.abs(prim1[0]-prim2[0]) < tol && Math.abs(prim1[1]-prim2[1]) < tol;
+ const mismoFin = Math.abs(ult1[0]-ult2[0]) < tol && Math.abs(ult1[1]-ult2[1]) < tol;
+
+ return mismoInicio && mismoFin;
+}
+
+// Sincronizar desde Supabase (recargar datos)
+async function sincronizarDesdeSupabase(){
+ showToast('Sincronizando desde Supabase...');
+ await loadGeoJSON();
+ showToast('✅ Sincronización completada');
 }
 
 // ==================== UTILS ====================
