@@ -817,11 +817,23 @@ async function guardarEnSupabase(){
  }
 
  showToast('Subiendo a Supabase...');
+ console.log('Preparando', segments.length, 'segmentos para Supabase...');
 
- const records = segments.map(seg => {
+ const records = segments.map((seg, idx) => {
+ // Clonar la geometría para no modificar la original
+ let geom = JSON.parse(JSON.stringify(seg.geom));
+ 
+ // Debug: mostrar tipo de geom
+ if (idx < 3) {
+ console.log(`Segmento ${seg.id}:`, {
+ tipoOriginal: seg.geom?.type,
+ tipoClonado: geom?.type,
+ esArray: Array.isArray(geom?.coordinates)
+ });
+ }
+ 
  // Convertir geometría a MultiLineString si es LineString
- let geom = seg.geom;
- if(geom.type === 'LineString') {
+ if(geom && geom.type === 'LineString') {
  geom = {
  type: 'MultiLineString',
  coordinates: [geom.coordinates]
@@ -842,6 +854,12 @@ async function guardarEnSupabase(){
  longitud_m: calcularLongitud(seg.geom)
  };
  });
+ 
+ console.log('Primeros 3 registros:', records.slice(0, 3).map(r => ({
+ fid: r.fid,
+ tipoGeom: r.geom?.type,
+ coordLength: r.geom?.coordinates?.length
+ })));
 
  try {
  // Usar upsert para insertar o actualizar
@@ -1093,11 +1111,16 @@ async function reemplazarTodoEnSupabase(){
 
  // Paso 2: Preparar registros nuevos
  console.log('Preparando registros...');
- const records = segments.map(seg => {
- // Asegurar que geom es un objeto
- let geom = seg.geom;
- if (typeof geom === 'string') {
- try { geom = JSON.parse(geom); } catch(e) { geom = null; }
+ const records = segments.map((seg, idx) => {
+ // Clonar la geometría para no modificar la original
+ let geom = JSON.parse(JSON.stringify(seg.geom));
+ 
+ // Debug: mostrar tipo de geom para los primeros
+ if (idx < 3) {
+ console.log(`Segmento ${seg.id} (reemplazar):`, {
+ tipoOriginal: seg.geom?.type,
+ tipoClonado: geom?.type
+ });
  }
  
  // Verificar que geom es válido
@@ -1128,6 +1151,13 @@ async function reemplazarTodoEnSupabase(){
  longitud_m: calcularLongitud(seg.geom)
  };
  }).filter(r => r !== null);
+ 
+ console.log(`Registros preparados: ${records.length} de ${segments.length}`);
+ console.log('Muestra de registros:', records.slice(0, 3).map(r => ({
+ fid: r.fid,
+ tipoGeom: r.geom?.type,
+ coordLength: r.geom?.coordinates?.length
+ })));
 
  // Paso 3: Insertar en lotes de 100
  console.log(`Insertando ${records.length} registros...`);
