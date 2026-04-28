@@ -215,95 +215,71 @@ const COLORS = {conservado:'#16a34a',descartado:'#dc2626',pendiente:'#f59e0b'};
 const WEIGHTS = {conservado:4,descartado:2,pendiente:3};
 const OPACITIES = {conservado:0.9,descartado:0.3,pendiente:0.7};
 
-// Cargar datos: intenta desde Supabase primero, fallback a archivo local
+// Cargar datos: desde archivo local por defecto (2422 segmentos)
+// Opcionalmente se puede sincronizar desde Supabase con el botón "🔄 Sincronizar"
 async function loadGeoJSON(){
-  try {
-    console.log('Intentando cargar desde Supabase...');
-    showToast('Cargando datos desde Supabase...');
-
-    const { data, error } = await supabaseClient
-      .from('calles_pavimentadas')
-      .select('*');
-
-    if (error) throw error;
-
- if (data && data.length > 0) {
- geojson = { type: 'FeatureCollection', features: [] };
- segments = data.map((row, i) => {
- // Normalizar geometría desde Supabase
- let geom = row.geom;
- if (typeof geom === 'string') {
- try { geom = JSON.parse(geom); } catch(e) { geom = null; }
- }
+ // Por defecto, cargar desde archivo local
+ await loadFromLocalFile();
  
- const feature = {
- type: 'Feature',
- properties: {
- fid: row.fid,
- name: row.nombre,
- estado: row.estado || 'pendiente',
- tipo_obra: row.tipo_obra,
- entre_calle_1: row.entre_calle_1,
- entre_calle_2: row.entre_calle_2,
- fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
- fecha_inauguracion: row.fecha_inauguracion,
- observaciones: row.observaciones
- },
- geometry: geom
- };
- geojson.features.push(feature);
- return {
- id: row.fid || i + 1,
- name: row.nombre || '',
- props: {
- estado: row.estado || 'pendiente',
- tipo_obra: row.tipo_obra,
- entre_calle_1: row.entre_calle_1,
- entre_calle_2: row.entre_calle_2,
- fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
- fecha_inauguracion: row.fecha_inauguracion,
- observaciones: row.observaciones
- },
- geom: geom
- };
- }).filter(s => s.geom !== null);
-
-      console.log(`Cargados ${segments.length} segmentos desde Supabase`);
-      showToast(`Cargados ${segments.length} segmentos desde Supabase`);
-    } else {
-      await loadFromLocalFile();
-    }
-
-    document.getElementById('total-segs').textContent = segments.length;
-    buildLayers();
-    detectIntersections();
-    updateStats();
-
-  } catch (e) {
-    console.error('Error cargando desde Supabase:', e);
-    console.log('Cargando desde archivo local...');
-    await loadFromLocalFile();
-  }
+ // Una vez cargado, opcionalmente intentar sincronizar estados desde Supabase
+ // (solo actualiza los estados de los segmentos que existen en ambos)
+ try {
+ const { data, error } = await supabaseClient
+ .from('calles_pavimentadas')
+ .select('fid,estado,tipo_obra,entre_calle_1,entre_calle_2');
+ 
+ if (!error && data && data.length > 0) {
+ // Crear mapa de fids de Supabase
+ const supabaseMap = new Map(data.map(row => [row.fid, row]));
+ 
+ // Actualizar estados de segmentos locales que existen en Supabase
+ let actualizados = 0;
+ segments.forEach(seg => {
+ const supabaseData = supabaseMap.get(seg.id);
+ if (supabaseData) {
+ seg.props.estado = supabaseData.estado || seg.props.estado;
+ seg.props.tipo_obra = supabaseData.tipo_obra || seg.props.tipo_obra;
+ seg.props.entre_calle_1 = supabaseData.entre_calle_1 || seg.props.entre_calle_1;
+ seg.props.entre_calle_2 = supabaseData.entre_calle_2 || seg.props.entre_calle_2;
+ actualizados++;
+ }
+ });
+ 
+ if (actualizados > 0) {
+ showToast(`Sincronizados ${actualizados} segmentos desde Supabase`);
+ rebuildAll();
+ }
+ }
+ } catch (e) {
+ console.log('No se pudieron sincronizar estados desde Supabase:', e.message);
+ }
 }
 
-// Cargar desde archivo local (fallback)
+// Cargar desde archivo local (principal)
 async function loadFromLocalFile(){
-  try {
-    const response = await fetch('./calles_segmentadas.geojson');
-    if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const geojsonData = await response.json();
-    geojson = geojsonData;
-    segments = geojson.features.map((f,i)=>({
-      id: f.properties.fid || i+1,
-      name: f.properties.name || '',
-      props: {...f.properties, estado: f.properties.estado || 'pendiente'},
-      geom: f.geometry
-    }));
-    console.log(`Cargados ${segments.length} segmentos desde archivo local`);
-  } catch(e) {
-    console.error('Error cargando archivo local:', e);
-    showToast('Error cargando GeoJSON local');
-  }
+ try {
+ showToast('Cargando datos locales...');
+ const response = await fetch('./calles_segmentadas.geojson');
+ if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+ const geojsonData = await response.json();
+ geojson = geojsonData;
+ segments = geojson.features.map((f,i)=>({
+ id: f.properties.fid || i+1,
+ name: f.properties.name || '',
+ props: {...f.properties, estado: f.properties.estado || 'pendiente'},
+ geom: f.geometry
+ })).filter(s => s.geom && (s.geom.type === 'LineString' || s.geom.type === 'MultiLineString'));
+ 
+ document.getElementById('total-segs').textContent = segments.length;
+ console.log(`Cargados ${segments.length} segmentos desde archivo local`);
+ showToast(`Cargados ${segments.length} segmentos`);
+ buildLayers();
+ detectIntersections();
+ updateStats();
+ } catch(e) {
+ console.error('Error cargando archivo local:', e);
+ showToast('Error cargando GeoJSON local. Asegurate de tener el archivo calles_segmentadas.geojson');
+ }
 }
 
 // ==================== MAPA ====================
@@ -995,11 +971,73 @@ function geometriaSimilar(geom1, geom2){
  return mismoInicio && mismoFin;
 }
 
-// Sincronizar desde Supabase (recargar datos)
+// Sincronizar desde Supabase (cargar completamente desde Supabase)
 async function sincronizarDesdeSupabase(){
- showToast('Sincronizando desde Supabase...');
- await loadGeoJSON();
- showToast('✅ Sincronización completada');
+ if(!confirm('¿Cargar completamente desde Supabase? Esto reemplazará los datos locales actuales.')){
+ return;
+ }
+ 
+ showToast('Cargando desde Supabase...');
+ 
+ try {
+ const { data, error } = await supabaseClient
+ .from('calles_pavimentadas')
+ .select('*');
+
+ if (error) throw error;
+
+ if (data && data.length > 0) {
+ geojson = { type: 'FeatureCollection', features: [] };
+ segments = data.map((row, i) => {
+ // Normalizar geometría desde Supabase
+ let geom = row.geom;
+ if (typeof geom === 'string') {
+ try { geom = JSON.parse(geom); } catch(e) { geom = null; }
+ }
+ 
+ const feature = {
+ type: 'Feature',
+ properties: {
+ fid: row.fid,
+ name: row.nombre,
+ estado: row.estado || 'pendiente',
+ tipo_obra: row.tipo_obra,
+ entre_calle_1: row.entre_calle_1,
+ entre_calle_2: row.entre_calle_2,
+ fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+ fecha_inauguracion: row.fecha_inauguracion,
+ observaciones: row.observaciones
+ },
+ geometry: geom
+ };
+ geojson.features.push(feature);
+ return {
+ id: row.fid || i + 1,
+ name: row.nombre || '',
+ props: {
+ estado: row.estado || 'pendiente',
+ tipo_obra: row.tipo_obra,
+ entre_calle_1: row.entre_calle_1,
+ entre_calle_2: row.entre_calle_2,
+ fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+ fecha_inauguracion: row.fecha_inauguracion,
+ observaciones: row.observaciones
+ },
+ geom: geom
+ };
+ }).filter(s => s.geom !== null);
+
+ document.getElementById('total-segs').textContent = segments.length;
+ rebuildAll();
+ showToast(`✅ Cargados ${segments.length} segmentos desde Supabase`);
+ console.log(`Cargados ${segments.length} segmentos desde Supabase`);
+ } else {
+ showToast('No hay datos en Supabase');
+ }
+ } catch (e) {
+ console.error('Error cargando desde Supabase:', e);
+ showToast('❌ Error al sincronizar: '+e.message);
+ }
 }
 
 // ==================== UTILS ====================
