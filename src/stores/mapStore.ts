@@ -44,7 +44,7 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
     id: 'luminarias',
     name: 'Luminarias',
     icon: 'Lightbulb',
-    expanded: true,
+    expanded: false,
     layers: [
       {
         id: 'luminarias-todas',
@@ -99,7 +99,7 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
     id: 'espacios_verdes',
     name: 'Espacios Verdes',
     icon: 'Trees',
-    expanded: true,
+    expanded: false,
     layers: [
       {
         id: 'espacios-verdes-todos',
@@ -120,7 +120,7 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
     id: 'barrios',
     name: 'Barrios',
     icon: 'MapPin',
-    expanded: true,
+    expanded: false,
     layers: [
       {
         id: 'barrios-poligonos',

@@ -30,8 +30,8 @@ interface LayersPanelProps {
 export const LayersPanel = ({ className }: LayersPanelProps) => {
   const { domains, toggleDomain, toggleLayer, activeBaseMap, setActiveBaseMap } = useMapStore()
   const { barrios, mapFilters, setMapFilter } = useBarrioStore()
-  const [baseMapExpanded, setBaseMapExpanded] = useState(true)
-  const [filtrosExpanded, setFiltrosExpanded] = useState(true)
+  const [baseMapExpanded, setBaseMapExpanded] = useState(false)
+  const [filtrosExpanded, setFiltrosExpanded] = useState(false)
 
   const toggleMapFilter = (key: 'estadosBase' | 'funcionamiento', value: string) => {
     const current = (mapFilters[key] as string[]) || []

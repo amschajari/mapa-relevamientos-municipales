@@ -31,8 +31,7 @@ const PavimentoLayer = () => {
 
  const capaVisible = layerTodas?.visible ?? false
 
- const [callesData, setCallesData] = useState<CallePavimentada[]>([])
- const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [callesData, setCallesData] = useState<CallePavimentada[]>([])
 
  // Cargar datos iniciales (siempre, para tenerlos listos)
  useEffect(() => {
@@ -43,34 +42,32 @@ const PavimentoLayer = () => {
  .order('nombre')
  .limit(10000)
 
- if (error) {
- console.error('Error fetching calles:', error)
- return
- }
- setCallesData(data || [])
- setLastUpdate(new Date())
- }
- fetchCalles()
- }, [])
+      if (error) {
+        console.error('Error fetching calles:', error)
+        return
+      }
+      setCallesData(data || [])
+    }
+    fetchCalles()
+  }, [])
 
- // Polling: actualizar cada 30 segundos
- useEffect(() => {
- const interval = setInterval(async () => {
- console.log('[PavimentoLayer] Polling Supabase...')
- const { data, error } = await supabase
- .from('calles_pavimentadas')
- .select('*')
- .order('nombre')
- .limit(10000)
+  // Polling: actualizar cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      console.log('[PavimentoLayer] Polling Supabase...')
+      const { data, error } = await supabase
+        .from('calles_pavimentadas')
+        .select('*')
+        .order('nombre')
+        .limit(10000)
 
- if (error) {
- console.error('Error polling calles:', error)
- return
- }
+      if (error) {
+        console.error('Error polling calles:', error)
+        return
+      }
 
- setCallesData(data || [])
- setLastUpdate(new Date())
- console.log(`[PavimentoLayer] Actualizado: ${data?.length || 0} segmentos`)
+      setCallesData(data || [])
+      console.log(`[PavimentoLayer] Actualizado: ${data?.length || 0} segmentos`)
  }, POLLING_INTERVAL)
 
  return () => clearInterval(interval)
