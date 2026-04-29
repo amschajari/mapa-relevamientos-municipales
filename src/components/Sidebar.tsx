@@ -16,6 +16,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { cn } from '@/lib/constants'
 import { LayersPanel } from './LayersPanel'
+import { LayerSettingsPanel } from './LayerSettingsPanel'
 
 interface NavItem {
   label: string
@@ -54,7 +55,7 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-20',
+        'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-20 relative',
         collapsed ? 'w-16' : 'w-72'
       )}
     >
@@ -240,6 +241,9 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
           )}
         </div>
       </div>
+
+      {/* Panel de Ajustes Contextual (IDE Style) */}
+      {activeSection === 'layers' && <LayerSettingsPanel />}
     </aside>
   )
 }

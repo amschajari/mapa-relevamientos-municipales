@@ -22,16 +22,17 @@ interface MapState {
   // UI
   sidebarOpen: boolean
   layersPanelOpen: boolean
+  selectedLayerId: string | null
   
   // Acciones
   toggleLayer: (layerId: string) => void
   setLayerVisibility: (layerId: string, visible: boolean) => void
   setLayerOpacity: (layerId: string, opacity: number) => void
   setLayerStyle: (layerId: string, style: Partial<MapLayer['style']>) => void
-  toggleDomain: (domainId: string) => void
   setActiveBaseMap: (baseMap: BaseMapType) => void
   toggleSidebar: () => void
   toggleLayersPanel: () => void
+  setSelectedLayer: (id: string | null) => void
   fetchEspaciosVerdes: () => Promise<void>
   
   // Utilidades
@@ -148,6 +149,7 @@ export const useMapStore = create<MapState>()(
       espaciosVerdes: [],
       sidebarOpen: true,
       layersPanelOpen: false,
+      selectedLayerId: null,
 
       fetchEspaciosVerdes: async () => {
         try {
@@ -222,13 +224,7 @@ export const useMapStore = create<MapState>()(
         }))
       },
 
-      toggleDomain: (domainId: string) => {
-        set((state) => ({
-          domains: state.domains.map(d =>
-            d.id === domainId ? { ...d, expanded: !d.expanded } : d
-          )
-        }))
-      },
+
 
       setActiveBaseMap: (baseMap: BaseMapType) => {
         set({ activeBaseMap: baseMap })
@@ -240,6 +236,10 @@ export const useMapStore = create<MapState>()(
 
       toggleLayersPanel: () => {
         set((state) => ({ layersPanelOpen: !state.layersPanelOpen }))
+      },
+
+      setSelectedLayer: (id: string | null) => {
+        set({ selectedLayerId: id })
       },
 
       getVisibleLayers: () => {

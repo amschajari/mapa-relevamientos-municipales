@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react'
-import { MapContainer, TileLayer, GeoJSON, useMap, Popup, Marker } from 'react-leaflet'
+import { MapContainer, TileLayer, GeoJSON, useMap, Popup, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet.heat'
 import type { GeoJsonObject } from 'geojson'
@@ -542,6 +542,17 @@ const BarriosLayer = ({
   ) : null
 }
 
+const MapEvents = () => {
+  const { setSelectedLayer } = useMapStore()
+  useMapEvents({
+    click: () => {
+      console.log('[MapEvents] Map clicked, clearing selection')
+      setSelectedLayer(null)
+    },
+  })
+  return null
+}
+
 export const ControlMap = ({
   onBarrioClick,
   selectedBarrio,
@@ -577,28 +588,17 @@ export const ControlMap = ({
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
-        {activeBaseMap === 'osm' ? (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={18}
-            maxNativeZoom={18}
-          />
-        ) : activeBaseMap === 'osm-dark' ? (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            maxZoom={19}
-            maxNativeZoom={14}
-          />
-        ) : (
-          <TileLayer
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={18}
-            maxNativeZoom={18}
-          />
-        )}
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url={activeBaseMap === 'osm' 
+            ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            : activeBaseMap === 'osm-dark'
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          }
+        />
+
+        <MapEvents />
 
         <FitBounds geoJson={barriosGeoJson} />
         <CenterBarrio selectedBarrio={selectedBarrio || null} geoJson={barriosGeoJson} />
