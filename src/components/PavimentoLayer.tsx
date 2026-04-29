@@ -17,17 +17,10 @@ interface CallePavimentada {
 
 const POLLING_INTERVAL = 30000 // 30 segundos
 
-// Estilos por categoría
-const ESTILOS_POR_TIPO = {
-  // Hormigón - Azul petróleo
-  hormigon_calle: { color: '#004d4d', weight: 3, opacity: 0.9 },
-  hormigon_avenida: { color: '#004d4d', weight: 5, opacity: 0.9 },
-  // Asfalto - Rojo bermellón
-  asfalto_calle: { color: '#8b0000', weight: 3, opacity: 0.9 },
-  asfalto_avenida: { color: '#8b0000', weight: 5, opacity: 0.9 },
-  // Otros - Gris oscuro
-  otros_calle: { color: '#374151', weight: 3, opacity: 0.9 },
-  otros_avenida: { color: '#374151', weight: 5, opacity: 0.9 },
+// Estilos simples - Azul petróleo para todas
+const ESTILOS = {
+  calle: { color: '#004d4d', weight: 2, opacity: 0.9 },
+  avenida: { color: '#004d4d', weight: 4, opacity: 0.9 }
 }
 
 const PavimentoLayer = () => {
@@ -110,36 +103,24 @@ const PavimentoLayer = () => {
  }, [callesData])
 
  const getStyle = (feature: any) => {
-   const nombre = feature?.properties?.nombre || ''
-   const estado = feature?.properties?.estado || 'pendiente'
-   const tipoObra = feature?.properties?.tipo_obra || ''
- 
-   // Solo mostrar calles CONSERVADAS (pavimentadas reales)
-   if (estado !== 'conservado') {
-     return { color: '#000', weight: 0, opacity: 0 } // Invisible
-   }
- 
-   // Determinar si es avenida
-   const nombreLower = nombre.toLowerCase()
-   const isAvenida = nombreLower.includes('avenida') ||
-     nombreLower.includes('av.') ||
-     nombreLower.startsWith('ruta') ||
-     nombreLower.includes('ruta ')
- 
-   // Determinar tipo de obra
-   const tipoLower = tipoObra.toLowerCase()
-   const esHormigon = tipoLower.includes('hormigon') || tipoLower.includes('hormigón')
-   const esAsfalto = tipoLower.includes('asfaltico') || tipoLower.includes('asfáltico')
- 
-   // Construir clave de estilo
-   let clave = 'otros'
-   if (esHormigon) clave = 'hormigon'
-   else if (esAsfalto) clave = 'asfalto'
- 
-   clave += isAvenida ? '_avenida' : '_calle'
- 
- return ESTILOS_POR_TIPO[clave as keyof typeof ESTILOS_POR_TIPO] || ESTILOS_POR_TIPO.otros_calle
- }
+    const nombre = feature?.properties?.nombre || ''
+    const estado = feature?.properties?.estado || 'pendiente'
+    
+    // Solo mostrar calles CONSERVADAS
+    if (estado !== 'conservado') {
+      return { color: '#000', weight: 0, opacity: 0 }
+    }
+    
+    // Determinar si es avenida por el nombre
+    const nombreLower = nombre.toLowerCase()
+    const isAvenida = nombreLower.includes('avenida') ||
+      nombreLower.includes('av.') ||
+      nombreLower.startsWith('ruta') ||
+      nombreLower.includes('ruta ')
+    
+    // Todas azul petróleo, avenidas más gruesas
+    return isAvenida ? ESTILOS.avenida : ESTILOS.calle
+  }
 
  // No renderizar si no hay datos o la capa no está visible
  if (!capaVisible || !geojsonData) return null
@@ -151,18 +132,17 @@ const PavimentoLayer = () => {
       onEachFeature={(feature, layer) => {
         const props = feature.properties || {}
         const isAvenida = (props.nombre || '').toLowerCase().includes('avenida')
-        const tipoLabel = props.tipo_obra || 'Pavimento'
         const categoria = isAvenida ? 'Avenida' : 'Calle'
         
-        // Tooltip ligero (hover) en lugar de popup (click)
+        // Tooltip simple
         layer.bindTooltip(`
-          <div style="font-size:12px;font-weight:600;">${props.nombre || 'Sin nombre'}</div>
-          <div style="font-size:10px;color:#666;">${categoria} · ${tipoLabel}</div>
+          <div style="font-size:11px;font-weight:600;white-space:nowrap;">${props.nombre || 'Sin nombre'}</div>
+          <div style="font-size:9px;color:#666;white-space:nowrap;">${categoria}</div>
         `, {
           direction: 'top',
-          offset: [0, -5],
-          opacity: 0.9,
-          className: 'bg-white px-2 py-1 rounded shadow-sm border'
+          offset: [0, -3],
+          opacity: 1,
+          sticky: true
         })
       }}
     />
