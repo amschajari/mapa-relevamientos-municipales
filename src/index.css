@@ -48,6 +48,10 @@
   font-family: inherit;
 }
 
+.leaflet-interactive:focus {
+  outline: none;
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 8px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -123,4 +127,18 @@
 /* O alternativa: mantener el color original sin cambio en hover */
 .leaflet-overlay-pane path.leaflet-interactive {
   transition: none !important;
+}
+
+/* Barrio tooltip */
+.barrio-tooltip {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 8px 10px;
+  pointer-events: none;
+}
+
+.barrio-tooltip::before {
+  display: none;
 }

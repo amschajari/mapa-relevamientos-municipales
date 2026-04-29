@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react'
 import { MapContainer, TileLayer, GeoJSON, useMap, Popup, Marker } from 'react-leaflet'
-import { createRoot } from 'react-dom/client'
 import L from 'leaflet'
 import 'leaflet.heat'
 import type { GeoJsonObject } from 'geojson'
@@ -8,7 +7,6 @@ import type { Barrio, TareaRelevamiento, PuntoRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
 import { useMapStore } from '@/stores'
 import MarkerClusterGroup from 'react-leaflet-cluster'
-import { BarrioPopup } from './BarrioPopup'
 import { cn } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
@@ -19,7 +17,6 @@ interface ControlMapProps {
   tareas?: TareaRelevamiento[]
   onBarrioClick?: (barrio: Barrio) => void
   selectedBarrio?: Barrio | null
-  onEditBarrio?: (barrio: Barrio) => void
 }
 
 // Componente para el Mapa de Calor con alto rendimiento
@@ -405,17 +402,16 @@ const BarriosLayer = ({
   geoJson,
   onBarrioClick,
   selectedBarrio,
-  onEditBarrio,
 }: {
   geoJson: GeoJsonObject
   onBarrioClick?: (barrio: Barrio) => void
   selectedBarrio?: Barrio | null
-  onEditBarrio?: (barrio: Barrio) => void
 }) => {
   const map = useMap()
   const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio, visibleLayers } = useBarrioStore()
   const { layers } = useMapStore()
   const geoJsonRef = useRef<L.GeoJSON | null>(null)
+  const activeTooltipRef = useRef<L.Tooltip | null>(null)
 
   // Verificar visibilidad desde mapStore (para que funcione con LayersPanel)
   const showBarrios = layers.find(l => l.id === 'barrios-poligonos')?.visible ?? visibleLayers.barrios
@@ -428,16 +424,16 @@ const BarriosLayer = ({
       const isSelected = selectedBarrio?.nombre === nombre
 
       const baseStyle = {
-        weight: isSelected ? 4 : 2,
-        opacity: 1,
-        fillOpacity: isSelected ? 0.8 : 0.6,
-        dashArray: isSelected ? '' : '3',
+        weight: isSelected ? 3 : 1.5,
+        opacity: isSelected ? 1 : 0.8,
+        fillOpacity: isSelected ? 0.60 : 0.40,
+        dashArray: isSelected ? '' : '4',
       }
 
       switch (status) {
         case 'completado': return { ...baseStyle, color: '#059669', fillColor: '#10b981' }
         case 'progreso':
-          return { ...baseStyle, fillOpacity: 0.7, color: '#d97706', fillColor: '#f59e0b' }
+          return { ...baseStyle, color: '#d97706', fillColor: '#f59e0b' }
         case 'pausado': return { ...baseStyle, color: '#dc2626', fillColor: '#ef4444' }
         case 'pendiente':
         default: return { ...baseStyle, color: '#4b5563', fillColor: '#9ca3af' }
@@ -449,10 +445,9 @@ const BarriosLayer = ({
   const highlightFeature = (e: L.LeafletEvent) => {
     const layer = e.target
     layer.setStyle({
-      weight: 4,
-      fillOpacity: 0.9,
+      weight: 2.5,
+      fillOpacity: 0.5,
     })
-    layer.bringToFront()
   }
 
   const resetHighlight = (e: L.LeafletEvent, feature?: any) => {
@@ -460,41 +455,6 @@ const BarriosLayer = ({
     const style = getBarrioStyle(feature)
     layer.setStyle(style)
   }
-
-  const openPopupForBarrio = useCallback(
-    (barrio: Barrio, latlng: L.LatLng) => {
-      const popup = L.popup({ minWidth: 200 })
-        .setLatLng(latlng)
-        .setContent('<div class="popup-container"></div>')
-        .openOn(map)
-
-      const container = popup.getElement()?.querySelector('.popup-container')
-      if (container) {
-        const root = createRoot(container)
-        root.render(<BarrioPopup barrio={barrio} onEdit={onEditBarrio} />)
-      }
-    },
-    [map, onEditBarrio]
-  )
-
-  // Efecto para abrir el popup programáticamente cuando cambia selectedBarrio
-  useEffect(() => {
-    if (selectedBarrio && geoJsonRef.current) {
-      let found = false
-      geoJsonRef.current.eachLayer((layer: any) => {
-        if (found) return
-        const feature = layer.feature
-        if (
-          feature.properties.Nombre === selectedBarrio.nombre ||
-          feature.properties.fid?.toString() === selectedBarrio.id
-        ) {
-          const center = layer.getBounds().getCenter()
-          openPopupForBarrio(selectedBarrio, center)
-          found = true
-        }
-      })
-    }
-  }, [selectedBarrio, openPopupForBarrio])
 
   const onEachFeature = useCallback(
     (feature: any, layer: L.Layer) => {
@@ -513,17 +473,63 @@ const BarriosLayer = ({
         luminariasRelevadas: storeBarrio?.luminariasRelevadas,
       }
 
+      // Etiqueta y color del estado
+      const estadoLabel: Record<string, string> = {
+        completado: 'Completado',
+        progreso: 'En progreso',
+        pausado: 'Pausado',
+        pendiente: 'Pendiente',
+      }
+      const estadoColor: Record<string, string> = {
+        completado: '#059669',
+        progreso: '#d97706',
+        pausado: '#dc2626',
+        pendiente: '#9ca3af',
+      }
+      const color = estadoColor[barrio.estado] || '#9ca3af'
+      const label = estadoLabel[barrio.estado] || 'Pendiente'
+      const lums = barrio.luminariasRelevadas ?? 0
+
+      const tooltipContent = `
+        <div style="font-family: system-ui, sans-serif; min-width: 140px; line-height: 1.4;">
+          <div style="font-weight: 700; font-size: 13px; color: #1f2937; margin-bottom: 4px;">${nombre}</div>
+          <div style="font-size: 11px; color: #6b7280;">💡 <strong style="color:#1f2937">${lums}</strong> luminarias</div>
+          <div style="margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${color};"></span>
+            <span style="font-size: 11px; color: ${color}; font-weight: 600;">${label}</span>
+          </div>
+        </div>
+      `
+
+      ;// Tooltip: solo al hacer click (no en hover)
       layer.on({
         mouseover: highlightFeature,
         mouseout: (e) => resetHighlight(e, feature),
         click: (e: L.LeafletMouseEvent) => {
           setSelectedBarrio(barrio)
           onBarrioClick?.(barrio)
-          openPopupForBarrio(barrio, e.latlng)
+
+          // Cerrar tooltip previo si existe
+          if (activeTooltipRef.current) {
+            activeTooltipRef.current.remove()
+            activeTooltipRef.current = null
+          }
+
+          // Abrir nuevo tooltip en la posición del click
+          const tt = L.tooltip({
+            permanent: false,
+            opacity: 0.95,
+            className: 'barrio-tooltip',
+          })
+            .setContent(tooltipContent)
+            .setLatLng(e.latlng)
+            .addTo(map)
+
+          activeTooltipRef.current = tt
         },
       })
     },
-    [getBarrioByNombre, onBarrioClick, setSelectedBarrio, openPopupForBarrio]
+    [getBarrioByNombre, onBarrioClick, setSelectedBarrio, highlightFeature, resetHighlight, map]
   )
 
   return showBarrios ? (
@@ -539,7 +545,6 @@ const BarriosLayer = ({
 export const ControlMap = ({
   onBarrioClick,
   selectedBarrio,
-  onEditBarrio,
 }: ControlMapProps) => {
   const { activeBaseMap: barrioStoreBaseMap, barrios } = useBarrioStore()
   const { activeBaseMap: mapStoreBaseMap } = useMapStore()
@@ -602,7 +607,6 @@ export const ControlMap = ({
           geoJson={barriosGeoJson}
           onBarrioClick={onBarrioClick}
           selectedBarrio={selectedBarrio}
-          onEditBarrio={onEditBarrio}
         />
 
         <OfficialPointsLayer />
