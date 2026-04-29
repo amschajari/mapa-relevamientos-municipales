@@ -36,59 +36,52 @@ const PavimentoLayer = () => {
   const pavimentoDomain = domains.find(d => d.id === 'pavimento')
   const layerTodas = pavimentoDomain?.layers.find(l => l.id === 'pavimento-todas')
 
-  const capaVisible = layerTodas?.visible ?? false
-
-  // Solo renderizar si la capa está visible
-  if (!capaVisible) return null
+ const capaVisible = layerTodas?.visible ?? false
 
  const [callesData, setCallesData] = useState<CallePavimentada[]>([])
  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
- // Cargar datos iniciales
-  useEffect(() => {
-    if (!callesData.length || capaVisible) {
-      const fetchCalles = async () => {
-        const { data, error } = await supabase
-          .from('calles_pavimentadas')
-          .select('*')
-          .order('nombre')
-          .limit(10000) // Traer todos, no solo 1000
+ // Cargar datos iniciales (siempre, para tenerlos listos)
+ useEffect(() => {
+ const fetchCalles = async () => {
+ const { data, error } = await supabase
+ .from('calles_pavimentadas')
+ .select('*')
+ .order('nombre')
+ .limit(10000)
 
-        if (error) {
-          console.error('Error fetching calles:', error)
-          return
-        }
-        setCallesData(data || [])
-        setLastUpdate(new Date())
-      }
-      fetchCalles()
-    }
-  }, [capaVisible, callesData.length])
+ if (error) {
+ console.error('Error fetching calles:', error)
+ return
+ }
+ setCallesData(data || [])
+ setLastUpdate(new Date())
+ }
+ fetchCalles()
+ }, [])
 
-  // Polling: actualizar cada 30 segundos
-  useEffect(() => {
-    if (!capaVisible) return
+ // Polling: actualizar cada 30 segundos
+ useEffect(() => {
+ const interval = setInterval(async () => {
+ console.log('[PavimentoLayer] Polling Supabase...')
+ const { data, error } = await supabase
+ .from('calles_pavimentadas')
+ .select('*')
+ .order('nombre')
+ .limit(10000)
 
-    const interval = setInterval(async () => {
-      console.log('[PavimentoLayer] Polling Supabase...')
-      const { data, error } = await supabase
-        .from('calles_pavimentadas')
-        .select('*')
-        .order('nombre')
-        .limit(10000)
+ if (error) {
+ console.error('Error polling calles:', error)
+ return
+ }
 
-      if (error) {
-        console.error('Error polling calles:', error)
-        return
-      }
+ setCallesData(data || [])
+ setLastUpdate(new Date())
+ console.log(`[PavimentoLayer] Actualizado: ${data?.length || 0} segmentos`)
+ }, POLLING_INTERVAL)
 
-      setCallesData(data || [])
-      setLastUpdate(new Date())
-      console.log(`[PavimentoLayer] Actualizado: ${data?.length || 0} segmentos`)
-    }, POLLING_INTERVAL)
-
-    return () => clearInterval(interval)
-  }, [capaVisible])
+ return () => clearInterval(interval)
+ }, [])
 
  const geojsonData = useMemo(() => {
  if (!callesData.length) return null
@@ -145,10 +138,11 @@ const PavimentoLayer = () => {
  
    clave += isAvenida ? '_avenida' : '_calle'
  
-   return ESTILOS_POR_TIPO[clave as keyof typeof ESTILOS_POR_TIPO] || ESTILOS_POR_TIPO.otros_calle
+ return ESTILOS_POR_TIPO[clave as keyof typeof ESTILOS_POR_TIPO] || ESTILOS_POR_TIPO.otros_calle
  }
 
-  if (!capaVisible) return null
+ // No renderizar si no hay datos o la capa no está visible
+ if (!capaVisible || !geojsonData) return null
 
  return (
     <GeoJSON
