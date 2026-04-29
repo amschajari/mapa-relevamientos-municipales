@@ -19,15 +19,15 @@ const POLLING_INTERVAL = 30000 // 30 segundos
 
 // Estilos por categoría
 const ESTILOS_POR_TIPO = {
-  // Hormigón - Azul petróleo
-  hormigon_calle: { color: '#004d4d', weight: 3, opacity: 0.9 },
-  hormigon_avenida: { color: '#004d4d', weight: 5, opacity: 0.9 },
-  // Asfalto - Rojo bermellón
-  asfalto_calle: { color: '#8b0000', weight: 3, opacity: 0.9 },
-  asfalto_avenida: { color: '#8b0000', weight: 5, opacity: 0.9 },
-  // Otros - Gris oscuro
-  otros_calle: { color: '#374151', weight: 3, opacity: 0.9 },
-  otros_avenida: { color: '#374151', weight: 5, opacity: 0.9 },
+  // Hormigón - Azul petróleo (más suave)
+  hormigon_calle: { color: '#006666', weight: 2, opacity: 1 },
+  hormigon_avenida: { color: '#006666', weight: 4, opacity: 1 },
+  // Asfalto - Rojo bermellón (más suave)
+  asfalto_calle: { color: '#b30000', weight: 2, opacity: 1 },
+  asfalto_avenida: { color: '#b30000', weight: 4, opacity: 1 },
+  // Otros - Gris
+  otros_calle: { color: '#6b7280', weight: 2, opacity: 1 },
+  otros_avenida: { color: '#6b7280', weight: 4, opacity: 1 },
 }
 
 const PavimentoLayer = () => {
@@ -154,15 +154,15 @@ const PavimentoLayer = () => {
         const tipoLabel = props.tipo_obra || 'Pavimento'
         const categoria = isAvenida ? 'Avenida' : 'Calle'
         
-        // Tooltip ligero (hover) en lugar de popup (click)
+        // Tooltip simple sin bordes
         layer.bindTooltip(`
-          <div style="font-size:12px;font-weight:600;">${props.nombre || 'Sin nombre'}</div>
-          <div style="font-size:10px;color:#666;">${categoria} · ${tipoLabel}</div>
+          <div style="font-size:12px;font-weight:600;white-space:nowrap;">${props.nombre || 'Sin nombre'}</div>
+          <div style="font-size:10px;color:#666;white-space:nowrap;">${categoria} · ${tipoLabel}</div>
         `, {
           direction: 'top',
-          offset: [0, -5],
-          opacity: 0.9,
-          className: 'bg-white px-2 py-1 rounded shadow-sm border'
+          offset: [0, -3],
+          opacity: 1,
+          className: 'custom-tooltip'
         })
       }}
     />
