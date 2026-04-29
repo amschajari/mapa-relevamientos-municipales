@@ -74,36 +74,23 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
       }
     ]
   },
-  {
+ {
     id: 'pavimento',
     name: 'Calles Pavimentadas',
     icon: 'Route',
     expanded: false,
     layers: [
       {
-        id: 'pavimento-calles',
-        name: 'Calles',
+        id: 'pavimento-todas',
+        name: 'Calles Pavimentadas',
         type: 'line',
         source: 'geojson',
         visible: false,
         domain: 'pavimento',
-        sublayer: 'calles',
+        sublayer: 'todas',
         opacity: 100,
         style: { color: '#6b7280', weight: 3 },
-        description: 'Calles pavimentadas',
-        dataSource: 'calles_pavimentadas'
-      },
-      {
-        id: 'pavimento-avenidas',
-        name: 'Avenidas',
-        type: 'line',
-        source: 'geojson',
-        visible: false,
-        domain: 'pavimento',
-        sublayer: 'avenidas',
-        opacity: 100,
-        style: { color: '#374151', weight: 4 },
-        description: 'Avenidas principales',
+        description: 'Calles y avenidas pavimentadas',
         dataSource: 'calles_pavimentadas'
       }
     ]
