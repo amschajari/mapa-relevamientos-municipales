@@ -19,15 +19,15 @@ const POLLING_INTERVAL = 30000 // 30 segundos
 
 // Estilos por categoría
 const ESTILOS_POR_TIPO = {
-  // Hormigón - azul
-  hormigon_calle: { color: '#3b82f6', weight: 3, opacity: 0.9 },
-  hormigon_avenida: { color: '#3b82f6', weight: 5, opacity: 0.9 },
-  // Asfalto - gris oscuro
-  asfalto_calle: { color: '#374151', weight: 3, opacity: 0.9 },
-  asfalto_avenida: { color: '#374151', weight: 5, opacity: 0.9 },
-  // Otros - naranja (por defecto)
-  otros_calle: { color: '#f59e0b', weight: 3, opacity: 0.9 },
-  otros_avenida: { color: '#f59e0b', weight: 5, opacity: 0.9 },
+  // Hormigón - Azul petróleo
+  hormigon_calle: { color: '#004d4d', weight: 3, opacity: 0.9 },
+  hormigon_avenida: { color: '#004d4d', weight: 5, opacity: 0.9 },
+  // Asfalto - Rojo bermellón
+  asfalto_calle: { color: '#8b0000', weight: 3, opacity: 0.9 },
+  asfalto_avenida: { color: '#8b0000', weight: 5, opacity: 0.9 },
+  // Otros - Gris oscuro
+  otros_calle: { color: '#374151', weight: 3, opacity: 0.9 },
+  otros_avenida: { color: '#374151', weight: 5, opacity: 0.9 },
 }
 
 const PavimentoLayer = () => {
