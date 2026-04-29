@@ -13,7 +13,7 @@ import {
 import { useBarrioStore } from '@/stores'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { cn, ESTADO_BASE_OPTIONS, FUNCIONAMIENTO_OPTIONS } from '@/lib/constants'
+import { cn, ESTADO_BASE_OPTIONS } from '@/lib/constants'
 import { calculateLastUpdate } from '@/lib/mapUtils'
 
 interface NavItem {
@@ -34,12 +34,12 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
   // Calcular última actualización basada en los puntos
   const lastUpdate = useMemo(() => calculateLastUpdate(officialPoints), [officialPoints])
 
-  const toggleMapFilter = (key: 'estadosBase' | 'funcionamiento', value: string) => {
-    const current = (mapFilters[key] as string[]) || []
+  const toggleEstadoBase = (value: string) => {
+    const current = mapFilters.estadosBase || []
     if (current.includes(value)) {
-      setMapFilter(key, current.filter(v => v !== value))
+      setMapFilter('estadosBase', current.filter(v => v !== value))
     } else {
-      setMapFilter(key, [...current, value])
+      setMapFilter('estadosBase', [...current, value])
     }
   }
 
@@ -161,34 +161,7 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
                     return (
                       <button
                         key={opt.value}
-                        onClick={() => toggleMapFilter('estadosBase', opt.value)}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold transition-all border",
-                          isSelected 
-                            ? "bg-white border-primary-200 text-gray-900 shadow-sm" 
-                            : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          isSelected ? opt.color : "bg-gray-300"
-                        )} />
-                        {opt.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600 block">Funcionamiento</label>
-                <div className="space-y-1.5">
-                  {FUNCIONAMIENTO_OPTIONS.map(opt => {
-                    const isSelected = (mapFilters.funcionamiento || []).includes(opt.value)
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => toggleMapFilter('funcionamiento', opt.value)}
+                        onClick={() => toggleEstadoBase(opt.value)}
                         className={cn(
                           "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold transition-all border",
                           isSelected 

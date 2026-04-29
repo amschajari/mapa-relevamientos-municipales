@@ -32,10 +32,6 @@ export const ESTADO_BASE_OPTIONS = [
   { value: 'sin_base', label: 'Sin base', color: 'bg-yellow-400' },
 ] as const
 
-export const FUNCIONAMIENTO_OPTIONS = [
-  { value: 'no_enciende', label: 'No enciende', color: 'bg-red-500' },
-] as const
-
 export type EstadoBase = (typeof ESTADO_BASE_OPTIONS)[number]['value']
 
 // ============================================================================

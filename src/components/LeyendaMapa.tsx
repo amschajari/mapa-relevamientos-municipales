@@ -1,5 +1,4 @@
 import { MapPin, Info, Lightbulb } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface LeyendaItem {
   color: string
@@ -18,7 +17,7 @@ const luminariaItems: LeyendaItem[] = [
   { color: '#0ea5e9', label: 'Base Buena', description: 'En condiciones' },
   { color: '#ef4444', label: 'Base Mala', description: 'Deteriorada' },
   { color: '#facc15', label: 'Sin Base', description: 'Falta base' },
-  { color: '#ef4444', label: 'No enciende', description: 'Condición: Sin luz' },
+  { color: '#6b7280', label: 'Apagada', description: 'Sin luz / Quemada' },
 ]
 
 export const LeyendaMapa = () => {
@@ -51,21 +50,13 @@ export const LeyendaMapa = () => {
       <div className="space-y-3">
         {luminariaItems.map((item) => (
           <div key={item.label} className="flex items-center gap-3.5 group">
-            <div className="relative flex items-center justify-center w-4 h-4 shrink-0">
-              {item.label === 'No enciende' && (
-                <div className="absolute inset-0 w-full h-full rounded-full border-2 border-slate-700 shadow-sm" />
-              )}
-              <div
-                className={cn(
-                  "rounded-full transition-transform group-hover:scale-110 shadow-md z-10",
-                  item.label === 'No enciende' ? 'w-1.5 h-1.5' : 'w-3 h-3'
-                )}
-                style={{ 
-                  backgroundColor: item.color,
-                  border: item.label === 'No enciende' ? '1px solid #ffffff' : 'none'
-                }}
-              />
-            </div>
+            <div
+              className="w-3.5 h-3.5 rounded-full shrink-0 transition-transform group-hover:scale-110 shadow-md"
+              style={{ 
+                backgroundColor: item.color,
+                border: item.label === 'Apagada' ? '1.5px solid #4b5563' : 'none'
+              }}
+            />
             <p className="text-[13px] font-black text-gray-700 leading-none">{item.label}</p>
           </div>
         ))}
