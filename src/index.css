@@ -113,3 +113,14 @@
 .custom-marker-cluster {
   cursor: pointer !important;
 }
+
+/* Eliminar borde negro de selección en líneas (calles pavimentadas) */
+.leaflet-interactive:hover {
+  stroke: none !important;
+  outline: none !important;
+}
+
+/* O alternativa: mantener el color original sin cambio en hover */
+.leaflet-overlay-pane path.leaflet-interactive {
+  transition: none !important;
+}

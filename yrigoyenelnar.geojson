@@ -1,0 +1,320 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9840466, -30.7639587]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3315",
+        "direccion": "Av Yrigoyen 3315",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9842312, -30.7640884]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3355",
+        "direccion": "Av Yrigoyen 3355",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9844837, -30.7643188]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3395",
+        "direccion": "Av Yrigoyen 3395",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Sin base",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9846510, -30.7644839]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3415",
+        "direccion": "Av Yrigoyen 3415",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9849371, -30.7647079]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3455",
+        "direccion": "Av Yrigoyen 3455",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9851567, -30.7649261]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3495",
+        "direccion": "Av Yrigoyen 3495",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9854121, -30.7651264]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3515",
+        "direccion": "Av Yrigoyen 3515",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9856130, -30.7653379]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3555",
+        "direccion": "Av Yrigoyen 3555",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9858848, -30.7655075]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3595",
+        "direccion": "Av Yrigoyen 3595",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9861023, -30.7657244]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3615",
+        "direccion": "Av Yrigoyen 3615",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9863948, -30.7659506]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3655",
+        "direccion": "Av Yrigoyen 3655",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9866030, -30.7661381]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3695",
+        "direccion": "Av Yrigoyen 3695",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9867929, -30.7663012]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3715",
+        "direccion": "Av Yrigoyen 3715",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9870529, -30.7665179]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3755",
+        "direccion": "Av Yrigoyen 3755",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9872352, -30.7666875]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3795",
+        "direccion": "Av Yrigoyen 3795",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9874741, -30.7668866]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3815",
+        "direccion": "Av Yrigoyen 3815",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9877166, -30.7671343]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3855",
+        "direccion": "Av Yrigoyen 3855",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9879233, -30.7672769]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3895",
+        "direccion": "Av Yrigoyen 3895",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9881887, -30.7675178]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3915",
+        "direccion": "Av Yrigoyen 3915",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9884018, -30.7677323]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3955",
+        "direccion": "Av Yrigoyen 3955",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9886987, -30.7679413]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3995",
+        "direccion": "Av Yrigoyen 3995",
+        "barrio": "El Naranjal",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Sin base",
+        "tipoCableado": "Subterráneo"
+      }
+    }
+  ]
+}

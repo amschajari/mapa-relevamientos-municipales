@@ -1,8 +1,9 @@
 # MÓDULO CALLES PAVIMENTADAS - CHAJARÍ
 
-> **Estado:** ✅ Implementado  
+> **Estado:** ✅ Fase 1 completada - Fase 2 en desarrollo - Fase 3 (Integración Supabase) planificada  
 > **Última actualización:** Abril 2026  
-> **Propósito:** Sistema de gestión de calles pavimentadas con visualización en mapa
+> **Propósito:** Sistema de gestión de calles pavimentadas con visualización en mapa, editor de clasificación por tramos y herramientas de segmentación
+> **Rama activa:** `feature/ui-ide-sidebar`
 
 ---
 
@@ -64,8 +65,27 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 ## 4. USO
 
+### 4.1 Visualización básica
 1. **Importar**: Importación > Calles Pavimentadas >_arrastrar GeoJSON > Importar
 2. **Visualizar**: Capas > Calles Pavimentadas > Activar Calles o Avenidas
+
+### 4.2 Editor avanzado de clasificación (v2)
+Para clasificación detallada por tramos y edición de atributos:
+1. Abrir el editor: http://localhost:8000/editor_calles_pavimentadas_v2.html
+2. Carga automática del GeoJSON segmentado (2422 tramos)
+3. Herramientas disponibles:
+   - **Selección**: Click individual, Shift+click (rango), Ctrl+click (múltiple), Box selection (arrastrar)
+   - **Clasificación**: 
+     - ✓ Conservar (verde) = tramo pavimentado
+     - ✗ Descartar (rojo) = tramo no pavimentado
+     - Doble click para cambiar estado
+   - **Herramienta de corte** (✂️): Dividir tramos en puntos específicos
+   - **Panel de atributos**: Al seleccionar tramo(s):
+     - Tipo obra: Hormigón / Pavimento asfáltico
+     - Entre calle 1/2: Detectado automáticamente por intersección
+     - Fechas de aprobación e inauguración
+     - Observaciones libres
+   - **Export**: Solo segmentos conservados listo para Supabase
 
 ---
 
@@ -73,11 +93,167 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 - [ ] Agregar atributos adicionales (año, ordenanza, etc.)
 - [ ] Vincular con barrios
-- [ ] Mejoras de edición
+- [ ] Mejoras de edición en el editor v2
 
 ---
 
-## 2. FUENTE DE DATOS OFICIAL
+## 6. FASE 3: INTEGRACIÓN CON SUPABASE (EN DESARROLLO)
+
+### 6.1 Contexto y Objetivo
+
+**Situación actual:**
+- Supabase tiene 875 segmentos cargados (datos iniciales)
+- El editor HTML trabaja con 2422 segmentos segmentados (GeoJSON local en `docs/calles_segmentadas.geojson`)
+- Se estima que ~70% se descartará, conservando solo calles realmente pavimentadas (~30%)
+
+**Objetivo:** Integrar el editor HTML con Supabase para:
+1. Clasificación en tiempo real (estado: `pendiente` → `conservado` / `descartado`)
+2. Importar segmentos nuevos que faltan (desde GeoJSON de QGIS)
+3. Sincronizar cambios con otras interfaces (mapa React en la app principal)
+
+### 6.2 Cambios en la Base de Datos
+
+**Nueva columna requerida:**
+```sql
+-- Agregar columna estado
+ALTER TABLE calles_pavimentadas 
+ADD COLUMN estado TEXT DEFAULT 'pendiente';
+-- Valores: 'pendiente', 'conservado', 'descartado'
+
+-- Agregar columnas de atributos (opcional)
+ALTER TABLE calles_pavimentadas
+ADD COLUMN tipo_obra TEXT,
+ADD COLUMN entre_calle_1 TEXT,
+ADD COLUMN entre_calle_2 TEXT,
+ADD COLUMN fecha_aprobacion_concejo DATE,
+ADD COLUMN fecha_inauguracion DATE,
+ADD COLUMN observaciones TEXT;
+```
+
+### 6.3 Workflow de Integración
+
+```
+┌──────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  QGIS (opcional) │────▶│  Editor HTML    │────▶│   Supabase      │
+│  Importar nuevos │     │  Clasificar +   │     │   Persistencia  │
+│  segmentos       │     │  Atributos      │     │   centralizada  │
+└──────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                                                        ▼
+                                              ┌─────────────────┐
+                                              │  App React      │
+                                              │  (mapa principal│
+                                              │   con polling)  │
+                                              └─────────────────┘
+```
+
+### 6.4 Funcionalidades del Editor HTML (v2.1 - Con Supabase)
+
+| Funcionalidad | Descripción | Estado |
+|---------------|-------------|--------|
+| Carga inicial | Lee desde `calles_segmentadas.geojson` local | ✅ Implementado |
+| Importar segmentos | Fusiona GeoJSON externo (QGIS) con fid nuevos | 📝 Pendiente |
+| Clasificación | Cambiar estado (conservado/descartado/pendiente) | ✅ Local |
+| Guardar en Supabase | Upsert: inserta nuevos, actualiza existentes | 📝 Pendiente |
+| Atributos | Editar tipo_obra, entre_calles, fechas, obs | ✅ Local |
+| Exportar | Descarga GeoJSON con solo conservados | ✅ Implementado |
+
+### 6.5 Variables de Entorno
+
+El editor necesita las mismas credenciales que la app React:
+
+```env
+VITE_SUPABASE_URL=https://elczfqaevdnomwflgvka.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Nota:** El editor HTML es standalone (no usa Vite), así que las credenciales se embeberán directamente en el HTML o se cargarán desde un archivo `.env` separado.
+
+### 6.6 Consideraciones Técnicas
+
+1. **Identificación de segmentos:**
+   - `fid` es la clave única (BIGINT UNIQUE en Supabase)
+   - Nuevos segmentos desde QGIS deben tener fid incremental
+
+2. **Sincronización:**
+   - El editor HTML guarda cambios vía REST API de Supabase
+   - La app React puede usar polling (cada 30s) o Realtime subscriptions
+
+3. **Permisos:**
+   - RLS requiere usuario autenticado con email `a.m.saposnik@gmail.com`
+   - Para desarrollo, se puede deshabilitar RLS temporalmente
+
+### 6.7 Pasos para Continuar el Desarrollo
+
+1. **Base de datos:** Ejecutar SQL para agregar columnas `estado` y atributos
+2. **Editor HTML:** 
+   - Agregar conexión a Supabase (CDN script)
+   - Modificar `guardarProgreso()` para upsert a Supabase
+   - Agregar botón "Importar segmentos adicionales"
+3. **App React:** 
+   - Agregar polling a `PavimentoLayer.tsx` o usar Supabase Realtime
+4. **Testing:** Verificar que cambios en editor se reflejen en el mapa
+
+---
+
+## 7. EDITOR DE CLASIFICACIÓN AVANZADA (v2)
+
+---
+
+## 7. EDITOR DE CLASIFICACIÓN AVANZADA (v2)
+
+### 6.1 Archivos generados
+
+| Archivo | Descripción | Cantidad |
+|---------|------------|----------|
+| `calles_segmentadas.geojson` | GeoJSON segmentado (tramos entre intersecciones) | 2422 features |
+| `editor_calles_pavimentadas_v2.html` | Editor web interactivo | - |
+
+### 6.2 Cómo usar el editor
+
+**Paso 1: Iniciar servidor HTTP local**
+```bash
+cd docs
+python -m http.server 8000
+```
+Luego abrir en navegador: http://localhost:8000/editor_calles_pavimentadas_v2.html
+
+**Paso 2: Herramientas de selección**
+
+| Acción | Cómo acceder |
+|--------|-------------|
+| Seleccionar uno | Click en el segmento |
+| Seleccionar rango | Shift + click |
+| Agregar/quitar de selección | Ctrl + click |
+| Seleccionar todos | Ctrl + A |
+| Box selection | Click en herramienta ⬜ y arrastrar |
+
+**Paso 3: Clasificar segmentos**
+
+| Estado | Color | Significado |
+|--------|-------|-------------|
+| Pendiente | Amarillo | Sin clasificar |
+| ✓ Conservar | Verde | Pavimentado (se exporta) |
+| ✗ Descartar | Rojo | No pavimentado (se excluye) |
+
+- Para clasificar: seleccionar segmentos → click en botón ✓ o ✗
+- Doble click en segmento: cicla estado
+
+**Paso 4: Completar atributos**
+Al seleccionar segmentos, el panel lateral permite editar:
+- Tipo de obra (Hormigón / Pavimento asfáltico)
+- Entre calle 1 (se detecta automáticamente)
+- Entre calle 2 (se detecta automáticamente)
+- Fecha aprobación Concejal
+- Fecha inauguración
+- Observaciones
+
+**Paso 5: Exportar**
+Click en "Exportar GeoJSON" → descarga archivo con solo los segmentos "Conservar".
+
+---
+
+## 8. FUENTE DE DATOS OFICIAL
 
 | Fuente | URL | Datos a Extraer |
 |--------|-----|-----------------|
@@ -87,7 +263,7 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 ---
 
-## 3. WORKFLOW PROPUESTO
+## 9. WORKFLOW PROPUESTO
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -102,7 +278,7 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 ---
 
-## 4. ESQUEMA DE DATOS (PROPUESTO - PENDIENTE CONFIRMACIÓN)
+## 10. ESQUEMA DE DATOS (PROPUESTO - PENDIENTE CONFIRMACIÓN)
 
 | Campo | Tipo | Descripción | Estado |
 |-------|------|-------------|--------|
@@ -123,7 +299,7 @@ ALTER TABLE calles_pavimentadas ENABLE ROW LEVEL SECURITY;
 
 ---
 
-## 5. CONSULTA OVERPASS TURBO
+## 11. CONSULTA OVERPASS TURBO
 
 Query lista para copiar y pegar en [Overpass Turbo](https://overpass-turbo.eu/):
 
@@ -169,7 +345,7 @@ out skel qt;
 
 ---
 
-## 6. TAREAS PENDIENTES
+## 12. TAREAS PENDIENTES
 
 ### Fase 1: Investigación
 - [ ] Estudiar https://digesto.chajari.gob.ar/normas
@@ -191,7 +367,7 @@ out skel qt;
 
 ---
 
-## 7. NOTAS TÉCNICAS
+## 13. NOTAS TÉCNICAS
 
 | Aspecto | Valor | Notas |
 |---------|-------|-------|
@@ -202,7 +378,7 @@ out skel qt;
 
 ---
 
-## 8. RECURSOS ADICIONALES
+## 14. RECURSOS ADICIONALES
 
 ### Documentación relacionada
 - `PROPUESTA_EVOLUCION_PLATAFORMA_GIS.md` - Roadmap general del sistema
@@ -216,7 +392,7 @@ out skel qt;
 
 ---
 
-## 9. HISTORIAL DE CAMBIOS
+## 15. HISTORIAL DE CAMBIOS
 
 | Fecha | Autor | Cambio |
 |-------|-------|--------|
