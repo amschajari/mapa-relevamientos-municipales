@@ -411,6 +411,18 @@ const BarriosLayer = ({
       const status = getBarrioStatus(nombre)
       const isSelected = selectedBarrio?.nombre === nombre
 
+      // Estilo especial para el ejido "Sin Barrio": sin relleno, borde bermellón grueso y punteado
+      if (nombre === 'Sin Barrio') {
+        return {
+          color: '#CC2200',
+          weight: isSelected ? 3.5 : 2.5,
+          opacity: isSelected ? 1 : 0.75,
+          fillOpacity: 0,
+          fillColor: 'transparent',
+          dashArray: '8 5',
+        }
+      }
+
       const baseStyle = {
         weight: isSelected ? 3 : 1.5,
         opacity: isSelected ? 1 : 0.8,
@@ -430,12 +442,14 @@ const BarriosLayer = ({
     [getBarrioStatus, getBarrioProgress, selectedBarrio]
   )
 
-  const highlightFeature = (e: L.LeafletEvent) => {
+  const highlightFeature = (e: L.LeafletEvent, feature?: any) => {
     const layer = e.target
-    layer.setStyle({
-      weight: 2.5,
-      fillOpacity: 0.5,
-    })
+    const nombre = feature?.properties?.Nombre || ''
+    if (nombre === 'Sin Barrio') {
+      layer.setStyle({ weight: 3.5, opacity: 1 })
+    } else {
+      layer.setStyle({ weight: 2.5, fillOpacity: 0.5 })
+    }
   }
 
   const resetHighlight = (e: L.LeafletEvent, feature?: any) => {
@@ -491,7 +505,7 @@ const BarriosLayer = ({
 
       ;// Tooltip: solo al hacer click (no en hover)
       layer.on({
-        mouseover: highlightFeature,
+        mouseover: (e) => highlightFeature(e, feature),
         mouseout: (e) => resetHighlight(e, feature),
         click: (e: L.LeafletMouseEvent) => {
           setSelectedBarrio(barrio)
