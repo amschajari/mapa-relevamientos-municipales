@@ -1,8 +1,12 @@
 # Necesidad de Usuario: Filtrado de Capas Sensibles y Temporales
 
 ## 1. Contexto y Necesidad
-El sistema GIS de la Municipalidad de Chajarí está evolucionando hacia una plataforma multicanal (pública y operativa). 
 Se requiere que ciertas capas de información (ej: **Espacios Verdes**, **Calles Pavimentadas**, **Presupuestos**) no sean visibles para el público general, sino únicamente para personal municipal autorizado y registrado.
+
+### Perfiles de Acceso Definidos:
+- **Master Admin (`a.m.saposnik@gmail.com`)**: Acceso total y derecho a manejo de edición e importación masiva de datos (GeoJSON/CSV/Odoo). Único perfil habilitado para realizar cambios estructurales en el inventario.
+- **Usuario Autenticado (Personal Municipal)**: Acceso autorizado para visualizar y consultar capas operativas específicas (**Espacios Verdes** y **Calles Pavimentadas**). Sin permisos de edición.
+- **Público General**: Acceso restringido únicamente a capas de información ciudadana básica.
 
 ### Requerimientos Clave:
 - **Privacidad**: Las capas sensibles no deben figurar en la lista de capas si el usuario no ha iniciado sesión.
