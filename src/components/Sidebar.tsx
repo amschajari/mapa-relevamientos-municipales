@@ -66,16 +66,18 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shrink-0">
               <Map className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1 min-w-0 mr-2 py-3">
-              <h1 className="text-sm font-black text-gray-900 leading-[1.1] mb-0.5 break-words">
-                Gestión Municipal
+            <div className="flex-1 min-w-0 mr-2">
+              <h1 className="text-[13px] font-black text-gray-900 leading-tight uppercase tracking-tight">
+                Gestión Municipal | IDE
               </h1>
-              <div className="flex flex-col">
-                <p className="text-[10px] font-bold text-primary-600 truncate">
-                  Chajarí, ER
-                </p>
+              <div className="flex flex-col gap-0.5 mt-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-primary-600">Chajarí, ER</span>
+                  <span className="text-[9px] text-gray-300">|</span>
+                  <span className="text-[10px] font-medium text-gray-500">Alejandro Saposnik</span>
+                </div>
                 {lastUpdate && lastUpdate.getTime() > 0 && (
-                  <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">
+                  <p className="text-[9px] text-gray-400">
                     Act: {format(lastUpdate, "dd/MM/yy HH:mm", { locale: es })}
                   </p>
                 )}
