@@ -6,9 +6,16 @@ import length from '@turf/length'
 interface CallePreview {
   fid: number
   nombre: string
+  calle?: string
+  entre_calle_1?: string
+  entre_calle_2?: string
+  tipo_obra?: string
+  fecha_aprobacion_concejo?: string | null
+  fecha_inauguracion?: string | null
+  observaciones?: string
   longitudM: number
   valido: boolean
-  estado: 'nuevo' | 'actualizar'
+  importEstado: 'nuevo' | 'actualizar'
   error?: string
 }
 
@@ -46,21 +53,28 @@ export const ImportadorCallesPavimentadas = () => {
         features.forEach((f: any) => {
           const props = f.properties || {}
           const fid = props.fid
-          const nombre = props.Nombre || props.nombre || props.name || null
+          const nombre = props.Nombre || props.nombre || props.name || props.calle || null
 
           if (!fid) {
             registros.push({
               fid: fid || 0,
               nombre: nombre || 'Sin nombre',
+              calle: props.calle,
+              entre_calle_1: props.entre_calle_1,
+              entre_calle_2: props.entre_calle_2,
+              tipo_obra: props.tipo_obra,
+              fecha_aprobacion_concejo: props.fecha_aprobacion_concejo,
+              fecha_inauguracion: props.fecha_inauguracion,
+              observaciones: props.observaciones,
               longitudM: 0,
               valido: false,
-              estado: 'nuevo',
+              importEstado: 'nuevo',
               error: 'Sin FID'
             })
             return
           }
 
-          let longitudM = 0
+          let longitudM = props.longitud_m || 0
           try {
             const lengthKm = length(f)
             longitudM = Math.round(lengthKm * 1000 * 100) / 100
@@ -71,9 +85,16 @@ export const ImportadorCallesPavimentadas = () => {
           registros.push({
             fid,
             nombre: nombre || `Calle ${fid}`,
+            calle: props.calle,
+            entre_calle_1: props.entre_calle_1,
+            entre_calle_2: props.entre_calle_2,
+            tipo_obra: props.tipo_obra,
+            fecha_aprobacion_concejo: props.fecha_aprobacion_concejo,
+            fecha_inauguracion: props.fecha_inauguracion,
+            observaciones: props.observaciones,
             longitudM,
             valido: true,
-            estado: 'nuevo'
+            importEstado: 'nuevo'
           })
           validFeatures.push(f)
         })
@@ -110,19 +131,20 @@ const confirmarImportacion = async () => {
     const batchSize = 100 // Lotes de 100
 
     try {
-      // 1. Si modo es 'replace', borrar todos los registros
+// 1. Si modo es 'replace', borrar todos los registros
       if (importMode === 'replace') {
         const { error: deleteError } = await supabase
           .from('calles_pavimentadas')
           .delete()
-          .neq('id', '00000000-0000-0000-0000-000000000000') //.delete todo
+          .neq('id', '00000000-0000-0000-0000-000000000000')
         
         if (deleteError) {
-          console.error('Error deleting:', deleteError)
-        } else {
-          eliminados = preview.length // aproximación
+          setErrorGlobal('Error al borrar registros existentes: ' + deleteError.message)
+          setIsImporting(false)
+          return
         }
-}
+        eliminados = preview.length
+      }
 
       // 2. Verificar existentes en Supabase (solo para merge)
       let fidsExistentes = new Set<number>()
@@ -145,10 +167,27 @@ const confirmarImportacion = async () => {
         const lote = nuevos.slice(i, i + batchSize)
         const toInsert = lote.map(calle => {
           const feature = featuresList.find(f => f.properties.fid === calle.fid)
+          const featureGeom = feature?.geometry
+          
+          let geomToSave = null
+          if (featureGeom) {
+            if (featureGeom.type === 'LineString') {
+              geomToSave = { type: 'MultiLineString', coordinates: [featureGeom.coordinates] }
+            } else if (featureGeom.type === 'MultiLineString') {
+              geomToSave = featureGeom
+            }
+          }
+          
           return {
             fid: calle.fid,
             nombre: calle.nombre,
-            geom: feature?.geometry,
+            entre_calle_1: calle.entre_calle_1 || null,
+            entre_calle_2: calle.entre_calle_2 || null,
+            tipo_obra: calle.tipo_obra || 'H°A°',
+            fecha_aprobacion_concejo: calle.fecha_aprobacion_concejo || null,
+            fecha_inauguracion: calle.fecha_inauguracion || null,
+            observaciones: calle.observaciones || null,
+            geom: geomToSave,
             longitud_m: calle.longitudM
           }
         }).filter(c => c.geom)
@@ -158,6 +197,7 @@ const confirmarImportacion = async () => {
           .insert(toInsert)
 
         if (error) {
+          console.error('Error insertando:', JSON.stringify(error, null, 2))
           errores.push(`Error en lote ${i/batchSize + 1}: ${error.message}`)
         } else {
           creados += lote.length
@@ -170,6 +210,12 @@ const confirmarImportacion = async () => {
           .from('calles_pavimentadas')
           .update({
             nombre: calle.nombre,
+            entre_calle_1: calle.entre_calle_1 || null,
+            entre_calle_2: calle.entre_calle_2 || null,
+            tipo_obra: calle.tipo_obra || 'H°A°',
+            fecha_aprobacion_concejo: calle.fecha_aprobacion_concejo || null,
+            fecha_inauguracion: calle.fecha_inauguracion || null,
+            observaciones: calle.observaciones || null,
             longitud_m: calle.longitudM
           })
           .eq('fid', calle.fid)
@@ -305,6 +351,8 @@ const confirmarImportacion = async () => {
                     <tr>
                       <th className="text-left p-2 text-gray-500 font-medium">FID</th>
                       <th className="text-left p-2 text-gray-500 font-medium">Nombre</th>
+                      <th className="text-left p-2 text-gray-500 font-medium">Entre</th>
+                      <th className="text-left p-2 text-gray-500 font-medium">Tipo Obra</th>
                       <th className="text-left p-2 text-gray-500 font-medium">Longitud (m)</th>
                       <th className="text-left p-2 text-gray-500 font-medium">Estado</th>
                     </tr>
@@ -314,6 +362,12 @@ const confirmarImportacion = async () => {
                       <tr key={i} className={r.valido ? '' : 'bg-red-50'}>
                         <td className="p-2 font-mono text-gray-800">{r.fid}</td>
                         <td className="p-2 text-gray-600">{r.nombre}</td>
+                        <td className="p-2 text-gray-600 text-xs">
+                          {r.entre_calle_1 && r.entre_calle_2 
+                            ? `${r.entre_calle_1} y ${r.entre_calle_2}` 
+                            : r.entre_calle_1 || r.entre_calle_2 || '-'}
+                        </td>
+                        <td className="p-2 text-gray-600 text-xs">{r.tipo_obra || '-'}</td>
                         <td className="p-2 text-gray-600">{r.longitudM} m</td>
                         <td className="p-2">
                           {r.valido 
