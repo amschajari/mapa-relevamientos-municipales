@@ -1,12 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
 import { Layers, Check, Flame } from 'lucide-react';
 import { useBarrioStore } from '@/stores/barrioStore';
+import { useMapStore } from '@/stores';
 import { cn } from '@/lib/utils';
 
 export const LayerControl = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { visibleLayers, toggleLayer, activeBaseMap, setActiveBaseMap } = useBarrioStore();
+  const { activeBaseMap, setActiveBaseMap } = useBarrioStore();
+  const { layers, toggleLayer: toggleMapLayer, setActiveBaseMap: setMapBaseMap } = useMapStore();
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const showBarrios = layers.find(l => l.id === 'barrios-poligonos')?.visible ?? false;
+  const showLuminarias = layers.find(l => l.id === 'luminarias-todas')?.visible ?? true;
+  const showHeatmap = layers.find(l => l.id === 'luminarias-calor')?.visible ?? false;
+
+  // Sincronizar cambio de mapa base
+  const handleSetBaseMap = (base: 'osm' | 'osm-dark' | 'satellite') => {
+    setActiveBaseMap(base)
+    setMapBaseMap(base)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -42,10 +54,10 @@ export const LayerControl = () => {
           </div>
           
           <button
-            onClick={() => toggleLayer('barrios')}
+            onClick={() => toggleMapLayer('barrios-poligonos')}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              visibleLayers.barrios 
+              showBarrios 
                 ? "bg-primary-50 text-primary-700" 
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -53,18 +65,18 @@ export const LayerControl = () => {
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                visibleLayers.barrios ? "bg-primary-500" : "bg-gray-300"
+                showBarrios ? "bg-primary-500" : "bg-gray-300"
               )} />
               Polígonos de Barrios
             </div>
-            {visibleLayers.barrios && <Check className="w-4 h-4" />}
+            {showBarrios && <Check className="w-4 h-4" />}
           </button>
 
           <button
-            onClick={() => toggleLayer('luminarias')}
+            onClick={() => toggleMapLayer('luminarias-todas')}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              visibleLayers.luminarias 
+              showLuminarias 
                 ? "bg-blue-50 text-blue-700" 
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -72,18 +84,18 @@ export const LayerControl = () => {
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                visibleLayers.luminarias ? "bg-blue-500" : "bg-gray-300"
+                showLuminarias ? "bg-blue-500" : "bg-gray-300"
               )} />
               Luminarias (Puntos)
             </div>
-            {visibleLayers.luminarias && <Check className="w-4 h-4" />}
+            {showLuminarias && <Check className="w-4 h-4" />}
           </button>
 
           <button
-            onClick={() => toggleLayer('heatmap')}
+            onClick={() => toggleMapLayer('luminarias-calor')}
             className={cn(
               "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-              visibleLayers.heatmap 
+              showHeatmap 
                 ? "bg-orange-50 text-orange-700" 
                 : "text-gray-500 hover:bg-gray-50"
             )}
@@ -91,11 +103,11 @@ export const LayerControl = () => {
             <div className="flex items-center gap-2">
               <Flame className={cn(
                 "w-4 h-4",
-                visibleLayers.heatmap ? "text-orange-500" : "text-gray-300"
+                showHeatmap ? "text-orange-500" : "text-gray-300"
               )} />
               Mapa de Calor
             </div>
-            {visibleLayers.heatmap && <Check className="w-4 h-4" />}
+            {showHeatmap && <Check className="w-4 h-4" />}
           </button>
 
           {/* Mapas Base */}
@@ -105,7 +117,7 @@ export const LayerControl = () => {
 
           <div className="grid grid-cols-3 gap-1 p-1">
             <button
-              onClick={() => setActiveBaseMap('osm')}
+              onClick={() => handleSetBaseMap('osm')}
               className={cn(
                 "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all",
                 activeBaseMap === 'osm'
@@ -118,7 +130,7 @@ export const LayerControl = () => {
             </button>
 
             <button
-              onClick={() => setActiveBaseMap('osm-dark')}
+              onClick={() => handleSetBaseMap('osm-dark')}
               className={cn(
                 "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all",
                 activeBaseMap === 'osm-dark'
@@ -131,7 +143,7 @@ export const LayerControl = () => {
             </button>
 
             <button
-              onClick={() => setActiveBaseMap('satellite')}
+              onClick={() => handleSetBaseMap('satellite')}
               className={cn(
                 "flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all",
                 activeBaseMap === 'satellite'

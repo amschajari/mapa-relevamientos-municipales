@@ -22,6 +22,7 @@ interface BarriosViewProps {
 type SortField = 'nombre' | 'estado' | 'luminarias'
 type SortDirection = 'asc' | 'desc'
 
+// Prioridad de estados para ordenamiento fijo
 const ESTADO_PRIORIDAD: Record<string, number> = {
   'completado': 0,
   'progreso': 1,

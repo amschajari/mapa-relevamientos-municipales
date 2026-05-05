@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Calles Pavimentadas – Chajarí v2</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Supabase JS Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --cons:#16a34a;--cons-bg:#dcfce7;--cons-dark:#14532d;
+  --desc:#dc2626;--desc-bg:#fee2e2;--desc-dark:#7f1d1d;
+  --pend:#f59e0b;--pend-bg:#fef3c7;--pend-dark:#78350f;
+  --bg:#0f172a;--panel:#1e293b;--panel2:#334155;--border:#475569;
+  --text:#f1f5f9;--text-m:#94a3b8;--accent:#38bdf8;--accent-hover:#0ea5e9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+header h1{font-size:15px;font-weight:700;color:var(--accent)}
+.stats{display:flex;gap:16px;margin-left:auto}
+.stat{display:flex;align-items:center;gap:6px;font-size:12px}
+.stat-dot{width:10px;height:10px;border-radius:50%}
+.stat-dot.cons{background:var(--cons)}.stat-dot.desc{background:var(--desc)}.stat-dot.pend{background:var(--pend)}
+.toolbar{display:flex;gap:8px;padding:8px 16px;background:var(--panel2);border-bottom:1px solid var(--border);flex-shrink:0}
+.tool-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tool-btn:hover{background:var(--border)}
+.tool-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.tool-btn.cons{background:var(--cons);color:#fff;border-color:var(--cons)}
+.tool-btn.cons:hover{background:#15803d}
+.tool-btn.desc{background:var(--desc);color:#fff;border-color:var(--desc)}
+.tool-btn.desc:hover{background:#b91c1c}
+.tool-sep{width:1px;background:var(--border);margin:0 4px}
+
+.main{display:flex;flex:1;overflow:hidden}
+#map{flex:1}
+
+.sidebar{width:340px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar-header{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sidebar-header h2{font-size:11px;font-weight:600;color:var(--text-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.search-box{position:relative}
+.search-box input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px 7px 30px;color:var(--text);font-size:13px;outline:none}
+.search-box input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:8px;top:8px;font-size:11px;pointer-events:none}
+
+.filter-tabs{display:flex;gap:4px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.filter-tab{flex:1;padding:5px 4px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-m);font-size:11px;cursor:pointer;text-align:center;transition:all .15s}
+.filter-tab.active{color:#fff;border-color:transparent}
+.filter-tab[data-cat="all"].active{background:#475569}
+.filter-tab[data-cat="conservado"].active{background:var(--cons)}
+.filter-tab[data-cat="descartado"].active{background:var(--desc)}
+.filter-tab[data-cat="pendiente"].active{background:var(--pend);color:#000}
+
+.list-container{flex:1;overflow-y:auto;padding:6px 8px}
+.list-container::-webkit-scrollbar{width:4px}
+.list-container::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.segment-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent;margin-bottom:2px;transition:all .12s;font-size:11px}
+.segment-item:hover{background:rgba(255,255,255,.05)}
+.segment-item.selected{background:rgba(56,189,248,.15);border-color:var(--accent)}
+.segment-item.conservado{background:var(--cons-bg);border-left:3px solid var(--cons)}
+.segment-item.descartado{background:var(--desc-bg);border-left:3px solid var(--desc)}
+.segment-item.pendiente{background:var(--pend-bg);border-left:3px solid var(--pend)}
+.seg-name{flex:1;line-height:1.3}
+.seg-meta{font-size:10px;color:var(--text-m)}
+.seg-status{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600}
+.seg-status.conservado{background:var(--cons);color:#fff}
+.seg-status.descartado{background:var(--desc);color:#fff}
+.seg-status.pendiente{background:var(--pend);color:#000}
+
+.attrs-panel{padding:12px 14px;border-top:1px solid var(--border);background:var(--panel2)}
+.attrs-panel h3{font-size:11px;color:var(--text-m);text-transform:uppercase;margin-bottom:10px}
+.attr-row{display:flex;gap:8px;margin-bottom:8px}
+.attr-row label{flex:0 0 70px;font-size:11px;color:var(--text-m);padding-top:6px}
+.attr-row input,.attr-row select{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;color:var(--text);font-size:12px}
+.attr-row input:focus,.attr-row select:focus{border-color:var(--accent);outline:none}
+.attr-btn{padding:8px 12px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;flex:1;transition:all .15s}
+.attr-btn.cons{background:var(--cons);color:#fff}
+.attr-btn.desc{background:var(--desc);color:#fff}
+.attr-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.footer{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.btn{flex:1;padding:8px 12px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--accent);color:#0f172a}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-secondary:hover{background:#475569}
+
+.legend{position:absolute;bottom:24px;left:12px;z-index:1000;background:rgba(15,23,42,.92);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px}
+.legend h4{font-size:10px;color:var(--text-m);text-transform:uppercase;margin-bottom:6px}
+.legend-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.legend-line{width:20px;height:3px;border-radius:2px}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+.info-box{position:absolute;top:60px;right:360px;z-index:1000;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11px;max-width:200px;display:none}
+.info-box.show{display:block}
+
+.selection-info{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--panel);border:1px solid var(--accent);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--accent);font-weight:600;display:none}
+.selection-info.show{display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1>🗑 Editor Calles Pavimentadas – Chajarí v2.1 (Supabase)</h1>
+  <div class="stats">
+    <div class="stat"><div class="stat-dot cons"></div><span id="cnt-cons">0</span> Conservados</div>
+    <div class="stat"><div class="stat-dot desc"></div><span id="cnt-desc">0</span> Descartados</div>
+    <div class="stat"><div class="stat-dot pend"></div><span id="cnt-pend">0</span> Pendientes</div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="tool-btn" id="btn-select" onclick="setTool('select')">👆 Seleccionar</button>
+  <button class="tool-btn" id="btn-box" onclick="setTool('box')">⬜ Box</button>
+  <button class="tool-btn" id="btn-corte" onclick="setTool('corte')">✂️ Cortar</button>
+  <div class="tool-sep"></div>
+  <button class="tool-btn cons" onclick="marcarSeleccion('conservado')">✓ Conservar</button>
+  <button class="tool-btn desc" onclick="marcarSeleccion('descartado')">✗ Descartar</button>
+</div>
+
+<div class="selection-info" id="selection-info">0 seleccionados</div>
+
+<div class="main">
+  <div id="map"></div>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Segmentos – <span id="total-segs">0</span> total</h2>
+      <input type="file" id="file-input" accept=".geojson" style="display:none" onchange="cargarProgreso(event)">
+      <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;margin-top:4px" onclick="document.getElementById('file-input').click()">📂 Cargar Progreso</button>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search" placeholder="Buscar calle..." oninput="renderList()">
+      </div>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-cat="all" onclick="setFilter('all',this)">Todos</button>
+      <button class="filter-tab" data-cat="conservado" onclick="setFilter('conservado',this)">Conservados</button>
+      <button class="filter-tab" data-cat="descartado" onclick="setFilter('descartado',this)">Descartados</button>
+      <button class="filter-tab" data-cat="pendiente" onclick="setFilter('pendiente',this)">Pendientes</button>
+    </div>
+    <div class="list-container" id="segment-list"></div>
+    <div class="attrs-panel" id="attrs-panel" style="display:none">
+      <h3>Atributos</h3>
+      <div class="attr-row">
+        <label>Tipo obra</label>
+        <select id="attr-tipo"><option value="">Seleccionar...</option><option value="Hormigon">Hormig\u00f3n</option><option value="Pavimento asfaltico">Pavimento asf\u00e1ltico</option></select>
+      </div>
+      <div class="attr-row">
+        <label>Entre calle 1</label>
+        <input type="text" id="attr-entre1" placeholder="Calle norte/este">
+      </div>
+      <div class="attr-row">
+        <label>Entre calle 2</label>
+        <input type="text" id="attr-entre2" placeholder="Calle sur/oeste">
+      </div>
+      <div class="attr-row">
+        <label>Aprobaci\u00f3n</label>
+        <input type="date" id="attr-aprob">
+      </div>
+      <div class="attr-row">
+        <label>Inaugurac.</label>
+        <input type="date" id="attr-inaug">
+      </div>
+      <div class="attr-row">
+        <label>Observ.</label>
+        <input type="text" id="attr-obs" placeholder="Notas...">
+      </div>
+      <button class="attr-btn cons" onclick="aplicarAtributos()">Aplicar a seleccionados</button>
+    </div>
+ <div class="footer">
+ <button class="btn btn-secondary" onclick="exportGeoJSON()">⬇ Exportar Final</button>
+ <button class="btn btn-secondary" onclick="guardarProgreso()">💾 Guardar Progreso</button>
+ <button class="btn btn-primary" onclick="guardarEnSupabase()">☁ Subir a Supabase</button>
+ </div>
+ <div class="footer" style="border-top:none;padding-top:0;">
+ <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importar Segmentos</button>
+ <input type="file" id="import-file" accept=".geojson" style="display:none">
+ <button class="btn btn-secondary" onclick="cargarArchivoOficial()">📂 Cargar Oficial (893)</button>
+ <button class="btn btn-secondary" onclick="sincronizarDesdeSupabase()">🔄 Sincronizar</button>
+ <button class="btn btn-secondary" style="background:#dc2626;color:#fff" onclick="reemplazarTodoEnSupabase()">⚠️ Reemplazar Todo</button>
+ </div>
+  </div>
+</div>
+
+<div class="legend">
+  <h4>Referencia</h4>
+  <div class="legend-row"><div class="legend-line" style="background:var(--cons)"></div>Conservado</div>
+  <div class="legend-row"><div class="legend-line" style="background:var(--desc)"></div>Descartado</div>
+  <div class="legend-row"><div class="legend-line" style="background:var(--pend)"></div>Pendiente</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="info-box" id="info-box"></div>
+
+<script>
+// ==================== SUPABASE ====================
+const SUPABASE_URL = 'https://elczfqaevdnomwflgvka.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsY3pmcWFldmRub213ZmxndmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0NDQ4ODMsImV4cCI6MjA4NzAyMDg4M30.HL9I0zzJTmhxVMd2oTbYLupgNfio_yLZ1StG9voexWQ';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ==================== CARGA DE DATOS ====================
+let geojson = null;
+let segments = [];
+let segmentLayers = {};
+let selectedIds = new Set();
+let currentTool = 'select';
+let currentFilter = 'all';
+let boxSelection = null;
+let isShiftDown = false;
+let isCtrlDown = false;
+
+const COLORS = {conservado:'#16a34a',descartado:'#dc2626',pendiente:'#f59e0b'};
+const WEIGHTS = {conservado:4,descartado:2,pendiente:3};
+const OPACITIES = {conservado:0.9,descartado:0.3,pendiente:0.7};
+
+// Cargar datos: desde archivo local por defecto (2422 segmentos)
+// Opcionalmente se puede sincronizar desde Supabase con el botón "🔄 Sincronizar"
+async function loadGeoJSON(){
+ // Por defecto, cargar desde archivo local
+ await loadFromLocalFile();
+ 
+ // Una vez cargado, opcionalmente intentar sincronizar estados desde Supabase
+ // (solo actualiza los estados de los segmentos que existen en ambos)
+ try {
+ console.log('Intentando sincronizar estados desde Supabase...');
+ const { data, error } = await supabaseClient
+ .from('calles_pavimentadas')
+ .select('fid,estado,tipo_obra,entre_calle_1,entre_calle_2')
+ .limit(10000); // Traer todos los registros, no solo 1000
+
+ if (error) {
+ console.log('Error consultando Supabase:', error);
+ return;
+ }
+ 
+ console.log(`Datos en Supabase: ${data?.length || 0} registros`);
+ console.log(`Segmentos locales: ${segments.length}`);
+
+ if (data && data.length > 0) {
+ // Crear mapa de fids de Supabase
+ const supabaseMap = new Map(data.map(row => [row.fid, row]));
+ console.log(`Mapa de Supabase tiene ${supabaseMap.size} fids`);
+
+ // Actualizar estados de segmentos locales que existen en Supabase
+ let actualizados = 0;
+ let noEncontrados = 0;
+ segments.forEach(seg => {
+ const supabaseData = supabaseMap.get(seg.id);
+ if (supabaseData) {
+ seg.props.estado = supabaseData.estado || seg.props.estado;
+ seg.props.tipo_obra = supabaseData.tipo_obra || seg.props.tipo_obra;
+ seg.props.entre_calle_1 = supabaseData.entre_calle_1 || seg.props.entre_calle_1;
+ seg.props.entre_calle_2 = supabaseData.entre_calle_2 || seg.props.entre_calle_2;
+ actualizados++;
+ } else {
+ noEncontrados++;
+ }
+ });
+
+ console.log(`Sincronización: ${actualizados} actualizados, ${noEncontrados} no encontrados en Supabase`);
+
+ if (actualizados > 0) {
+ showToast(`Sincronizados ${actualizados} segmentos desde Supabase`);
+ rebuildAll();
+ } else {
+ console.log('No se encontraron segmentos coincidentes para sincronizar');
+ console.log('Primeros fids locales:', segments.slice(0, 5).map(s => s.id));
+ console.log('Primeros fids en Supabase:', data.slice(0, 5).map(r => r.fid));
+ }
+ } else {
+ console.log('No hay datos en Supabase para sincronizar');
+ }
+ } catch (e) {
+ console.log('No se pudieron sincronizar estados desde Supabase:', e.message);
+ }
+}
+
+// Cargar desde archivo local (principal)
+async function loadFromLocalFile(){
+ try {
+ showToast('Cargando datos locales...');
+ const response = await fetch('./calles_segmentadas.geojson');
+ if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+ const geojsonData = await response.json();
+ geojson = geojsonData;
+ segments = geojson.features.map((f,i)=>({
+ id: f.properties.fid || i+1,
+ name: f.properties.name || '',
+ props: {...f.properties, estado: f.properties.estado || 'pendiente'},
+ geom: f.geometry
+ })).filter(s => s.geom && (s.geom.type === 'LineString' || s.geom.type === 'MultiLineString'));
+ 
+ document.getElementById('total-segs').textContent = segments.length;
+ console.log(`Cargados ${segments.length} segmentos desde archivo local`);
+ showToast(`Cargados ${segments.length} segmentos`);
+ buildLayers();
+ detectIntersections();
+ updateStats();
+ } catch(e) {
+ console.error('Error cargando archivo local:', e);
+ showToast('Error cargando GeoJSON local. Asegurate de tener el archivo calles_segmentadas.geojson');
+ }
+}
+
+// ==================== MAPA ====================
+const map = L.map('map',{center:[-30.755,-57.985],zoom:14,zoomControl:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(map);
+
+const layerGroup = L.layerGroup().addTo(map);
+
+function buildLayers(){
+ layerGroup.clearLayers();
+ segmentLayers = {};
+ segments.forEach(seg=>{
+ // Normalizar geometría
+ let coords;
+ if (!seg.geom) return;
+ 
+ if (seg.geom.type === 'LineString') {
+ coords = seg.geom.coordinates;
+ } else if (seg.geom.type === 'MultiLineString') {
+ // Para MultiLineString, usar la primera línea o concatenar todas
+ coords = seg.geom.coordinates[0] || [];
+ } else {
+ console.warn('Tipo de geometría no soportado:', seg.geom.type);
+ return;
+ }
+ 
+ if (!coords || coords.length < 2) return;
+ 
+ const latlngs = coords.map(c=>[c[1],c[0]]);
+ const line = L.polyline(latlngs,{
+ color: COLORS[seg.props.estado],
+ weight: WEIGHTS[seg.props.estado],
+ opacity: OPACITIES[seg.props.estado]
+ });
+ line.on('click',e=>handleSegmentClick(seg.id,e));
+ line.on('dblclick',e=>handleSegmentDoubleClick(seg.id,e));
+ line.segId = seg.id;
+ layerGroup.addLayer(line);
+ segmentLayers[seg.id] = line;
+ });
+ renderList();
+}
+
+function updateLayerColor(id){
+  const seg = segments.find(s=>s.id===id);
+  if(!seg||!segmentLayers[id])return;
+  segmentLayers[id].setStyle({
+    color: COLORS[seg.props.estado],
+    weight: WEIGHTS[seg.props.estado],
+    opacity: OPACITIES[seg.props.estado]
+  });
+}
+
+function updateStats(){
+  let cons=0,desc=0,pend=0;
+  segments.forEach(s=>{
+    if(s.props.estado==='conservado')cons++;
+    else if(s.props.estado==='descartado')desc++;
+    else pend++;
+  });
+  document.getElementById('cnt-cons').textContent = cons;
+  document.getElementById('cnt-desc').textContent = desc;
+  document.getElementById('cnt-pend').textContent = pend;
+}
+
+// ==================== SELECCIÓN ====================
+function handleSegmentClick(id,e){
+  e.originalEvent.stopPropagation();
+  
+  if(currentTool==='corte'){
+    handleCorte(id,e.latlng);
+    return;
+  }
+  
+  if(currentTool==='box') return;
+  
+  // Selección
+  if(isShiftDown && selectedIds.size>0){
+    // Seleccionar rango
+    const allIds = segments.map(s=>s.id);
+    const lastSelected = Array.from(selectedIds).pop();
+    const lastIdx = allIds.indexOf(lastSelected);
+    const currIdx = allIds.indexOf(id);
+    const [start,end] = lastIdx<currIdx?[lastIdx,currIdx]:[currIdx,lastIdx];
+    for(let i=start;i<=end;i++) selectedIds.add(allIds[i]);
+  }else if(isCtrlDown){
+    if(selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+  }else{
+    selectedIds.clear();
+    selectedIds.add(id);
+  }
+  
+  updateSelectionUI();
+}
+
+function handleSegmentDoubleClick(id,e){
+  const seg = segments.find(s=>s.id===id);
+  if(!seg)return;
+  // Toggle estado
+  const estados = ['pendiente','conservado','descartado'];
+  const currIdx = estados.indexOf(seg.props.estado);
+  seg.props.estado = estados[(currIdx+1)%3];
+  updateLayerColor(id);
+  updateStats();
+  renderList();
+  showToast(`Segmento marcado como: ${seg.props.estado}`);
+}
+
+function updateSelectionUI(){
+  document.querySelectorAll('.segment-item').forEach(el=>{
+    const id = parseInt(el.dataset.id);
+    el.classList.toggle('selected',selectedIds.has(id));
+  });
+  
+  const info = document.getElementById('selection-info');
+  if(selectedIds.size>0){
+    info.textContent = `${selectedIds.size} seleccionado(s)`;
+    info.classList.add('show');
+    document.getElementById('attrs-panel').style.display = selectedIds.size>0?'block':'none';
+  }else{
+    info.classList.remove('show');
+    document.getElementById('attrs-panel').style.display = 'none';
+  }
+  
+  // Resaltar en mapa
+  Object.entries(segmentLayers).forEach(([id,layer])=>{
+    if(selectedIds.has(parseInt(id))){
+      layer.bringToFront();
+      layer.setStyle({weight: layer.options.weight+2, dashArray:'5,5'});
+    }else{
+      layer.setStyle({weight: WEIGHTS[segments.find(s=>s.id===parseInt(id))?.props.estado||'pendiente'], dashArray:null});
+    }
+  });
+}
+
+// ==================== BOX SELECTION ====================
+map.on('mousedown',e=>{
+  if(currentTool!=='box')return;
+  if(e.originalEvent.target.closest('.sidebar')) return;
+  
+  // Desactivar drag del mapa mientras dibujamos box
+  map.dragging.disable();
+  boxSelection = L.rectangle(L.latLngBounds(e.latlng,e.latlng),{color:'#38bdf8',weight:1,fillOpacity:0.1});
+  boxSelection.addTo(map);
+});
+
+map.on('mousemove',e=>{
+  if(!boxSelection)return;
+  boxSelection.setBounds(L.latLngBounds(boxSelection.getBounds().getNorthWest(),e.latlng));
+});
+
+map.on('mouseup',e=>{
+  if(!boxSelection)return;
+  const bounds = boxSelection.getBounds();
+  layerGroup.eachLayer(layer=>{
+    if(!layer.segId)return;
+    const center = layer.getCenter();
+    if(bounds.contains(center)){
+      selectedIds.add(layer.segId);
+    }
+  });
+  map.removeLayer(boxSelection);
+  boxSelection = null;
+  // Reactivar drag del mapa
+  map.dragging.enable();
+  updateSelectionUI();
+  showToast(`${selectedIds.size} segmentos seleccionados`);
+});
+
+// ==================== HERRAMIENTA CORTE ====================
+let corteMarker = null;
+
+function handleCorte(id,latlng){
+  const seg = segments.find(s=>s.id===id);
+  if(!seg)return;
+  
+  if(corteMarker){
+    map.removeLayer(corteMarker);
+    // Dividir segmento
+    const newId = dividirSegmento(seg.id,latlng);
+    if(newId){
+      showToast('Segmento dividido');
+    }
+    corteMarker = null;
+    return;
+  }
+  
+  // Primer click - marcar punto
+  corteMarker = L.circleMarker(latlng,{radius:6,color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:1}).addTo(map);
+  showToast('Click en otro segmento para dividir');
+}
+
+function dividirSegmento(segId,latlng){
+  const seg = segments.find(s=>s.id===segId);
+  if(!seg) return null;
+  
+  const coords = seg.geom.coordinates;
+  if(coords.length<2) return null;
+  
+  // Encontrar punto más cercano
+  let minD = Infinity, splitIdx = -1;
+  coords.forEach((c,i)=>{
+    const d = Math.sqrt((c[0]-latlng.lng)**2 + (c[1]-latlng.lat)**2);
+    if(d<minD){minD=d;splitIdx=i;}
+  });
+  
+  if(splitIdx<=0||splitIdx>=coords.length-1) return null;
+  
+  // Crear dos nuevos segmentos
+  const coords1 = coords.slice(0,splitIdx+1);
+  const coords2 = coords.slice(splitIdx);
+  
+  seg.geom.coordinates = coords1;
+  seg.props.fid = segId;
+  
+  const newId = segments.length+1;
+  segments.push({
+    id: newId,
+    name: seg.name,
+    props:{...seg.props,fid:newId,estado:'pendiente'},
+    geom:{type:'LineString',coordinates:coords2}
+  });
+  
+  rebuildAll();
+  return newId;
+}
+
+function rebuildAll(){
+  buildLayers();
+  detectIntersections();
+  updateStats();
+}
+
+// ==================== DETECTAR INTERSECCIONES ====================
+let intersections = [];
+
+function detectIntersections(){
+ console.log('Detectando intersecciones...');
+ const allLines = segments.map(s=>{
+ // Normalizar coordenadas a array de [lon, lat] números
+ const rawCoords = s.geom.coordinates;
+ let coords;
+ if (Array.isArray(rawCoords[0])) {
+ // MultiLineString o LineString
+ coords = rawCoords[0][0] !== undefined && typeof rawCoords[0][0] === 'number' 
+ ? rawCoords // Ya es LineString
+ : rawCoords[0]; // Es MultiLineString, tomar primera línea
+ } else {
+ // Formato inesperado
+ coords = [];
+ }
+ 
+ return {
+ id:s.id,
+ coords:coords,
+ name:s.name
+ };
+ }).filter(s => s.coords.length > 0);
+
+ intersections = [];
+
+ for(let i=0;i<allLines.length;i++){
+ for(let j=i+1;j<allLines.length;j++){
+ const l1 = allLines[i];
+ const l2 = allLines[j];
+
+ // Si son la misma calle, no contar
+ if(l1.name.toLowerCase()===l2.name.toLowerCase()) continue;
+
+ // Buscar puntos compartidos
+ const pts1 = new Set(l1.coords.map(c=>`${Number(c[0]).toFixed(5)},${Number(c[1]).toFixed(5)}`));
+ const shared = l2.coords.filter(c=>pts1.has(`${Number(c[0]).toFixed(5)},${Number(c[1]).toFixed(5)}`));
+
+ if(shared.length>0){
+ intersections.push({
+ seg1: l1.id,
+ seg2: l2.id,
+ puntos: shared
+ });
+ }
+ }
+ }
+
+ console.log(`Encontradas ${intersections.length} intersecciones`);
+}
+
+// ==================== ATRIBUTOS ====================
+function aplicarAtributos(){
+  if(selectedIds.size===0) return;
+  
+  const tipo = document.getElementById('attr-tipo').value;
+  const entre1 = document.getElementById('attr-entre1').value;
+  const entre2 = document.getElementById('attr-entre2').value;
+  const aprob = document.getElementById('attr-aprob').value;
+  const inaugur = document.getElementById('attr-inaug').value;
+  const obs = document.getElementById('attr-obs').value;
+  
+  selectedIds.forEach(id=>{
+    const seg = segments.find(s=>s.id===id);
+    if(!seg) return;
+    
+    if(tipo) seg.props.tipo_obra = tipo;
+    if(entre1) seg.props.entre_calle_1 = entre1;
+    if(entre2) seg.props.entre_calle_2 = entre2;
+    if(aprob) seg.props.fecha_aprobacion_concejo = aprob;
+    if(inaugur) seg.props.fecha_inauguracion = inaugur;
+    if(obs) seg.props.observaciones = obs;
+    
+    // Auto-marcar como conservado si tiene tipo_obra
+    if(tipo && seg.props.estado==='pendiente'){
+      seg.props.estado = 'conservado';
+      updateLayerColor(id);
+    }
+  });
+  
+  updateStats();
+  renderList();
+  showToast(`Atributos aplicados a ${selectedIds.size} segmento(s)`);
+}
+
+function autoDetectarEntreCalles(segId){
+  const seg = segments.find(s=>s.id===segId);
+  if(!seg) return {e1:'',e2:''};
+  
+  // Encontrar intersecciones de este segmento
+  const intIds = new Set();
+  intersections.forEach(int=>{
+    if(int.seg1===segId) intIds.add(int.seg2);
+    if(int.seg2===segId) intIds.add(int.seg1);
+  });
+  
+  // Obtener nombres de calles intersectadas
+  const nombres = [...intIds].map(id=>{
+    const s = segments.find(x=>x.id===id);
+    return s?s.name:'';
+  }).filter(n=>n&&n.toLowerCase()!==seg.name.toLowerCase());
+  
+  return {
+    e1: nombres[0]||'',
+    e2: nombres[1]||''
+  };
+}
+
+// ==================== LISTA ====================
+function renderList(){
+  const q = document.getElementById('search').value.toLowerCase();
+  const list = document.getElementById('segment-list');
+  list.innerHTML = '';
+  
+  let filtered = segments.filter(s=>{
+    const cat = s.props.estado||'pendiente';
+    if(currentFilter!=='all'&&cat!==currentFilter) return false;
+    if(q&&!s.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  
+  filtered.forEach(seg=>{
+    const el = document.createElement('div');
+    el.className = `segment-item ${seg.props.estado} ${selectedIds.has(seg.id)?'selected':''}`;
+    el.dataset.id = seg.id;
+    el.onclick = ()=>{
+      selectedIds.clear();
+      selectedIds.add(seg.id);
+      updateSelectionUI();
+      
+      // Auto-detectar entre calles
+      const entre = autoDetectarEntreCalles(seg.id);
+      document.getElementById('attr-entre1').value = seg.props.entre_calle_1||entre.e1;
+      document.getElementById('attr-entre2').value = seg.props.entre_calle_2||entre.e2;
+      document.getElementById('attr-tipo').value = seg.props.tipo_obra||'';
+      document.getElementById('attr-aprob').value = seg.props.fecha_aprobacion_concejo||'';
+      document.getElementById('attr-inaug').value = seg.props.fecha_inauguracion||'';
+      document.getElementById('attr-obs').value = seg.props.observaciones||'';
+    };
+    
+    const estado = seg.props.estado||'pendiente';
+    const label = {conservado:'CONSER',descartado:'DESC',pendiente:'PEND'}[estado];
+    
+    el.innerHTML = `
+      <div class="seg-name">${seg.name}</div>
+      <span class="seg-status ${estado}">${label}</span>
+    `;
+    list.appendChild(el);
+  });
+}
+
+function setFilter(cat,btn){
+  currentFilter = cat;
+  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+// ==================== TOOLBAR ====================
+function setTool(tool){
+  currentTool = tool;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-'+tool).classList.add('active');
+  map.getContainer().style.cursor = tool==='corte'?'crosshair':(tool==='box'?'crosshair':'grab');
+  
+  if(corteMarker){
+    map.removeLayer(corteMarker);
+    corteMarker = null;
+  }
+}
+
+// ==================== MARCAR SELECCIÓN ====================
+function marcarSeleccion(estado){
+  if(selectedIds.size===0){
+    showToast('Selecciona segmentos primero');
+    return;
+  }
+  selectedIds.forEach(id=>{
+    const seg = segments.find(s=>s.id===id);
+    if(seg){
+      seg.props.estado = estado;
+      updateLayerColor(id);
+    }
+  });
+  updateStats();
+  renderList();
+  showToast(`${selectedIds.size} marcado(s) como ${estado}`);
+}
+
+function resetSeleccion(){
+  selectedIds.clear();
+  updateSelectionUI();
+  showToast('Selección limpiada');
+}
+
+// ==================== EXPORT ====================
+function exportGeoJSON(){
+  const conserved = segments.filter(s=>s.props.estado==='conservado');
+  
+  const exportFeatures = conserved.map(seg=>({
+    type:'Feature',
+    properties:{...seg.props},
+    geometry:seg.geom
+  }));
+  
+  const output = {
+    type:'FeatureCollection',
+    name:'calles_pavimentadas_chajari',
+    features:exportFeatures
+  };
+  
+  const blob = new Blob([JSON.stringify(output,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'calles_pavimentadas_chajari.geojson';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  showToast(`Exportado: ${conserved.length} segmentos conservados`);
+}
+
+function guardarProgreso(){
+  // Exporta TODOS los segmentos con su estado actual (para continuar después)
+  const exportFeatures = segments.map(seg=>({
+    type:'Feature',
+    properties:{...seg.props},
+    geometry:seg.geom
+  }));
+  
+  const output = {
+    type:'FeatureCollection',
+    name:'calles_segmentadas_progreso',
+    features:exportFeatures
+  };
+  
+  const blob = new Blob([JSON.stringify(output,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'calles_segmentadas_PROGRESO.geojson';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  const cons = segments.filter(s=>s.props.estado==='conservado').length;
+  const desc = segments.filter(s=>s.props.estado==='descartado').length;
+  const pend = segments.filter(s=>s.props.estado==='pendiente').length;
+  
+  showToast(`Progreso guardado: ${cons} cons, ${desc} desc, ${pend} pend`);
+}
+
+function cargarProgreso(event){
+ const file = event.target.files[0];
+ if(!file) return;
+
+ const reader = new FileReader();
+ reader.onload = function(e){
+ try{
+ const gj = JSON.parse(e.target.result);
+ if(!gj.features || !Array.isArray(gj.features)){
+ showToast('Archivo GeoJSON inválido');
+ return;
+ }
+
+ // Recargar segmentos con estados guardados
+ segments = gj.features.map((f,i)=>({
+ id: f.properties.fid || i+1,
+ name: f.properties.name || '',
+ props: {...f.properties, estado: f.properties.estado || 'pendiente'},
+ geom: f.geometry
+ }));
+
+ // Reconstruir capas
+ buildLayers();
+ detectIntersections();
+ updateStats();
+ renderList();
+
+ const cons = segments.filter(s=>s.props.estado==='conservado').length;
+ const desc = segments.filter(s=>s.props.estado==='descartado').length;
+ const pend = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ showToast(`Progreso cargado: ${cons} cons, ${desc} desc, ${pend} pend`);
+ }catch(err){
+ showToast('Error al cargar: '+err.message);
+ }
+ };
+ reader.readAsText(file);
+}
+
+// ==================== SINCRONIZACIÓN CON SUPABASE ====================
+
+// Guardar todos los segmentos en Supabase (upsert)
+async function guardarEnSupabase(){
+ if(segments.length === 0){
+ showToast('No hay segmentos para guardar');
+ return;
+ }
+
+ showToast('Subiendo a Supabase...');
+ console.log('Preparando', segments.length, 'segmentos para Supabase...');
+
+ const records = segments.map((seg, idx) => {
+ // Clonar la geometría para no modificar la original
+ let geom = JSON.parse(JSON.stringify(seg.geom));
+ 
+ // Debug: mostrar tipo de geom
+ if (idx < 3) {
+ console.log(`Segmento ${seg.id}:`, {
+ tipoOriginal: seg.geom?.type,
+ tipoClonado: geom?.type,
+ esArray: Array.isArray(geom?.coordinates)
+ });
+ }
+ 
+ // Convertir geometría a MultiLineString si es LineString
+ if(geom && geom.type === 'LineString') {
+ geom = {
+ type: 'MultiLineString',
+ coordinates: [geom.coordinates]
+ };
+ }
+ 
+ return {
+ fid: seg.id,
+ nombre: seg.name,
+ estado: seg.props.estado || 'pendiente',
+ tipo_obra: seg.props.tipo_obra || null,
+ entre_calle_1: seg.props.entre_calle_1 || null,
+ entre_calle_2: seg.props.entre_calle_2 || null,
+ fecha_aprobacion_concejo: seg.props.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: seg.props.fecha_inauguracion || null,
+ observaciones: seg.props.observaciones || null,
+ geom: geom,
+ longitud_m: calcularLongitud(seg.geom)
+ };
+ });
+ 
+ console.log('Primeros 3 registros:', records.slice(0, 3).map(r => ({
+ fid: r.fid,
+ tipoGeom: r.geom?.type,
+ coordLength: r.geom?.coordinates?.length
+ })));
+
+ try {
+ // Usar upsert en lotes de 100
+ const batchSize = 100;
+ let saved = 0;
+ let failedBatches = [];
+ 
+ for(let i = 0; i < records.length; i += batchSize){
+ const batch = records.slice(i, i + batchSize);
+ const batchNum = Math.floor(i / batchSize) + 1;
+ 
+ try {
+ const { error } = await supabaseClient
+ .from('calles_pavimentadas')
+ .upsert(batch, { onConflict: 'fid' });
+ 
+ if(error) {
+ console.error(`Error en lote ${batchNum}:`, error);
+ failedBatches.push({ batchNum, error: error.message });
+ } else {
+ saved += batch.length;
+ console.log(`Progreso upsert: ${saved}/${records.length}`);
+ }
+ } catch(e) {
+ console.error(`Error inesperado en lote ${batchNum}:`, e);
+ failedBatches.push({ batchNum, error: e.message });
+ }
+ }
+
+ const conservados = segments.filter(s=>s.props.estado==='conservado').length;
+ const descartados = segments.filter(s=>s.props.estado==='descartado').length;
+ const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ const msgFinal = failedBatches.length > 0 
+ ? `✅ Guardados ${saved}/${records.length}. Fallaron ${failedBatches.length} lotes.`
+ : `✅ Guardados ${saved} segmentos en Supabase`;
+ 
+ showToast(msgFinal);
+ console.log(msgFinal);
+ 
+ if (failedBatches.length > 0) {
+ console.error('Lotes fallidos:', failedBatches);
+ }
+ } catch(e) {
+ console.error('Error guardando en Supabase:', e);
+ showToast('❌ Error al guardar: '+e.message);
+ }
+}
+
+// Calcular longitud de una línea en metros (aproximación)
+function calcularLongitud(geom){
+ if(!geom || !geom.coordinates) return 0;
+ const coords = geom.type === 'LineString' ? geom.coordinates : geom.coordinates[0];
+ if(!coords || coords.length < 2) return 0;
+
+ let length = 0;
+ for(let i=1; i<coords.length; i++){
+ const [lon1, lat1] = coords[i-1];
+ const [lon2, lat2] = coords[i];
+ length += haversineDistance(lat1, lon1, lat2, lon2);
+ }
+ return Math.round(length);
+}
+
+// Distancia Haversine en metros
+function haversineDistance(lat1, lon1, lat2, lon2){
+ const R = 6371000; // Radio de la Tierra en metros
+ const toRad = x => x * Math.PI / 180;
+ const dLat = toRad(lat2 - lat1);
+ const dLon = toRad(lon2 - lon1);
+ const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+ return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Importar segmentos nuevos desde un GeoJSON (ej: desde QGIS)
+async function importarSegmentosNuevos(event){
+ const file = event.target.files[0];
+ if(!file) return;
+
+ showToast('Importando segmentos...');
+
+ const reader = new FileReader();
+ reader.onload = async function(e){
+ try{
+ const gj = JSON.parse(e.target.result);
+ if(!gj.features || !Array.isArray(gj.features)){
+ showToast('Archivo GeoJSON inválido');
+ return;
+ }
+
+ // Encontrar el fid máximo actual
+ const maxFid = segments.length > 0 ? Math.max(...segments.map(s=>s.id)) : 0;
+
+ let importados = 0;
+ let duplicados = 0;
+
+ gj.features.forEach((f, i) => {
+ // Verificar si ya existe (por nombre y geometría similar)
+ const esDuplicado = segments.some(s => 
+ s.name.toLowerCase() === (f.properties.name || '').toLowerCase() &&
+ geometriaSimilar(s.geom, f.geometry)
+ );
+
+ if(esDuplicado){
+ duplicados++;
+ return;
+ }
+
+ // Crear nuevo segmento
+ const newId = maxFid + i + 1 - duplicados;
+ const newSeg = {
+ id: newId,
+ name: f.properties.name || `Segmento_${newId}`,
+ props: {
+ fid: newId,
+ estado: f.properties.estado || 'pendiente',
+ tipo_obra: f.properties.tipo_obra || null,
+ entre_calle_1: f.properties.entre_calle_1 || null,
+ entre_calle_2: f.properties.entre_calle_2 || null,
+ fecha_aprobacion_concejo: f.properties.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: f.properties.fecha_inauguracion || null,
+ observaciones: f.properties.observaciones || null
+ },
+ geom: f.geometry
+ };
+
+ segments.push(newSeg);
+ importados++;
+ });
+
+ // Reconstruir todo
+ rebuildAll();
+
+ showToast(`✅ Importados: ${importados} | Duplicados omitidos: ${duplicados}`);
+ console.log(`Importados ${importados} segmentos nuevos`);
+
+ // Limpiar input
+ event.target.value = '';
+
+ }catch(err){
+ console.error('Error importando:', err);
+ showToast('❌ Error al importar: '+err.message);
+ }
+ };
+ reader.readAsText(file);
+}
+
+// Cargar archivo oficial de calles pavimentadas (893 segmentos)
+async function cargarArchivoOficial(){
+ if(!confirm('¿Cargar el archivo oficial de 893 calles pavimentadas?\n\nEsto reemplazará los datos actuales del editor.')){
+ return;
+ }
+
+ showToast('Cargando archivo oficial...');
+
+ try {
+ // Cargar desde la ruta del proyecto
+ const response = await fetch('../src/data/calle_pavim_edit_280426.geojson');
+ if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+ 
+ const geojsonData = await response.json();
+ 
+ if(!geojsonData.features || !Array.isArray(geojsonData.features)){
+ showToast('Archivo GeoJSON inválido');
+ return;
+ }
+
+ // Procesar los 893 segmentos
+ geojson = geojsonData;
+ segments = geojson.features.map((f, i) => ({
+ id: f.properties.fid || i + 1,
+ name: f.properties.name || f.properties.calle || '',
+ props: {
+ fid: f.properties.fid || i + 1,
+ estado: f.properties.estado || 'pendiente',
+ tipo_obra: f.properties.tipo_obra || '',
+ entre_calle_1: f.properties.entre_calle_1 || '',
+ entre_calle_2: f.properties.entre_calle_2 || '',
+ fecha_aprobacion_concejo: f.properties.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: f.properties.fecha_inauguracion || null,
+ observaciones: f.properties.observaciones || ''
+ },
+ geom: f.geometry
+ })).filter(s => s.geom && (s.geom.type === 'LineString' || s.geom.type === 'MultiLineString'));
+
+ document.getElementById('total-segs').textContent = segments.length;
+ rebuildAll();
+
+ const conservados = segments.filter(s=>s.props.estado==='conservado').length;
+ const descartados = segments.filter(s=>s.props.estado==='descartado').length;
+ const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ showToast(`✅ Cargados ${segments.length} segmentos oficiales`);
+ console.log(`Archivo oficial cargado: ${segments.length} segmentos`);
+ console.log(`- Conservados: ${conservados}`);
+ console.log(`- Descartados: ${descartados}`);
+ console.log(`- Pendientes: ${pendientes}`);
+
+ } catch(e) {
+ console.error('Error cargando archivo oficial:', e);
+ showToast('❌ Error al cargar: '+e.message);
+ }
+}
+
+// Comparar si dos geometrías son similares (para detectar duplicados)
+function geometriaSimilar(geom1, geom2){
+ if(!geom1 || !geom2) return false;
+ const coords1 = geom1.type === 'LineString' ? geom1.coordinates : geom1.coordinates[0];
+ const coords2 = geom2.type === 'LineString' ? geom2.coordinates : geom2.coordinates[0];
+ 
+ if(!coords1 || !coords2) return false;
+ if(coords1.length !== coords2.length) return false;
+
+ // Comparar primer y último punto (dentro de una tolerancia)
+ const tol = 0.0001; // ~10 metros
+ const prim1 = coords1[0];
+ const prim2 = coords2[0];
+ const ult1 = coords1[coords1.length-1];
+ const ult2 = coords2[coords2.length-1];
+
+ const mismoInicio = Math.abs(prim1[0]-prim2[0]) < tol && Math.abs(prim1[1]-prim2[1]) < tol;
+ const mismoFin = Math.abs(ult1[0]-ult2[0]) < tol && Math.abs(ult1[1]-ult2[1]) < tol;
+
+ return mismoInicio && mismoFin;
+}
+
+// Sincronizar desde Supabase (cargar completamente desde Supabase)
+async function sincronizarDesdeSupabase(){
+ if(!confirm('¿Cargar completamente desde Supabase? Esto reemplazará los datos locales actuales.')){
+ return;
+ }
+ 
+ showToast('Cargando desde Supabase...');
+ 
+ try {
+ const { data, error } = await supabaseClient
+ .from('calles_pavimentadas')
+ .select('*');
+
+ if (error) throw error;
+
+ if (data && data.length > 0) {
+ geojson = { type: 'FeatureCollection', features: [] };
+ segments = data.map((row, i) => {
+ // Normalizar geometría desde Supabase
+ let geom = row.geom;
+ if (typeof geom === 'string') {
+ try { geom = JSON.parse(geom); } catch(e) { geom = null; }
+ }
+ 
+ const feature = {
+ type: 'Feature',
+ properties: {
+ fid: row.fid,
+ name: row.nombre,
+ estado: row.estado || 'pendiente',
+ tipo_obra: row.tipo_obra,
+ entre_calle_1: row.entre_calle_1,
+ entre_calle_2: row.entre_calle_2,
+ fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+ fecha_inauguracion: row.fecha_inauguracion,
+ observaciones: row.observaciones
+ },
+ geometry: geom
+ };
+ geojson.features.push(feature);
+ return {
+ id: row.fid || i + 1,
+ name: row.nombre || '',
+ props: {
+ estado: row.estado || 'pendiente',
+ tipo_obra: row.tipo_obra,
+ entre_calle_1: row.entre_calle_1,
+ entre_calle_2: row.entre_calle_2,
+ fecha_aprobacion_concejo: row.fecha_aprobacion_concejo,
+ fecha_inauguracion: row.fecha_inauguracion,
+ observaciones: row.observaciones
+ },
+ geom: geom
+ };
+ }).filter(s => s.geom !== null);
+
+ document.getElementById('total-segs').textContent = segments.length;
+ rebuildAll();
+ showToast(`✅ Cargados ${segments.length} segmentos desde Supabase`);
+ console.log(`Cargados ${segments.length} segmentos desde Supabase`);
+ } else {
+ showToast('No hay datos en Supabase');
+ }
+ } catch (e) {
+ console.error('Error cargando desde Supabase:', e);
+ showToast('❌ Error al sincronizar: '+e.message);
+ }
+}
+
+// Reemplazar TODO en Supabase (borrar + insertar)
+async function reemplazarTodoEnSupabase(){
+ if(segments.length === 0){
+ showToast('No hay segmentos para subir');
+ return;
+ }
+
+ const conservados = segments.filter(s=>s.props.estado==='conservado').length;
+ const descartados = segments.filter(s=>s.props.estado==='descartado').length;
+ const pendientes = segments.filter(s=>s.props.estado==='pendiente').length;
+
+ const mensaje = `⚠️ ATENCIÓN ⚠️\n\n` +
+ `Esto BORRARÁ todos los ${segments.length} segmentos existentes en Supabase y los reemplazará.\n\n` +
+ `Segmentos a subir:\n` +
+ `- ${conservados} conservados\n` +
+ `- ${descartados} descartados\n` +
+ `- ${pendientes} pendientes\n` +
+ `Total: ${segments.length}\n\n` +
+ `¿Confirmar reemplazo completo?`;
+
+ if(!confirm(mensaje)){
+ return;
+ }
+
+ showToast('Iniciando reemplazo completo...');
+
+ try {
+ // Paso 1: Borrar todos los registros
+ console.log('Borrando registros existentes...');
+ const { error: deleteError } = await supabaseClient
+ .from('calles_pavimentadas')
+ .delete()
+ .neq('id', 0); // Borrar todos (condición que siempre sea true)
+
+ if(deleteError) {
+ console.warn('Error al borrar (puede ser por RLS):', deleteError);
+ // Intentar con TRUNCATE vía RPC si está disponible
+ }
+
+ // Paso 2: Preparar registros nuevos
+ console.log('Preparando registros...');
+ const records = segments.map((seg, idx) => {
+ // Clonar la geometría para no modificar la original
+ let geom = JSON.parse(JSON.stringify(seg.geom));
+ 
+ // Debug: mostrar tipo de geom para los primeros
+ if (idx < 3) {
+ console.log(`Segmento ${seg.id} (reemplazar):`, {
+ tipoOriginal: seg.geom?.type,
+ tipoClonado: geom?.type
+ });
+ }
+ 
+ // Verificar que geom es válido
+ if (!geom || !geom.type) {
+ console.warn('Segmento sin geometría válida:', seg.id);
+ return null;
+ }
+ 
+ // Convertir geometría a MultiLineString si es LineString
+ if(geom.type === 'LineString') {
+ geom = {
+ type: 'MultiLineString',
+ coordinates: [geom.coordinates]
+ };
+ }
+ 
+ return {
+ fid: seg.id,
+ nombre: seg.name,
+ estado: seg.props.estado || 'pendiente',
+ tipo_obra: seg.props.tipo_obra || null,
+ entre_calle_1: seg.props.entre_calle_1 || null,
+ entre_calle_2: seg.props.entre_calle_2 || null,
+ fecha_aprobacion_concejo: seg.props.fecha_aprobacion_concejo || null,
+ fecha_inauguracion: seg.props.fecha_inauguracion || null,
+ observaciones: seg.props.observaciones || null,
+ geom: geom,
+ longitud_m: calcularLongitud(seg.geom)
+ };
+ }).filter(r => r !== null);
+ 
+ console.log(`Registros preparados: ${records.length} de ${segments.length}`);
+ console.log('Muestra de registros:', records.slice(0, 3).map(r => ({
+ fid: r.fid,
+ tipoGeom: r.geom?.type,
+ coordLength: r.geom?.coordinates?.length
+ })));
+
+ // Paso 3: Insertar en lotes de 100
+ console.log(`Insertando ${records.length} registros...`);
+ const batchSize = 100;
+ let inserted = 0;
+ let failedBatches = [];
+
+ for(let i = 0; i < records.length; i += batchSize){
+ const batch = records.slice(i, i + batchSize);
+ const batchNum = Math.floor(i / batchSize) + 1;
+ const totalBatches = Math.ceil(records.length / batchSize);
+ 
+ try {
+ const { error: insertError } = await supabaseClient
+ .from('calles_pavimentadas')
+ .insert(batch);
+
+ if(insertError) {
+ console.error(`Error en lote ${batchNum}:`, insertError);
+ failedBatches.push({ batchNum, error: insertError.message, count: batch.length });
+ continue; // Continuar con el siguiente lote, no parar
+ }
+
+ inserted += batch.length;
+ console.log(`Progreso: ${inserted}/${records.length}`);
+ showToast(`Subiendo... ${inserted}/${records.length}`);
+ } catch (e) {
+ console.error(`Error inesperado en lote ${batchNum}:`, e);
+ failedBatches.push({ batchNum, error: e.message, count: batch.length });
+ // Continuar con el siguiente lote
+ }
+ }
+ 
+ // Reporte final
+ const msgFinal = failedBatches.length > 0 
+ ? `✅ Subidos ${inserted}/${records.length}. Fallaron ${failedBatches.length} lotes.`
+ : `✅ Reemplazo completado: ${inserted} segmentos`;
+ 
+ showToast(msgFinal);
+ console.log(msgFinal);
+ 
+ if (failedBatches.length > 0) {
+ console.error('Lotes fallidos:', failedBatches);
+ }
+
+ } catch (e) {
+ console.error('Error en reemplazo:', e);
+ showToast('❌ Error al reemplazar: '+e.message);
+ }
+}
+
+// ==================== UTILS ====================
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// Keyboard handlers
+document.addEventListener('keydown',e=>{
+  if(e.key==='Shift') isShiftDown = true;
+  if(e.key==='Control') isCtrlDown = true;
+  if(e.key==='a'&&(e.ctrlKey||e.metaKey)){
+    e.preventDefault();
+    selectedIds = new Set(segments.map(s=>s.id));
+    updateSelectionUI();
+  }
+  if(e.key==='Delete'||e.key==='Backspace'){
+    if(selectedIds.size>0){
+      marcarSeleccion('descartado');
+    }
+  }
+});
+
+document.addEventListener('keyup',e=>{
+ if(e.key==='Shift') isShiftDown = false;
+ if(e.key==='Control') isCtrlDown = false;
+});
+
+// Event listeners para inputs file
+document.getElementById('import-file')?.addEventListener('change', importarSegmentosNuevos);
+
+// Iniciar
+loadGeoJSON();
+setTool('select');
+</script>
+</body>
+</html>

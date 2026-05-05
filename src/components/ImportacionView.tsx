@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { ImportadorDatos } from './ImportadorDatos'
 import { ImportadorPoligonos } from './ImportadorPoligonos'
-import { MapPin, Hexagon } from 'lucide-react'
+import { ImportadorEspaciosVerdes } from './ImportadorEspaciosVerdes'
+import { ImportadorCallesPavimentadas } from './ImportadorCallesPavimentadas'
+import { MapPin, Hexagon, Trees, Route } from 'lucide-react'
 
 export const ImportacionView = () => {
-  const [activeTab, setActiveTab] = useState<'puntos' | 'poligonos'>('puntos')
+  const [activeTab, setActiveTab] = useState<'puntos' | 'poligonos' | 'espacios' | 'calles'>('puntos')
 
   return (
     <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
@@ -21,7 +23,7 @@ export const ImportacionView = () => {
             }`}
           >
             <MapPin className="w-4 h-4" />
-            Luminarias (Puntos)
+            Luminarias
           </button>
           <button
             onClick={() => setActiveTab('poligonos')}
@@ -32,7 +34,29 @@ export const ImportacionView = () => {
             }`}
           >
             <Hexagon className="w-4 h-4" />
-            Barrios (Polígonos)
+            Barrios
+          </button>
+          <button
+            onClick={() => setActiveTab('espacios')}
+            className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+              activeTab === 'espacios'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Trees className="w-4 h-4" />
+            Espacios Verdes
+          </button>
+          <button
+            onClick={() => setActiveTab('calles')}
+            className={`pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+              activeTab === 'calles'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Route className="w-4 h-4" />
+            Calles Pavimentadas
           </button>
         </div>
       </div>
@@ -41,6 +65,8 @@ export const ImportacionView = () => {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'puntos' && <ImportadorDatos />}
         {activeTab === 'poligonos' && <ImportadorPoligonos />}
+        {activeTab === 'espacios' && <ImportadorEspaciosVerdes />}
+        {activeTab === 'calles' && <ImportadorCallesPavimentadas />}
       </div>
     </div>
   )

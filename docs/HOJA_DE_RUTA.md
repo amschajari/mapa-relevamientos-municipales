@@ -11,11 +11,13 @@ Este documento establece el estado actual del proyecto, los desafíos identifica
 - **Control de Capas**: UI flotante para prender/apagar Barrios y Luminarias.
 - **Visualización Pro**: Clusterización de luminarias con diseño "Luz" (Amarillo Ámbar con pulso).
 - **Enriquecimiento Geográfico**: Geocodificación inversa automática (Calles/Alturas reales) y estados de red (Encendida/Apagada).
+- **Nueva UI Estilo IDE**: Migración a paradigma IDERA/IGN con lista de capas compacta y panel de ajustes "volador" contextual.
+- **Interacción Avanzada**: Cierre automático de paneles al interactuar con el mapa y visualización optimizada para pantallas de 1366px.
 - **Mejoras de UX en Login**: Soporte para tecla `Esc`, cierre al clickear fuera y alternancia de visibilidad de contraseña (ojo).
 - **Gestión Admin**: Botón de **Reiniciar Relevamiento** para limpieza de datos de prueba.
 - **Seguridad RLS**: Políticas configuradas para CRUD de puntos vía JWT (Master Admin).
 - **Sincronización Inteligente**: Auditor de superficie (Ha) y estimación automática de luminarias.
-- **Corrección de Bugs**: Resuelto "Error #300" (crash de Leaflet al ocultar capas).
+- **Corrección de Bugs**: Resuelto "Error #300" (crash de Leaflet al ocultar capas) y errores de sintaxis en Sidebar.
 
 ---
 
@@ -56,8 +58,12 @@ Este documento establece el estado actual del proyecto, los desafíos identifica
 - Cambiar el campo `luminarias_estimadas` a opcional o "estimado ajustable".
 - Agregar visualización de "Última actividad" por barrio (quién relevó y cuándo).
 
-### Tarea 3: DevOps y Deploy
-- **Git**: Push a `main`.
+### Tarea 3: Módulo de Calles Pavimentadas
+- Implementar filtros de categorización en el nuevo `LayerSettingsPanel`.
+- Vincular la capa GeoJSON de calles con la base de datos de Supabase para estados de obra.
+
+### Tarea 4: DevOps y Deploy
+- **Git**: Mantener ramas de feature (`feature/ui-ide-argentina`) antes de mergear a `main`.
 - **GitHub Pages**: Reactivar la rama `gh-pages`.
 - **CI/CD**: Verificar `deploy.yml` para asegurar que el build de Vite usa el `base` path correcto (`/mapa-relevamientos-municipales/`).
 

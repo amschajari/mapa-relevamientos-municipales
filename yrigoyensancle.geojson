@@ -1,0 +1,320 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9840016, -30.7639137]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3310",
+        "direccion": "Av Yrigoyen 3310",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9841862, -30.7640434]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3350",
+        "direccion": "Av Yrigoyen 3350",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9844387, -30.7642738]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3390",
+        "direccion": "Av Yrigoyen 3390",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Sin base",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9846060, -30.7644389]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3410",
+        "direccion": "Av Yrigoyen 3410",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9848921, -30.7646629]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3450",
+        "direccion": "Av Yrigoyen 3450",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9851117, -30.7648811]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3490",
+        "direccion": "Av Yrigoyen 3490",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9853671, -30.7650814]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3510",
+        "direccion": "Av Yrigoyen 3510",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9855680, -30.7652929]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3550",
+        "direccion": "Av Yrigoyen 3550",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9858398, -30.7654625]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3590",
+        "direccion": "Av Yrigoyen 3590",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9860573, -30.7656794]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3610",
+        "direccion": "Av Yrigoyen 3610",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9863498, -30.7659056]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3650",
+        "direccion": "Av Yrigoyen 3650",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9865580, -30.7660931]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3690",
+        "direccion": "Av Yrigoyen 3690",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9867479, -30.7662562]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3710",
+        "direccion": "Av Yrigoyen 3710",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9870079, -30.7664729]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3750",
+        "direccion": "Av Yrigoyen 3750",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9871902, -30.7666425]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3790",
+        "direccion": "Av Yrigoyen 3790",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9874291, -30.7668416]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3810",
+        "direccion": "Av Yrigoyen 3810",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9876716, -30.7670893]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3850",
+        "direccion": "Av Yrigoyen 3850",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9878783, -30.7672319]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3890",
+        "direccion": "Av Yrigoyen 3890",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9881437, -30.7674728]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3910",
+        "direccion": "Av Yrigoyen 3910",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9883568, -30.7676873]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3950",
+        "direccion": "Av Yrigoyen 3950",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Con base en buenas condiciones",
+        "tipoCableado": "Subterráneo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-57.9886537, -30.7678963]
+      },
+      "properties": {
+        "id": "LedAvYrigoyen3990",
+        "direccion": "Av Yrigoyen 3990",
+        "barrio": "San Clemente",
+        "tipoLuminaria": "LED 150W",
+        "estadoBase": "Sin base",
+        "tipoCableado": "Subterráneo"
+      }
+    }
+  ]
+}

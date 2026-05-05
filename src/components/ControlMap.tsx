@@ -1,14 +1,18 @@
 import { useEffect, useCallback, useMemo, useRef } from 'react'
-import { MapContainer, TileLayer, GeoJSON, useMap, Popup, Marker } from 'react-leaflet'
+import { MapContainer, TileLayer, GeoJSON, useMap, Popup, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet.heat'
 import type { GeoJsonObject } from 'geojson'
 import type { Barrio, TareaRelevamiento, PuntoRelevamiento } from '@/types'
 import { useBarrioStore } from '@/stores/barrioStore'
+import { useMapStore } from '@/stores'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { cn } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
+import { EspaciosVerdesLayer } from './EspaciosVerdesLayer'
+import PavimentoLayer from './PavimentoLayer'
+import { MAP_CONFIG } from '@/lib/constants'
 
 interface ControlMapProps {
   tareas?: TareaRelevamiento[]
@@ -79,7 +83,7 @@ const HeatmapLayer = ({ points, totalPoints }: { points: PuntoRelevamiento[], to
       heatLayerRef.current = (L as any).heatLayer(heatData, {
         radius: dynamicRadius,
         blur: 15,
-        maxZoom: 18,
+        maxZoom: 19,
         gradient: { 
           0.4: '#fde047', // Amarillo
           0.6: '#f97316', // Naranja
@@ -114,21 +118,7 @@ const HeatmapLayer = ({ points, totalPoints }: { points: PuntoRelevamiento[], to
   return null
 }
 
-// Componente para ajustar la vista a los bounds del GeoJSON
-const FitBounds = ({ geoJson }: { geoJson: GeoJsonObject }) => {
-  const map = useMap()
 
-  useEffect(() => {
-    const layer = L.geoJSON(geoJson)
-    const bounds = layer.getBounds()
-    if (bounds.isValid()) {
-      const padding = window.innerWidth < 640 ? [16, 16] : [50, 50]
-      map.fitBounds(bounds, { padding: padding as [number, number] })
-    }
-  }, [map, geoJson])
-
-  return null
-}
 
 // Componente para centrar un barrio seleccionado
 const CenterBarrio = ({ 
@@ -150,7 +140,7 @@ const CenterBarrio = ({
         const layer = L.geoJSON(feature)
         const bounds = layer.getBounds()
         if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [100, 100], maxZoom: 16 })
+          map.fitBounds(bounds, { padding: [100, 100], maxZoom: 18 })
         }
       }
     }
@@ -161,6 +151,11 @@ const CenterBarrio = ({
 
 const OfficialPointsLayer = () => {
   const { officialPoints, visibleLayers, fetchOfficialPoints, mapFilters } = useBarrioStore()
+  const { layers } = useMapStore()
+  
+  // Verificar visibilidad desde mapStore (para que funcione con LayersPanel)
+  const showLuminarias = layers.find(l => l.id === 'luminarias-todas')?.visible ?? visibleLayers.luminarias
+  const showHeatmap = layers.find(l => l.id === 'luminarias-calor')?.visible ?? visibleLayers.heatmap
 
   useEffect(() => {
     fetchOfficialPoints()
@@ -227,14 +222,14 @@ const OfficialPointsLayer = () => {
 
   return (
     <>
-      {visibleLayers.heatmap && filteredPoints.length > 0 && (
+      {(showHeatmap) && filteredPoints.length > 0 && (
         <HeatmapLayer 
           points={filteredPoints} 
           totalPoints={officialPoints?.length || 0} 
         />
       )}
       
-      {visibleLayers.luminarias && filteredPoints.length > 0 && (
+      {(showLuminarias) && filteredPoints.length > 0 && (
         <MarkerClusterGroup
           key={`cluster-group-${filteredPoints.length}-${(mapFilters.estadosBase || []).join(',')}-${mapFilters.barrio}`}
           chunkedLoading
@@ -243,7 +238,7 @@ const OfficialPointsLayer = () => {
           showCoverageOnHover={true}
           spiderfyOnMaxZoom={true}
           zoomToBoundsOnClick={true}
-          disableClusteringAtZoom={18}
+          disableClusteringAtZoom={19}
         >
           {filteredPoints.map((point: PuntoRelevamiento, idx: number) => {
             if (!point.geom) return null;
@@ -401,8 +396,12 @@ const BarriosLayer = ({
 }) => {
   const map = useMap()
   const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio, visibleLayers } = useBarrioStore()
+  const { layers } = useMapStore()
   const geoJsonRef = useRef<L.GeoJSON | null>(null)
   const activeTooltipRef = useRef<L.Tooltip | null>(null)
+
+  // Verificar visibilidad desde mapStore (para que funcione con LayersPanel)
+  const showBarrios = layers.find(l => l.id === 'barrios-poligonos')?.visible ?? visibleLayers.barrios
 
   // Memoizar estilos por estado para evitar recálculos
   const getBarrioStyle = useCallback(
@@ -503,7 +502,7 @@ const BarriosLayer = ({
         </div>
       `
 
-      ;// Tooltip: solo al hacer click (no en hover)
+      // Tooltip: solo al hacer click (no en hover)
       layer.on({
         mouseover: (e) => highlightFeature(e, feature),
         mouseout: (e) => resetHighlight(e, feature),
@@ -534,7 +533,7 @@ const BarriosLayer = ({
     [getBarrioByNombre, onBarrioClick, setSelectedBarrio, highlightFeature, resetHighlight, map]
   )
 
-  return visibleLayers.barrios ? (
+  return showBarrios ? (
     <GeoJSON
       ref={geoJsonRef}
       data={geoJson}
@@ -544,61 +543,75 @@ const BarriosLayer = ({
   ) : null
 }
 
+const MapEvents = () => {
+  const { setSelectedLayer } = useMapStore()
+  useMapEvents({
+    click: () => {
+      console.log('[MapEvents] Map clicked, clearing selection')
+      setSelectedLayer(null)
+    },
+  })
+  return null
+}
+
 export const ControlMap = ({
   onBarrioClick,
   selectedBarrio,
 }: ControlMapProps) => {
-  const { activeBaseMap, barrios } = useBarrioStore()
+  const { activeBaseMap: barrioStoreBaseMap, barrios } = useBarrioStore()
+  const { activeBaseMap: mapStoreBaseMap } = useMapStore()
+  
+  // Usar mapStore si está disponible, sino fallback a barrioStore
+  const activeBaseMap = mapStoreBaseMap || barrioStoreBaseMap
   
   const barriosGeoJson = useMemo(() => {
     return {
       type: 'FeatureCollection',
-      features: barrios.filter(b => b.geojson).map(b => {
-        // Asegurarnos de que el geojson mantenga el nombre correcto para la capa
-        const feature = { ...b.geojson }
-        if (!feature.properties) feature.properties = {}
-        feature.properties.Nombre = b.nombre
-        return feature
-      })
+      features: [...barrios]
+        .sort((a, b) => {
+          // "Sin Barrio" siempre al principio para que quede abajo en el stack SVG
+          if (a.nombre === 'Sin Barrio') return -1;
+          if (b.nombre === 'Sin Barrio') return 1;
+          return 0;
+        })
+        .filter(b => b.geojson)
+        .map(b => {
+          // Asegurarnos de que el geojson mantenga el nombre correcto para la capa
+          const feature = { ...b.geojson }
+          if (!feature.properties) feature.properties = {}
+          feature.properties.Nombre = b.nombre
+          return feature
+        })
     } as GeoJsonObject
   }, [barrios])
 
-  const center = useMemo(() => [-30.7516, -57.9872] as [number, number], [])
-  const defaultZoom = typeof window !== 'undefined' && window.innerWidth < 640 ? 15 : 14
+  const center = useMemo(() => MAP_CONFIG.CENTER, [])
+  const defaultZoom = MAP_CONFIG.ZOOM_DEFAULT
 
   return (
     <div className="h-full w-full relative">
       <MapContainer
         center={center}
         zoom={defaultZoom}
-        maxZoom={18}
+        maxZoom={20}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
-        {activeBaseMap === 'osm' ? (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={18}
-            maxNativeZoom={18}
-          />
-        ) : activeBaseMap === 'osm-dark' ? (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            maxZoom={19}
-            maxNativeZoom={14}
-          />
-        ) : (
-          <TileLayer
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={18}
-            maxNativeZoom={18}
-          />
-        )}
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url={activeBaseMap === 'osm' 
+            ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            : activeBaseMap === 'osm-dark'
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          }
+          maxZoom={20}
+          maxNativeZoom={activeBaseMap === 'satellite' ? 18 : 19}
+        />
 
-        <FitBounds geoJson={barriosGeoJson} />
+        <MapEvents />
+
+
         <CenterBarrio selectedBarrio={selectedBarrio || null} geoJson={barriosGeoJson} />
 
         <BarriosLayer 
@@ -609,7 +622,13 @@ export const ControlMap = ({
 
         <OfficialPointsLayer />
 
-        <LayerControl />
+        <EspaciosVerdesLayer />
+
+        <PavimentoLayer />
+
+        <div className="sm:hidden">
+          <LayerControl />
+        </div>
         <MobileMapControls />
       </MapContainer>
     </div>
