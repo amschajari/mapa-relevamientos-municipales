@@ -60,7 +60,7 @@ export const MAP_CONFIG = {
   // Zoom levels
   ZOOM_DEFAULT: 13,
   ZOOM_MIN: 11,
-  ZOOM_MAX: 19,
+  ZOOM_MAX: 20,
 
   // Capas disponibles
   LAYERS: {

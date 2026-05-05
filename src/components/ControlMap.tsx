@@ -12,6 +12,7 @@ import { LayerControl } from './LayerControl'
 import { MobileMapControls } from './MobileMapControls'
 import { EspaciosVerdesLayer } from './EspaciosVerdesLayer'
 import PavimentoLayer from './PavimentoLayer'
+import { MAP_CONFIG } from '@/lib/constants'
 
 interface ControlMapProps {
   tareas?: TareaRelevamiento[]
@@ -82,7 +83,7 @@ const HeatmapLayer = ({ points, totalPoints }: { points: PuntoRelevamiento[], to
       heatLayerRef.current = (L as any).heatLayer(heatData, {
         radius: dynamicRadius,
         blur: 15,
-        maxZoom: 18,
+        maxZoom: 19,
         gradient: { 
           0.4: '#fde047', // Amarillo
           0.6: '#f97316', // Naranja
@@ -117,21 +118,7 @@ const HeatmapLayer = ({ points, totalPoints }: { points: PuntoRelevamiento[], to
   return null
 }
 
-// Componente para ajustar la vista a los bounds del GeoJSON
-const FitBounds = ({ geoJson }: { geoJson: GeoJsonObject }) => {
-  const map = useMap()
 
-  useEffect(() => {
-    const layer = L.geoJSON(geoJson)
-    const bounds = layer.getBounds()
-    if (bounds.isValid()) {
-      const padding = window.innerWidth < 640 ? [16, 16] : [50, 50]
-      map.fitBounds(bounds, { padding: padding as [number, number] })
-    }
-  }, [map, geoJson])
-
-  return null
-}
 
 // Componente para centrar un barrio seleccionado
 const CenterBarrio = ({ 
@@ -153,7 +140,7 @@ const CenterBarrio = ({
         const layer = L.geoJSON(feature)
         const bounds = layer.getBounds()
         if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [100, 100], maxZoom: 16 })
+          map.fitBounds(bounds, { padding: [100, 100], maxZoom: 18 })
         }
       }
     }
@@ -251,7 +238,7 @@ const OfficialPointsLayer = () => {
           showCoverageOnHover={true}
           spiderfyOnMaxZoom={true}
           zoomToBoundsOnClick={true}
-          disableClusteringAtZoom={18}
+          disableClusteringAtZoom={19}
         >
           {filteredPoints.map((point: PuntoRelevamiento, idx: number) => {
             if (!point.geom) return null;
@@ -580,25 +567,33 @@ export const ControlMap = ({
   const barriosGeoJson = useMemo(() => {
     return {
       type: 'FeatureCollection',
-      features: barrios.filter(b => b.geojson).map(b => {
-        // Asegurarnos de que el geojson mantenga el nombre correcto para la capa
-        const feature = { ...b.geojson }
-        if (!feature.properties) feature.properties = {}
-        feature.properties.Nombre = b.nombre
-        return feature
-      })
+      features: [...barrios]
+        .sort((a, b) => {
+          // "Sin Barrio" siempre al principio para que quede abajo en el stack SVG
+          if (a.nombre === 'Sin Barrio') return -1;
+          if (b.nombre === 'Sin Barrio') return 1;
+          return 0;
+        })
+        .filter(b => b.geojson)
+        .map(b => {
+          // Asegurarnos de que el geojson mantenga el nombre correcto para la capa
+          const feature = { ...b.geojson }
+          if (!feature.properties) feature.properties = {}
+          feature.properties.Nombre = b.nombre
+          return feature
+        })
     } as GeoJsonObject
   }, [barrios])
 
-  const center = useMemo(() => [-30.7516, -57.9872] as [number, number], [])
-  const defaultZoom = typeof window !== 'undefined' && window.innerWidth < 640 ? 15 : 14
+  const center = useMemo(() => MAP_CONFIG.CENTER, [])
+  const defaultZoom = MAP_CONFIG.ZOOM_DEFAULT
 
   return (
     <div className="h-full w-full relative">
       <MapContainer
         center={center}
         zoom={defaultZoom}
-        maxZoom={18}
+        maxZoom={20}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
       >
@@ -610,11 +605,13 @@ export const ControlMap = ({
             ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           }
+          maxZoom={20}
+          maxNativeZoom={activeBaseMap === 'satellite' ? 18 : 19}
         />
 
         <MapEvents />
 
-        <FitBounds geoJson={barriosGeoJson} />
+
         <CenterBarrio selectedBarrio={selectedBarrio || null} geoJson={barriosGeoJson} />
 
         <BarriosLayer 

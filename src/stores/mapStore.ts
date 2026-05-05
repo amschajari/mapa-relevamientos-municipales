@@ -75,7 +75,28 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
       }
     ]
   },
- {
+  {
+    id: 'barrios',
+    name: 'Barrios',
+    icon: 'MapPin',
+    expanded: false,
+    layers: [
+      {
+        id: 'barrios-poligonos',
+        name: 'Polígonos de Barrios',
+        type: 'polygon',
+        source: 'supabase',
+        visible: false,
+        domain: 'barrios',
+        sublayer: 'poligonos',
+        opacity: 100,
+        style: { fillColor: '#3b82f6', fillOpacity: 0.1, color: '#2563eb', weight: 2 },
+        description: 'Límites de barrios',
+        dataSource: 'barrios'
+      }
+    ]
+  },
+  {
     id: 'pavimento',
     name: 'Calles Pavimentadas',
     icon: 'Route',
@@ -114,27 +135,6 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
         style: { fillColor: '#22c55e', fillOpacity: 0.4, color: '#16a34a', weight: 2 },
         description: 'Parques, plazas y plazoletas de Chajarí',
         dataSource: 'espacios_verdes'
-      }
-    ]
-  },
-  {
-    id: 'barrios',
-    name: 'Barrios',
-    icon: 'MapPin',
-    expanded: false,
-    layers: [
-      {
-        id: 'barrios-poligonos',
-        name: 'Polígonos de Barrios',
-        type: 'polygon',
-        source: 'supabase',
-        visible: false,
-        domain: 'barrios',
-        sublayer: 'poligonos',
-        opacity: 100,
-        style: { fillColor: '#3b82f6', fillOpacity: 0.1, color: '#2563eb', weight: 2 },
-        description: 'Límites de barrios',
-        dataSource: 'barrios'
       }
     ]
   }

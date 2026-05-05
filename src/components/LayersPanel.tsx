@@ -6,9 +6,10 @@ import {
   EyeOff,
   Layers,
   Map,
-  Route
+  Route,
+  Lock
 } from 'lucide-react'
-import { useMapStore } from '@/stores'
+import { useMapStore, useBarrioStore } from '@/stores'
 
 import { cn } from '@/lib/constants'
 
@@ -25,6 +26,11 @@ interface LayersPanelProps {
 
 export const LayersPanel = ({ className }: LayersPanelProps) => {
   const { domains, toggleLayer, selectedLayerId, setSelectedLayer } = useMapStore()
+  const { user } = useBarrioStore()
+
+  const isLayerDisabled = (domainId: string) => {
+    return !user && (domainId === 'pavimento' || domainId === 'espacios_verdes')
+  }
 
 
   return (
@@ -64,42 +70,54 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
                         "group flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all border",
                         isSelected 
                           ? "bg-primary-50 border-primary-100 shadow-sm" 
-                          : "border-transparent hover:bg-gray-50"
+                          : "border-transparent hover:bg-gray-50",
+                        isLayerDisabled(domain.id) && "opacity-50 grayscale pointer-events-none cursor-not-allowed bg-gray-50/50"
                       )}
                     >
-                      {/* Toggle Visibility (Eye) */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleLayer(layer.id)
-                        }}
-                        className={cn(
-                          "p-1 rounded-md transition-colors",
-                          layer.visible ? "text-primary-600 bg-white shadow-sm" : "text-gray-300 hover:text-gray-400"
-                        )}
-                        title={layer.visible ? "Ocultar capa" : "Mostrar capa"}
-                      >
-                        {layer.visible ? (
-                          <Eye className="w-3.5 h-3.5" />
-                        ) : (
-                          <EyeOff className="w-3.5 h-3.5" />
-                        )}
-                      </button>
+                      {/* Toggle Visibility (Eye) / Lock */}
+                      {isLayerDisabled(domain.id) ? (
+                        <div className="p-1 text-gray-400">
+                          <Lock className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleLayer(layer.id)
+                          }}
+                          className={cn(
+                            "p-1 rounded-md transition-colors",
+                            layer.visible ? "text-primary-600 bg-white shadow-sm" : "text-gray-300 hover:text-gray-400"
+                          )}
+                          title={layer.visible ? "Ocultar capa" : "Mostrar capa"}
+                        >
+                          {layer.visible ? (
+                            <Eye className="w-3.5 h-3.5" />
+                          ) : (
+                            <EyeOff className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      )}
 
                       {/* Layer Name / Selection */}
                       <button
-                        onClick={() => setSelectedLayer(isSelected ? null : layer.id)}
+                        onClick={() => !isLayerDisabled(domain.id) && setSelectedLayer(isSelected ? null : layer.id)}
+                        disabled={isLayerDisabled(domain.id)}
                         className={cn(
                           "flex-1 text-left text-xs font-medium truncate",
                           layer.visible ? "text-gray-900" : "text-gray-400",
-                          isSelected && "text-primary-700"
+                          isSelected && "text-primary-700",
+                          isLayerDisabled(domain.id) && "text-gray-400 font-normal"
                         )}
                       >
                         {layer.name}
+                        {isLayerDisabled(domain.id) && (
+                          <span className="ml-1 text-[8px] font-bold uppercase tracking-tight text-gray-400">(Admin)</span>
+                        )}
                       </button>
 
                       {/* Selection indicator */}
-                      {isSelected && (
+                      {isSelected && !isLayerDisabled(domain.id) && (
                         <div className="w-1 h-3 bg-primary-500 rounded-full" />
                       )}
                     </div>

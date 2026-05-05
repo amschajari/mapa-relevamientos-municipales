@@ -76,8 +76,13 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
                   <span className="text-[9px] text-gray-300">|</span>
                   <span className="text-[10px] font-medium text-gray-500">Alejandro Saposnik</span>
                 </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded text-[8px] font-black uppercase tracking-widest animate-pulse">
+                    Entorno de Desarrollo
+                  </span>
+                </div>
                 {lastUpdate && lastUpdate.getTime() > 0 && (
-                  <p className="text-[9px] text-gray-400">
+                  <p className="text-[9px] text-gray-400 mt-0.5">
                     Act: {format(lastUpdate, "dd/MM/yy HH:mm", { locale: es })}
                   </p>
                 )}

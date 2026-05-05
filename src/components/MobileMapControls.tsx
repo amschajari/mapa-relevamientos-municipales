@@ -47,7 +47,7 @@ const GPSButton = ({ onLocate }: { onLocate: (pos: [number, number]) => void }) 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const latlng: [number, number] = [pos.coords.latitude, pos.coords.longitude]
-        map.flyTo(latlng, 17, { animate: true, duration: 1.2 })
+        map.flyTo(latlng, 18, { animate: true, duration: 1.2 })
         onLocate(latlng)
         setLocating(false)
       },
