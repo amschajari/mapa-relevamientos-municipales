@@ -128,7 +128,7 @@ const DEFAULT_DOMAINS: LayerDomain[] = [
         name: 'Parques y Plazas',
         type: 'polygon',
         source: 'supabase',
-        visible: true,
+        visible: false,
         domain: 'espacios_verdes',
         sublayer: 'todos',
         opacity: 100,
