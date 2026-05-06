@@ -6,11 +6,28 @@ import { HelpCircle, X } from 'lucide-react'
 
 const TOUR_STORAGE_KEY = 'mapa-relevamiento-tour-completed'
 
-export const TourController = () => {
+interface TourControllerProps {
+  onNavigateToLayers?: () => void
+  onNavigateToNav?: () => void
+}
+
+export const TourController = ({ onNavigateToLayers, onNavigateToNav }: TourControllerProps) => {
   const tourRef = useRef<any>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const onNavigateToLayersRef = useRef(onNavigateToLayers)
+  const onNavigateToNavRef = useRef(onNavigateToNav)
 
   useEffect(() => {
+    onNavigateToLayersRef.current = onNavigateToLayers
+  }, [onNavigateToLayers])
+
+  useEffect(() => {
+    onNavigateToNavRef.current = onNavigateToNav
+  }, [onNavigateToNav])
+
+  useEffect(() => {
+    if (tourRef.current) return
+
     tourRef.current = new Shepherd.Tour({
       ...tourOptions,
       tourName: 'mapa-relevamiento-tour'
@@ -26,13 +43,14 @@ export const TourController = () => {
       setIsOpen(false)
     })
 
-    tourRef.current.on('show', () => {
+    tourRef.current.on('show', (e: any) => {
       setIsOpen(true)
+      if (e.step?.id === 'layers' && onNavigateToLayersRef.current) {
+        onNavigateToLayersRef.current()
+      } else if (e.step?.id === 'sidebar' && onNavigateToNavRef.current) {
+        onNavigateToNavRef.current()
+      }
     })
-
-    return () => {
-      tourRef.current?.cancel()
-    }
   }, [])
 
   useEffect(() => {

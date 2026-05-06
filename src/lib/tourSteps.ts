@@ -1,4 +1,6 @@
-export const tourSteps = [
+import type { StepOptions } from 'shepherd.js'
+
+export const tourSteps: StepOptions[] = [
   {
     id: 'intro',
     title: '¡Bienvenido!',
@@ -11,19 +13,23 @@ export const tourSteps = [
       {
         classes: 'shepherd-button-secondary',
         text: 'Omitir',
-        type: 'cancel'
+        action() {
+          return this.cancel()
+        }
       },
       {
         classes: 'shepherd-button-primary',
         text: 'Siguiente',
-        type: 'next'
+        action() {
+          return this.next()
+        }
       }
     ]
   },
   {
     id: 'sidebar',
     title: 'Navegación Principal',
-    text: 'Aquí encontraras todas las secciones: Dashboard, Mapa de relevamiento, Lista de barrios y más. Usa este menu para navegar entre modulos.',
+    text: 'Aquí encontrarás todas las secciones: Dashboard, Mapa de relevamiento, Lista de barrios y más. Usa este menú para navegar entre módulos.',
     attachTo: {
       element: '#sidebar-main',
       on: 'right'
@@ -32,40 +38,53 @@ export const tourSteps = [
       {
         classes: 'shepherd-button-secondary',
         text: 'Atrás',
-        type: 'back'
+        action() {
+          return this.back()
+        }
       },
       {
         classes: 'shepherd-button-primary',
         text: 'Siguiente',
-        type: 'next'
+        action() {
+          return this.next()
+        }
       }
     ]
   },
   {
     id: 'layers',
     title: 'Control de Capas',
-    text: 'Desde aqui podes activar o desactivar las capas del mapa: luminarias, espacios verdes, calles pavimentadas y polígonos de barrios.',
+    text: 'Desde aquí podés activar o desactivar las capas del mapa: luminarias, espacios verdes, calles pavimentadas y polígonos de barrios.',
     attachTo: {
       element: '#layers-panel',
       on: 'right'
+    },
+    beforeShowPromise: function() {
+      return new Promise((resolve) => {
+        setTimeout(resolve, 300)
+      })
     },
     buttons: [
       {
         classes: 'shepherd-button-secondary',
         text: 'Atrás',
-        type: 'back'
+        action() {
+          return this.back()
+        }
       },
       {
         classes: 'shepherd-button-primary',
         text: 'Siguiente',
-        type: 'next'
+        action() {
+          return this.next()
+        }
       }
     ]
   },
   {
     id: 'leyenda',
     title: 'Leyenda del Mapa',
-    text: 'Esta panel te muestra el significado de los colores: barrios (pendiente, en progreso, completado, pausado) y luminarias (base buena, mala, sin base, sin luz).',
+    text: 'Este panel te muestra el significado de los colores: barrios (pendiente, en progreso, completado, pausado) y luminarias (base buena, mala, sin base, sin luz).',
     attachTo: {
       element: '#leyenda-mapa',
       on: 'left'
@@ -74,33 +93,41 @@ export const tourSteps = [
       {
         classes: 'shepherd-button-secondary',
         text: 'Atrás',
-        type: 'back'
+        action() {
+          return this.back()
+        }
       },
       {
         classes: 'shepherd-button-primary',
         text: 'Siguiente',
-        type: 'next'
+        action() {
+          return this.next()
+        }
       }
     ]
   },
   {
     id: 'mapa-barrios',
     title: 'Barrios en el Mapa',
-    text: 'Los polígonos de colores representan los barrios. Haz click en cualquier barrio para ver un tooltip con su nombre, cantidad de luminarias y estado de avance.',
+    text: 'Los polígonos de colores representan los barrios. Haz clic en cualquier barrio para ver un tooltip con su nombre, cantidad de luminarias y estado de avance.',
     attachTo: {
       element: '.leaflet-container',
-      on: 'center'
+      on: 'bottom'
     },
     buttons: [
       {
         classes: 'shepherd-button-secondary',
         text: 'Atrás',
-        type: 'back'
+        action() {
+          return this.back()
+        }
       },
       {
         classes: 'shepherd-button-primary',
         text: 'Finalizar',
-        type: 'next'
+        action() {
+          return this.complete()
+        }
       }
     ]
   }

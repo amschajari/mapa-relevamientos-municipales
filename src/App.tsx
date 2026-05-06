@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ControlMap } from './components/ControlMap'
 import { Sidebar } from './components/Sidebar'
 import { LeyendaMapa } from './components/LeyendaMapa'
@@ -26,6 +26,15 @@ function App() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [sidebarSection, setSidebarSection] = useState<'nav' | 'layers'>('nav')
+
+  const handleNavigateToLayers = useCallback(() => {
+    setSidebarSection('layers')
+  }, [])
+
+  const handleNavigateToNav = useCallback(() => {
+    setSidebarSection('nav')
+  }, [])
 
   const { 
     barrios, 
@@ -157,6 +166,7 @@ function App() {
       <div className="hidden sm:flex">
         <Sidebar 
           onLoginClick={() => setShowLoginModal(true)}
+          initialSection={sidebarSection}
         />
       </div>
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -179,7 +189,10 @@ function App() {
         />
       )}
 
-      <TourController />
+      <TourController 
+        onNavigateToLayers={handleNavigateToLayers}
+        onNavigateToNav={handleNavigateToNav}
+      />
     </div>
   )
 }
