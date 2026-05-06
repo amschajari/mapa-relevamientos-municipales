@@ -84,7 +84,7 @@ export const tourSteps: StepOptions[] = [
   {
     id: 'filtros-luminarias',
     title: 'Filtros de Luminarias',
-    text: 'Desde aquí podés filtrar las luminarias por barrio específico y por estado de la base (buena, mala, sin base). Seleccioná una capa de luminarias en el panel de capas para ver estos filtros.',
+    text: 'Desde aquí podés ver y filtrar las luminarias por barrio específico, por estado de la base y funcionamiento. La capa de luminarias debe estar encendida en el panel para ver estos filtros.',
     attachTo: {
       element: '#luminarias-filters',
       on: 'right'
