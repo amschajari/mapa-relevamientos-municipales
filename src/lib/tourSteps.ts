@@ -82,12 +82,47 @@ export const tourSteps: StepOptions[] = [
     ]
   },
   {
+    id: 'filtros-luminarias',
+    title: 'Filtros de Luminarias',
+    text: 'Desde aquí podés filtrar las luminarias por barrio específico y por estado de la base (buena, mala, sin base). Seleccioná una capa de luminarias en el panel de capas para ver estos filtros.',
+    attachTo: {
+      element: '#luminarias-filters',
+      on: 'right'
+    },
+    beforeShowPromise: function() {
+      return new Promise((resolve) => {
+        setTimeout(resolve, 500)
+      })
+    },
+    buttons: [
+      {
+        classes: 'shepherd-button-secondary',
+        text: 'Atrás',
+        action() {
+          return this.back()
+        }
+      },
+      {
+        classes: 'shepherd-button-primary',
+        text: 'Siguiente',
+        action() {
+          return this.next()
+        }
+      }
+    ]
+  },
+  {
     id: 'leyenda',
     title: 'Leyenda del Mapa',
     text: 'Este panel te muestra el significado de los colores: barrios (pendiente, en progreso, completado, pausado) y luminarias (base buena, mala, sin base, sin luz).',
     attachTo: {
       element: '#leyenda-mapa',
       on: 'left'
+    },
+    beforeShowPromise: function() {
+      return new Promise((resolve) => {
+        setTimeout(resolve, 300)
+      })
     },
     buttons: [
       {

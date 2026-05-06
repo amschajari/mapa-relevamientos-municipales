@@ -50,7 +50,7 @@ export const LayerSettingsPanel = () => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+      <div id="luminarias-filters" className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
         {/* Descripción */}
         {layer.description && (
           <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">

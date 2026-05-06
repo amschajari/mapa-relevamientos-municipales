@@ -9,13 +9,22 @@ const TOUR_STORAGE_KEY = 'mapa-relevamiento-tour-completed'
 interface TourControllerProps {
   onNavigateToLayers?: () => void
   onNavigateToNav?: () => void
+  onSelectLuminariasLayer?: () => void
+  onCloseLayerPanel?: () => void
 }
 
-export const TourController = ({ onNavigateToLayers, onNavigateToNav }: TourControllerProps) => {
+export const TourController = ({ 
+  onNavigateToLayers, 
+  onNavigateToNav,
+  onSelectLuminariasLayer,
+  onCloseLayerPanel
+}: TourControllerProps) => {
   const tourRef = useRef<any>(null)
   const [isOpen, setIsOpen] = useState(false)
   const onNavigateToLayersRef = useRef(onNavigateToLayers)
   const onNavigateToNavRef = useRef(onNavigateToNav)
+  const onSelectLuminariasLayerRef = useRef(onSelectLuminariasLayer)
+  const onCloseLayerPanelRef = useRef(onCloseLayerPanel)
 
   useEffect(() => {
     onNavigateToLayersRef.current = onNavigateToLayers
@@ -24,6 +33,14 @@ export const TourController = ({ onNavigateToLayers, onNavigateToNav }: TourCont
   useEffect(() => {
     onNavigateToNavRef.current = onNavigateToNav
   }, [onNavigateToNav])
+
+  useEffect(() => {
+    onSelectLuminariasLayerRef.current = onSelectLuminariasLayer
+  }, [onSelectLuminariasLayer])
+
+  useEffect(() => {
+    onCloseLayerPanelRef.current = onCloseLayerPanel
+  }, [onCloseLayerPanel])
 
   useEffect(() => {
     if (tourRef.current) return
@@ -36,11 +53,13 @@ export const TourController = ({ onNavigateToLayers, onNavigateToNav }: TourCont
 
     tourRef.current.on('cancel', () => {
       setIsOpen(false)
+      if (onCloseLayerPanelRef.current) onCloseLayerPanelRef.current()
     })
 
     tourRef.current.on('complete', () => {
       localStorage.setItem(TOUR_STORAGE_KEY, 'true')
       setIsOpen(false)
+      if (onCloseLayerPanelRef.current) onCloseLayerPanelRef.current()
     })
 
     tourRef.current.on('show', (e: any) => {
@@ -49,6 +68,18 @@ export const TourController = ({ onNavigateToLayers, onNavigateToNav }: TourCont
         onNavigateToLayersRef.current()
       } else if (e.step?.id === 'sidebar' && onNavigateToNavRef.current) {
         onNavigateToNavRef.current()
+      } else if (e.step?.id === 'filtros-luminarias' && onSelectLuminariasLayerRef.current) {
+        onSelectLuminariasLayerRef.current()
+      } else if (e.step?.id === 'leyenda' && onCloseLayerPanelRef.current) {
+        onCloseLayerPanelRef.current()
+      }
+    })
+
+    tourRef.current.on('hide', (e: any) => {
+      if (e.step?.id === 'filtros-luminarias' && onCloseLayerPanelRef.current) {
+        setTimeout(() => {
+          onCloseLayerPanelRef.current?.()
+        }, 100)
       }
     })
   }, [])

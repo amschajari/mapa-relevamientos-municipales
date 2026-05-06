@@ -6,7 +6,7 @@ import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
 import { EquiposView } from './pages/EquiposView'
 import { BarrioDetailModal } from './components/BarrioDetailModal'
-import { useBarrioStore } from './stores'
+import { useBarrioStore, useMapStore } from './stores'
 import type { Barrio } from './types'
 import { supabase } from './lib/supabase'
 import { LoginModal } from './components/LoginModal'
@@ -35,6 +35,16 @@ function App() {
   const handleNavigateToNav = useCallback(() => {
     setSidebarSection('nav')
   }, [])
+
+  const { setSelectedLayer } = useMapStore()
+
+  const handleSelectLuminariasLayer = useCallback(() => {
+    setSelectedLayer('luminarias-todas')
+  }, [setSelectedLayer])
+
+  const handleCloseLayerPanel = useCallback(() => {
+    setSelectedLayer(null)
+  }, [setSelectedLayer])
 
   const { 
     barrios, 
@@ -192,6 +202,8 @@ function App() {
       <TourController 
         onNavigateToLayers={handleNavigateToLayers}
         onNavigateToNav={handleNavigateToNav}
+        onSelectLuminariasLayer={handleSelectLuminariasLayer}
+        onCloseLayerPanel={handleCloseLayerPanel}
       />
     </div>
   )
