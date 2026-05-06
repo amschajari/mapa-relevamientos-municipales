@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   LayoutDashboard,
   Map,
@@ -27,12 +27,20 @@ interface NavItem {
 
 interface SidebarProps {
   onLoginClick: () => void
+  initialSection?: 'nav' | 'layers'
 }
 
-export const Sidebar = ({ onLoginClick }: SidebarProps) => {
+export const Sidebar = ({ onLoginClick, initialSection }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [activeSection, setActiveSection] = useState<'nav' | 'layers'>('nav')
-  
+
+  useEffect(() => {
+    setActiveSection(initialSection || 'nav')
+    if (initialSection === 'layers') {
+      setCollapsed(false)
+    }
+  }, [initialSection])
+
   const { user, logout, officialPoints, activeTab, setActiveTab } = useBarrioStore()
 
   // Calcular última actualización
@@ -54,6 +62,7 @@ export const Sidebar = ({ onLoginClick }: SidebarProps) => {
 
   return (
     <aside
+      id="sidebar-main"
       className={cn(
         'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-20 relative',
         collapsed ? 'w-16' : 'w-72'

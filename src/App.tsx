@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ControlMap } from './components/ControlMap'
 import { Sidebar } from './components/Sidebar'
 import { LeyendaMapa } from './components/LeyendaMapa'
@@ -6,11 +6,12 @@ import { DashboardView } from './pages/DashboardView'
 import { BarriosView } from './pages/BarriosView'
 import { EquiposView } from './pages/EquiposView'
 import { BarrioDetailModal } from './components/BarrioDetailModal'
-import { useBarrioStore } from './stores'
+import { useBarrioStore, useMapStore } from './stores'
 import type { Barrio } from './types'
 import { supabase } from './lib/supabase'
 import { LoginModal } from './components/LoginModal'
 import { ImportacionView } from './components/ImportacionView'
+import { TourController } from './components/TourController'
 
 // Tipos de vista
 const VIEWS = {
@@ -25,6 +26,25 @@ function App() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [sidebarSection, setSidebarSection] = useState<'nav' | 'layers'>('nav')
+
+  const handleNavigateToLayers = useCallback(() => {
+    setSidebarSection('layers')
+  }, [])
+
+  const handleNavigateToNav = useCallback(() => {
+    setSidebarSection('nav')
+  }, [])
+
+  const { setSelectedLayer } = useMapStore()
+
+  const handleSelectLuminariasLayer = useCallback(() => {
+    setSelectedLayer('luminarias-todas')
+  }, [setSelectedLayer])
+
+  const handleCloseLayerPanel = useCallback(() => {
+    setSelectedLayer(null)
+  }, [setSelectedLayer])
 
   const { 
     barrios, 
@@ -156,6 +176,7 @@ function App() {
       <div className="hidden sm:flex">
         <Sidebar 
           onLoginClick={() => setShowLoginModal(true)}
+          initialSection={sidebarSection}
         />
       </div>
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -177,6 +198,13 @@ function App() {
           }}
         />
       )}
+
+      <TourController 
+        onNavigateToLayers={handleNavigateToLayers}
+        onNavigateToNav={handleNavigateToNav}
+        onSelectLuminariasLayer={handleSelectLuminariasLayer}
+        onCloseLayerPanel={handleCloseLayerPanel}
+      />
     </div>
   )
 }

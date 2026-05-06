@@ -34,7 +34,7 @@ export const LayersPanel = ({ className }: LayersPanelProps) => {
 
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
+    <div id="layers-panel" className={cn("flex flex-col h-full", className)}>
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">

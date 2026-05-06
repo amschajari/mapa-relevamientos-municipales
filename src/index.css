@@ -142,3 +142,32 @@
 .barrio-tooltip::before {
   display: none;
 }
+
+/* Shepherd tour buttons */
+.shepherd-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.shepherd-button-primary {
+  background: #0ea5e9;
+  color: white;
+}
+
+.shepherd-button-primary:hover {
+  background: #0284c7;
+}
+
+.shepherd-button-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.shepherd-button-secondary:hover {
+  background: #e5e7eb;
+}

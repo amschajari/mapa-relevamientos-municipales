@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditor de Importación - Luminarias</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #333; }
+    .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .upload-area:hover { border-color: #666; background: #fafafa; }
+    .upload-area.dragover { border-color: #0066cc; background: #e6f0ff; }
+    .stats { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+    .stat { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1; min-width: 150px; }
+    .stat-value { font-size: 32px; font-weight: bold; }
+    .stat-label { color: #666; font-size: 14px; }
+    .stat.green .stat-value { color: #16a34a; }
+    .stat.red .stat-value { color: #dc2626; }
+    .stat.yellow .stat-value { color: #ca8a04; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f9fafb; font-weight: 600; font-size: 13px; color: #666; }
+    tr.invalido { background: #fef2f2; }
+    tr.invalido td:first-child { border-left: 3px solid #dc2626; }
+    tr.gris { background: #fefce8; }
+    tr.gris td:first-child { border-left: 3px solid #ca8a04; }
+    .error { color: #dc2626; font-size: 12px; }
+    .warning { color: #ca8a04; font-size: 12px; }
+    .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn:hover { background: #1d4ed8; }
+    .filters { margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+    .filters button { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .filters button.active { background: #2563eb; color: white; border-color: #2563eb; }
+    .search { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 300px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Auditor de Importación - Luminarias</h1>
+    
+    <div class="upload-area" id="dropZone">
+      <p>Arrastrá el archivo CSV aquí o hacé clic para seleccionar</p>
+      <input type="file" id="fileInput" accept=".csv,.geojson,.json" style="display:none">
+    </div>
+
+    <div class="stats" id="stats" style="display:none">
+      <div class="stat green">
+        <div class="stat-value" id="validosCount">0</div>
+        <div class="stat-label">Válidos</div>
+      </div>
+      <div class="stat red">
+        <div class="stat-value" id="invalidosCount">0</div>
+        <div class="stat-label">Inválidos</div>
+      </div>
+      <div class="stat yellow">
+        <div class="stat-value" id="sinIdCount">0</div>
+        <div class="stat-label">Sin ID (con dirección y barrio)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="totalCount">0</div>
+        <div class="stat-label">Total registros</div>
+      </div>
+    </div>
+
+    <div class="filters" id="filters" style="display:none">
+      <button class="active" data-filter="all">Todos</button>
+      <button data-filter="invalidos">Solo inválidos</button>
+      <button data-filter="sin-id">Sin ID</button>
+      <button data-filter="sin-coords">Sin coordenadas</button>
+      <button data-filter="coord-cero">Coords = 0</button>
+      <input type="text" class="search" id="search" placeholder="Buscar por ID, dirección o barrio...">
+    </div>
+
+    <table id="table" style="display:none">
+      <thead>
+        <tr>
+          <th>Estado</th>
+          <th>ID Luminaria</th>
+          <th>Dirección</th>
+          <th>Barrio</th>
+          <th>Latitud</th>
+          <th>Longitud</th>
+          <th>Tipo</th>
+          <th>Error / Advertencia</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone')
+    const fileInput = document.getElementById('fileInput')
+    let registros = []
+    let filtroActual = 'all'
+
+    dropZone.addEventListener('click', () => fileInput.click())
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover') })
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'))
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault()
+      dropZone.classList.remove('dragover')
+      if (e.dataTransfer.files[0]) procesarArchivo(e.dataTransfer.files[0])
+    })
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) procesarArchivo(e.target.files[0]) })
+
+    function procesarArchivo(file) {
+      const reader = new FileReader()
+      reader.onload = e => {
+        const contenido = e.target.result
+        if (file.name.endsWith('.csv')) {
+          registros = parsearCSV(contenido)
+        } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+          registros = parsearGeoJSON(contenido)
+        }
+        renderizar()
+      }
+      reader.readAsText(file, 'utf-8')
+    }
+
+    function parsearCSV(texto) {
+      const lineas = texto.replace(/\r/g, '').trim().split('\n')
+      if (lineas.length < 2) return []
+      
+      const cabecera = lineas[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase())
+      
+      return lineas.slice(1).map(linea => {
+        const valores = []
+        let actual = ''
+        let dentroComillas = false
+        for (const char of linea) {
+          if (char === '"') dentroComillas = !dentroComillas
+          else if (char === ',' && !dentroComillas) { valores.push(actual.trim()); actual = '' }
+          else actual += char
+        }
+        valores.push(actual.trim())
+        
+        const fila = {}
+        cabecera.forEach((h, i) => { fila[h] = valores[i] || '' })
+        
+        const limpiarCoordenada = str => {
+          if (!str) return NaN
+          return parseFloat(str.replace(/[^0-9.\-,]/g, '').replace(',', '.'))
+        }
+        
+        const findValueHelper = keys => {
+          const foundKey = Object.keys(fila).find(k => keys.some(key => k.toLowerCase().includes(key.toLowerCase())))
+          return foundKey ? fila[foundKey] : ''
+        }
+        
+        const lat = limpiarCoordenada(fila['latitud'] || findValueHelper(['latitud', 'lat']))
+        const lng = limpiarCoordenada(fila['longitud'] || findValueHelper(['longitud', 'lng']))
+        
+        const idLuminaria = fila['id luminaria'] || findValueHelper(['id luminaria', 'id'])
+        const direccion = fila['dirección'] || findValueHelper(['dirección', 'calle'])
+        const barrio = fila['barrio'] || findValueHelper(['barrio'])
+        
+        const tieneId = !!idLuminaria
+        const tieneCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
+        const valido = tieneId && tieneCoords
+        
+        let error = undefined
+        if (!tieneId && !direccion && !barrio) error = 'Fila vacía'
+        else if (!tieneId) error = 'Sin ID'
+        else if (!tieneCoords) error = isNaN(lat) || isNaN(lng) ? 'Coordenadas inválidas' : 'Coordenadas = 0'
+        
+        return {
+          nombre: idLuminaria || '(Sin ID)',
+          lat,
+          lng,
+          direccion,
+          barrio,
+          tipo: fila['tipo luminaria'] || findValueHelper(['tipo', 'tipología']),
+          valido,
+          error,
+          tieneId,
+          tieneCoords,
+          raw: fila
+        }
+      }).filter(r => r.nombre || r.direccion || r.barrio)
+    }
+
+    function parsearGeoJSON(texto) {
+      const geojson = JSON.parse(texto)
+      const features = geojson.features || (geojson.type === 'Feature' ? [geojson] : [])
+      
+      return features.map(f => {
+        const coords = f.geometry?.coordinates
+        const props = f.properties || {}
+        const lat = coords?.[1]
+        const lng = coords?.[0]
+        
+        const tieneCoords = !isNaN(lat) && !isNaN(lng)
+        const nombre = props.Nombre || props.nombre || props.name || props.ID || ''
+        
+        return {
+          nombre: nombre || '(Sin ID)',
+          lat: lat || NaN,
+          lng: lng || NaN,
+          direccion: props.dirección || props.direccion || props.direccion || '',
+          barrio: props.Barrio || props.barrio || '',
+          tipo: props.tipo || props.tipo_luminaria || '',
+          valido: tieneCoords,
+          error: !tieneCoords ? 'Coordenadas inválidas' : undefined,
+          tieneId: !!nombre,
+          tieneCoords,
+          raw: props
+        }
+      })
+    }
+
+    function renderizar() {
+      document.getElementById('stats').style.display = 'flex'
+      document.getElementById('filters').style.display = 'flex'
+      document.getElementById('table').style.display = 'table'
+      
+      const invalidos = registros.filter(r => !r.valido)
+      const sinId = registros.filter(r => !r.tieneId && (r.direccion || r.barrio))
+      const sinCoords = registros.filter(r => r.tieneId && !r.tieneCoords)
+      
+      document.getElementById('validosCount').textContent = registros.length - invalidos.length
+      document.getElementById('invalidosCount').textContent = invalidos.length
+      document.getElementById('sinIdCount').textContent = sinId.length
+      document.getElementById('totalCount').textContent = registros.length
+      
+      let filtrados = registros
+      if (filtroActual === 'invalidos') filtrados = invalidos
+      else if (filtroActual === 'sin-id') filtrados = sinId
+      else if (filtroActual === 'sin-coords') filtrados = sinCoords
+      else if (filtroActual === 'coord-cero') filtrados = registros.filter(r => r.tieneId && (r.lat === 0 || r.lng === 0))
+      
+      const search = document.getElementById('search').value.toLowerCase()
+      if (search) {
+        filtrados = filtrados.filter(r => 
+          r.nombre.toLowerCase().includes(search) ||
+          r.direccion.toLowerCase().includes(search) ||
+          r.barrio.toLowerCase().includes(search)
+        )
+      }
+      
+      const tbody = document.getElementById('tableBody')
+      tbody.innerHTML = ''
+      
+      filtrados.slice(0, 200).forEach(r => {
+        const tr = document.createElement('tr')
+        if (!r.valido && r.error === 'Fila vacía') tr.classList.add('gris')
+        else if (!r.valido) tr.classList.add('invalido')
+        
+        tr.innerHTML = `
+          <td>${r.valido ? '✓' : '✗'}</td>
+          <td><b>${r.nombre}</b></td>
+          <td>${r.direccion || '-'}</td>
+          <td>${r.barrio || '-'}</td>
+          <td>${isNaN(r.lat) ? 'N/A' : r.lat}</td>
+          <td>${isNaN(r.lng) ? 'N/A' : r.lng}</td>
+          <td>${r.tipo || '-'}</td>
+          <td class="${r.error ? 'error' : ''}">${r.error || (r.tieneId ? '' : 'Sin ID pero tiene dirección/barrio')}</td>
+        `
+        tbody.appendChild(tr)
+      })
+      
+      if (filtrados.length > 200) {
+        const tr = document.createElement('tr')
+        tr.innerHTML = `<td colspan="8" style="text-align:center;color:#666;">... y ${filtrados.length - 200} más (usá el filtro o búsqueda)</td>`
+        tbody.appendChild(tr)
+      }
+    }
+
+    document.querySelectorAll('.filters button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        filtroActual = btn.dataset.filter
+        renderizar()
+      })
+    })
+
+    document.getElementById('search').addEventListener('input', renderizar)
+  </script>
+</body>
+</html>
