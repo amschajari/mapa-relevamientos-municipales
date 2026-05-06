@@ -4,7 +4,7 @@ export const tourSteps: StepOptions[] = [
   {
     id: 'intro',
     title: '¡Bienvenido!',
-    text: 'Esta herramienta te permite gestionar el relevamiento de luminarias municipales. Haz clic en "Siguiente" para un recorrido rápido.',
+    text: 'Esta herramienta te permite visualizar elementos territoriales de gestión municipal. Haz clic en "Siguiente" para un recorrido rápido.',
     attachTo: {
       element: '#sidebar-main',
       on: 'right'
