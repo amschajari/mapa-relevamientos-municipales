@@ -507,16 +507,13 @@ const BarriosLayer = ({
         mouseover: (e) => highlightFeature(e, feature),
         mouseout: (e) => resetHighlight(e, feature),
         click: (e: L.LeafletMouseEvent) => {
-          setSelectedBarrio(barrio)
-          onBarrioClick?.(barrio)
-
           // Cerrar tooltip previo si existe
           if (activeTooltipRef.current) {
             activeTooltipRef.current.remove()
             activeTooltipRef.current = null
           }
 
-          // Abrir nuevo tooltip en la posición del click
+          // Abrir nuevo tooltip en la posición del click (sin centrar mapa)
           const tt = L.tooltip({
             permanent: false,
             opacity: 0.95,
