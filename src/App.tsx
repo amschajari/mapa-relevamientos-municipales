@@ -11,6 +11,7 @@ import type { Barrio } from './types'
 import { supabase } from './lib/supabase'
 import { LoginModal } from './components/LoginModal'
 import { ImportacionView } from './components/ImportacionView'
+import { TourController } from './components/TourController'
 
 // Tipos de vista
 const VIEWS = {
@@ -177,6 +178,8 @@ function App() {
           }}
         />
       )}
+
+      <TourController />
     </div>
   )
 }

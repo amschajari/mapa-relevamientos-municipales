@@ -23,7 +23,7 @@ const luminariaItems: LeyendaItem[] = [
 
 export const LeyendaMapa = () => {
   return (
-    <div className="hidden sm:block bg-white/95 backdrop-blur p-4 rounded-[22px] shadow-2xl border border-gray-100 max-w-[210px] animate-in fade-in slide-in-from-right-6 duration-500">
+    <div id="leyenda-mapa" className="hidden sm:block bg-white/95 backdrop-blur p-4 rounded-[22px] shadow-2xl border border-gray-100 max-w-[210px] animate-in fade-in slide-in-from-right-6 duration-500">
       {/* Sección Barrios */}
       <div className="flex items-center gap-3 mb-4">
         <MapPin className="w-4 h-4 text-sky-500" />

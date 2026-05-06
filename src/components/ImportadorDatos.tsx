@@ -293,7 +293,8 @@ export const ImportadorDatos = () => {
       const batch = toInsert.slice(i, i + insertBatchSize)
       const { error } = await supabase.from('puntos_relevamiento').insert(batch)
       if (error) {
-        console.error('[IMPORT] Bulk insert error:', error);
+        console.error('[IMPORT] Bulk insert error:', error)
+        console.error('[IMPORT] Batch that failed:', JSON.stringify(batch.slice(0, 5)))
         err += batch.length
       }
       else ok += batch.length
@@ -304,7 +305,8 @@ export const ImportadorDatos = () => {
       const batch = toUpdate.slice(i, i + updateBatchSize)
       const { error } = await supabase.from('puntos_relevamiento').upsert(batch)
       if (error) {
-        console.error('[IMPORT] Bulk update error:', error);
+        console.error('[IMPORT] Bulk update error:', error)
+        console.error('[IMPORT] Batch that failed:', JSON.stringify(batch.slice(0, 5)))
         err += batch.length
       }
       else ok += batch.length
