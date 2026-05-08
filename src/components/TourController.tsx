@@ -4,8 +4,6 @@ import 'shepherd.js/dist/css/shepherd.css'
 import { tourSteps, tourOptions } from '@/lib/tourSteps'
 import { HelpCircle, X } from 'lucide-react'
 
-const TOUR_STORAGE_KEY = 'mapa-relevamiento-tour-completed'
-
 interface TourControllerProps {
   onNavigateToLayers?: () => void
   onNavigateToNav?: () => void
@@ -57,7 +55,6 @@ export const TourController = ({
     })
 
     tourRef.current.on('complete', () => {
-      localStorage.setItem(TOUR_STORAGE_KEY, 'true')
       setIsOpen(false)
       if (onCloseLayerPanelRef.current) onCloseLayerPanelRef.current()
     })
@@ -82,17 +79,6 @@ export const TourController = ({
         }, 100)
       }
     })
-  }, [])
-
-  useEffect(() => {
-    const hasCompleted = localStorage.getItem(TOUR_STORAGE_KEY) === 'true'
-
-    if (!hasCompleted) {
-      const timer = setTimeout(() => {
-        tourRef.current?.start()
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
   }, [])
 
   const startTour = () => {
