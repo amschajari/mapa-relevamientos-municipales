@@ -82,7 +82,7 @@ interface BarrioState {
   getBarriosConTareas: () => Barrio[]
 
   // Inicialización y Sincronización desde GeoJSON
-  importarPoligonosBarrios: (features: BarrioFeature[]) => Promise<{ creados: number; actualizados: number; eliminados: number; errores: string[] }>
+  importarPoligonosBarrios: (features: BarrioFeature[], modo?: 'reemplazar' | 'agregar') => Promise<{ creados: number; actualizados: number; eliminados: number; errores: string[] }>
 }
 
 export const useBarrioStore = create<BarrioState>()(
@@ -390,7 +390,7 @@ export const useBarrioStore = create<BarrioState>()(
       },
 
       // Importación desde GeoJSON (UI de Importador de Barrios)
-      importarPoligonosBarrios: async (features: BarrioFeature[]) => {
+      importarPoligonosBarrios: async (features: BarrioFeature[], modo: 'reemplazar' | 'agregar' = 'reemplazar') => {
         const { barrios, fetchBarrios } = get()
         const resultados = { creados: 0, actualizados: 0, eliminados: 0, errores: [] as string[] }
         
@@ -441,15 +441,17 @@ export const useBarrioStore = create<BarrioState>()(
           }
         }
 
-        // 3. Barrios para ELIMINAR (están en DB pero NO en GeoJSON)
-        const toDelete = barrios.filter((b: Barrio) => !geojsonNames.includes(b.nombre));
-        for (const barrio of toDelete) {
-          try {
-            const { error } = await supabase.from('barrios').delete().eq('id', barrio.id);
-            if (error) throw error;
-            resultados.eliminados++;
-          } catch (err: any) {
-            resultados.errores.push(`No se pudo eliminar "${barrio.nombre}": ${err.message} (Puede tener puntos asociados)`);
+        // 3. Barrios para ELIMINAR solo si modo es 'reemplazar'
+        if (modo === 'reemplazar') {
+          const toDelete = barrios.filter((b: Barrio) => !geojsonNames.includes(b.nombre));
+          for (const barrio of toDelete) {
+            try {
+              const { error } = await supabase.from('barrios').delete().eq('id', barrio.id);
+              if (error) throw error;
+              resultados.eliminados++;
+            } catch (err: any) {
+              resultados.errores.push(`No se pudo eliminar "${barrio.nombre}": ${err.message} (Puede tener puntos asociados)`);
+            }
           }
         }
 

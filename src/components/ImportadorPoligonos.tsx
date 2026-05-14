@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { UploadCloud, FileText, CheckCircle, AlertCircle, X, Eye, Map } from 'lucide-react'
 import { useBarrioStore } from '@/stores'
 import area from '@turf/area'
+import { cn } from '@/lib/constants'
 
 interface PoligonoPreview {
   nombre: string
@@ -21,10 +22,13 @@ export const ImportadorPoligonos = () => {
   const [resultado, setResultado] = useState<{ creados: number; actualizados: number; eliminados: number; errores: string[] } | null>(null)
   const [errorGlobal, setErrorGlobal] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [modoImportacion, setModoImportacion] = useState<'reemplazar' | 'agregar'>('reemplazar')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Barrios que serán eliminados al no estar en el GeoJSON
-  const barriosAEliminar = barrios.filter(b => !preview.find(p => p.nombre.toLowerCase() === b.nombre.toLowerCase()))
+  // Barrios que serán eliminados al no estar en el GeoJSON (solo si modo es reemplazar)
+  const barriosAEliminar = modoImportacion === 'reemplazar' 
+    ? barrios.filter(b => !preview.find(p => p.nombre.toLowerCase() === b.nombre.toLowerCase()))
+    : []
 
   if (user?.role !== 'admin') {
     return (
@@ -116,7 +120,13 @@ export const ImportadorPoligonos = () => {
   const confirmarImportacion = async () => {
     if (featuresList.length === 0) return
 
-    if (!confirm(`Se reemplazarán los polígonos del mapa.\n\nSe agregarán ${preview.filter(p => p.valido && p.estado === 'nuevo').length} barrios nuevos.\nSe actualizarán ${preview.filter(p => p.valido && p.estado === 'actualizar').length} barrios.\nSe eliminarán ${barriosAEliminar.length} barrios (si no tienen puntos).\n\n¿Estás seguro de continuar?`)) {
+    const nuevos = preview.filter(p => p.valido && p.estado === 'nuevo').length
+    const actualizados = preview.filter(p => p.valido && p.estado === 'actualizar').length
+    const mensaje = modoImportacion === 'reemplazar'
+      ? `Se reemplazarán los polígonos del mapa.\n\nSe agregarán ${nuevos} barrios nuevos.\nSe actualizarán ${actualizados} barrios.\nSe eliminarán ${barriosAEliminar.length} barrios (si no tienen puntos).\n\n¿Estás seguro de continuar?`
+      : `Se agregarán/actualizarán los polígonos SIN eliminar los existentes.\n\nSe agregarán ${nuevos} barrios nuevos.\nSe actualizarán ${actualizados} barrios.\nLos ${barrios.length - actualizados} barrios actuales se mantendrán.\n\n¿Estás seguro de continuar?`
+
+    if (!confirm(mensaje)) {
       return
     }
 
@@ -124,7 +134,7 @@ export const ImportadorPoligonos = () => {
     setErrorGlobal(null)
 
     try {
-      const result = await importarPoligonosBarrios(featuresList)
+      const result = await importarPoligonosBarrios(featuresList, modoImportacion)
       setResultado(result)
       
       if (result.errores.length > 0) {
@@ -240,7 +250,35 @@ export const ImportadorPoligonos = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                {/* Toggle Modo de Importación */}
+                <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setModoImportacion('reemplazar')}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                      modoImportacion === 'reemplazar'
+                        ? "bg-white text-gray-800 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    🔄 Reemplazar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModoImportacion('agregar')}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                      modoImportacion === 'agregar'
+                        ? "bg-white text-gray-800 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    ➕ Agregar
+                  </button>
+                </div>
+
                 <button
                   onClick={limpiar}
                   disabled={isImporting}
