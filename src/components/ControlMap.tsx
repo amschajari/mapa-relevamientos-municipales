@@ -9,6 +9,7 @@ import { useMapStore } from '@/stores'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { cn } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
+import { BaseMapToggle } from './BaseMapToggle'
 import { MobileMapControls } from './MobileMapControls'
 import { EspaciosVerdesLayer } from './EspaciosVerdesLayer'
 import PavimentoLayer from './PavimentoLayer'
@@ -625,6 +626,9 @@ export const ControlMap = ({
 
         <div className="sm:hidden">
           <LayerControl />
+        </div>
+        <div className="hidden sm:block">
+          <BaseMapToggle />
         </div>
         <MobileMapControls />
       </MapContainer>
