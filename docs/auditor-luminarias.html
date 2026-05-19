@@ -19,6 +19,9 @@
     .stat.green .stat-value { color: #16a34a; }
     .stat.red .stat-value { color: #dc2626; }
     .stat.yellow .stat-value { color: #ca8a04; }
+    .stat.orange .stat-value { color: #ea580c; }
+    .stat[data-filter] { cursor: pointer; transition: 0.2s; }
+    .stat[data-filter]:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
     table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
     th { background: #f9fafb; font-weight: 600; font-size: 13px; color: #666; }
@@ -26,6 +29,8 @@
     tr.invalido td:first-child { border-left: 3px solid #dc2626; }
     tr.gris { background: #fefce8; }
     tr.gris td:first-child { border-left: 3px solid #ca8a04; }
+    tr.duplicado { background: #fff7ed; }
+    tr.duplicado td:first-child { border-left: 3px solid #ea580c; }
     .error { color: #dc2626; font-size: 12px; }
     .warning { color: #ca8a04; font-size: 12px; }
     .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -46,17 +51,21 @@
     </div>
 
     <div class="stats" id="stats" style="display:none">
-      <div class="stat green">
+      <div class="stat green" data-filter="all">
         <div class="stat-value" id="validosCount">0</div>
         <div class="stat-label">Válidos</div>
       </div>
-      <div class="stat red">
+      <div class="stat red" data-filter="invalidos">
         <div class="stat-value" id="invalidosCount">0</div>
         <div class="stat-label">Inválidos</div>
       </div>
-      <div class="stat yellow">
+      <div class="stat yellow" data-filter="sin-id">
         <div class="stat-value" id="sinIdCount">0</div>
-        <div class="stat-label">Sin ID (con dirección y barrio)</div>
+        <div class="stat-label">Sin ID</div>
+      </div>
+      <div class="stat orange" data-filter="duplicados">
+        <div class="stat-value" id="duplicadosCount">0</div>
+        <div class="stat-label">Duplicados</div>
       </div>
       <div class="stat">
         <div class="stat-value" id="totalCount">0</div>
@@ -70,6 +79,7 @@
       <button data-filter="sin-id">Sin ID</button>
       <button data-filter="sin-coords">Sin coordenadas</button>
       <button data-filter="coord-cero">Coords = 0</button>
+      <button data-filter="duplicados">Duplicados</button>
       <input type="text" class="search" id="search" placeholder="Buscar por ID, dirección o barrio...">
     </div>
 
@@ -123,10 +133,10 @@
     function parsearCSV(texto) {
       const lineas = texto.replace(/\r/g, '').trim().split('\n')
       if (lineas.length < 2) return []
-      
+
       const cabecera = lineas[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase())
-      
-      return lineas.slice(1).map(linea => {
+
+      const regs = lineas.slice(1).map(linea => {
         const valores = []
         let actual = ''
         let dentroComillas = false
@@ -136,36 +146,36 @@
           else actual += char
         }
         valores.push(actual.trim())
-        
+
         const fila = {}
         cabecera.forEach((h, i) => { fila[h] = valores[i] || '' })
-        
+
         const limpiarCoordenada = str => {
           if (!str) return NaN
           return parseFloat(str.replace(/[^0-9.\-,]/g, '').replace(',', '.'))
         }
-        
+
         const findValueHelper = keys => {
           const foundKey = Object.keys(fila).find(k => keys.some(key => k.toLowerCase().includes(key.toLowerCase())))
           return foundKey ? fila[foundKey] : ''
         }
-        
+
         const lat = limpiarCoordenada(fila['latitud'] || findValueHelper(['latitud', 'lat']))
         const lng = limpiarCoordenada(fila['longitud'] || findValueHelper(['longitud', 'lng']))
-        
+
         const idLuminaria = fila['id luminaria'] || findValueHelper(['id luminaria', 'id'])
         const direccion = fila['dirección'] || findValueHelper(['dirección', 'calle'])
         const barrio = fila['barrio'] || findValueHelper(['barrio'])
-        
+
         const tieneId = !!idLuminaria
         const tieneCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
         const valido = tieneId && tieneCoords
-        
+
         let error = undefined
         if (!tieneId && !direccion && !barrio) error = 'Fila vacía'
         else if (!tieneId) error = 'Sin ID'
         else if (!tieneCoords) error = isNaN(lat) || isNaN(lng) ? 'Coordenadas inválidas' : 'Coordenadas = 0'
-        
+
         return {
           nombre: idLuminaria || '(Sin ID)',
           lat,
@@ -177,9 +187,24 @@
           error,
           tieneId,
           tieneCoords,
-          raw: fila
+          raw: fila,
+          duplicado: false
         }
       }).filter(r => r.nombre || r.direccion || r.barrio)
+
+      const ids = {}
+      regs.forEach((r, i) => {
+        if (r.tieneId) {
+          if (ids[r.nombre]) {
+            regs[i].duplicado = true
+            regs[ids[r.nombre]].duplicado = true
+          } else {
+            ids[r.nombre] = i
+          }
+        }
+      })
+
+      return regs
     }
 
     function parsearGeoJSON(texto) {
@@ -219,10 +244,12 @@
       const invalidos = registros.filter(r => !r.valido)
       const sinId = registros.filter(r => !r.tieneId && (r.direccion || r.barrio))
       const sinCoords = registros.filter(r => r.tieneId && !r.tieneCoords)
-      
+      const duplicados = registros.filter(r => r.duplicado)
+
       document.getElementById('validosCount').textContent = registros.length - invalidos.length
       document.getElementById('invalidosCount').textContent = invalidos.length
       document.getElementById('sinIdCount').textContent = sinId.length
+      document.getElementById('duplicadosCount').textContent = duplicados.length
       document.getElementById('totalCount').textContent = registros.length
       
       let filtrados = registros
@@ -230,6 +257,7 @@
       else if (filtroActual === 'sin-id') filtrados = sinId
       else if (filtroActual === 'sin-coords') filtrados = sinCoords
       else if (filtroActual === 'coord-cero') filtrados = registros.filter(r => r.tieneId && (r.lat === 0 || r.lng === 0))
+      else if (filtroActual === 'duplicados') filtrados = duplicados
       
       const search = document.getElementById('search').value.toLowerCase()
       if (search) {
@@ -245,9 +273,14 @@
       
       filtrados.slice(0, 200).forEach(r => {
         const tr = document.createElement('tr')
-        if (!r.valido && r.error === 'Fila vacía') tr.classList.add('gris')
+        if (r.duplicado) tr.classList.add('duplicado')
+        else if (!r.valido && r.error === 'Fila vacía') tr.classList.add('gris')
         else if (!r.valido) tr.classList.add('invalido')
-        
+
+        let msgError = r.error || ''
+        if (r.duplicado) msgError = 'ID duplicado'
+        else if (!r.tieneId && (r.direccion || r.barrio)) msgError = 'Sin ID pero tiene dirección/barrio'
+
         tr.innerHTML = `
           <td>${r.valido ? '✓' : '✗'}</td>
           <td><b>${r.nombre}</b></td>
@@ -256,7 +289,7 @@
           <td>${isNaN(r.lat) ? 'N/A' : r.lat}</td>
           <td>${isNaN(r.lng) ? 'N/A' : r.lng}</td>
           <td>${r.tipo || '-'}</td>
-          <td class="${r.error ? 'error' : ''}">${r.error || (r.tieneId ? '' : 'Sin ID pero tiene dirección/barrio')}</td>
+          <td class="${r.error || r.duplicado ? 'error' : ''}">${msgError}</td>
         `
         tbody.appendChild(tr)
       })
@@ -273,6 +306,15 @@
         document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'))
         btn.classList.add('active')
         filtroActual = btn.dataset.filter
+        renderizar()
+      })
+    })
+
+    document.querySelectorAll('.stat[data-filter]').forEach(stat => {
+      stat.addEventListener('click', () => {
+        document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'))
+        document.querySelector(`.filters button[data-filter="${stat.dataset.filter}"]`)?.classList.add('active')
+        filtroActual = stat.dataset.filter
         renderizar()
       })
     })
