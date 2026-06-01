@@ -49,11 +49,11 @@ Deno.serve(async (req: Request) => {
   try {
     const payload: LuminariaPayload = await req.json()
 
-    // 1. Obtener nombre/identificador (soportando nombre y name)
-    const nombreLuminaria = payload.nombre || payload.name || (payload.id ? `Luminaria-${payload.id}` : '')
+    // 1. Obtener nombre/identificador (soportando nombre, name y display_name)
+    const nombreLuminaria = payload.nombre || payload.name || (payload as any).display_name || (payload.id ? `Luminaria-${payload.id}` : '')
     if (!nombreLuminaria) {
       return new Response(
-        JSON.stringify({ error: 'Identificador (nombre o name) no proporcionado', payload }),
+        JSON.stringify({ error: 'Identificador (nombre, name o display_name) no proporcionado', payload }),
         { status: 400 }
       )
     }
