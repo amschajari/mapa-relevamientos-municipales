@@ -107,3 +107,40 @@ src/
 - **RLS**: Si hay error 403 en tablas, ejecutar `ALTER TABLE tabla DISABLE ROW LEVEL SECURITY;`
 - **Admin**: El usuario admin se determina por email: `a.m.saposnik@gmail.com`.
 - **Mapas**: Requiere conexión a internet para OpenStreetMap tiles.
+
+## Migraciones de Supabase
+
+### ⚠️ Cambio Octubre 2026: GRANTs explícitos obligatorios
+
+A partir del **30 de octubre de 2026**, las tablas nuevas en schema `public` ya no se exponen automáticamente a la Data API (PostgREST, GraphQL, supabase-js).  
+Se requiere un `GRANT` explícito para cada rol (`anon`, `authenticated`, `service_role`).
+
+**Toda migración que cree una tabla nueva DEBE seguir este patrón:**
+
+```sql
+CREATE TABLE public.mi_tabla ( ... );
+
+-- GRANTs explícitos (obligatorio post Oct 2026)
+GRANT SELECT ON public.mi_tabla TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.mi_tabla TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.mi_tabla TO service_role;
+
+-- RLS
+ALTER TABLE public.mi_tabla ENABLE ROW LEVEL SECURITY;
+CREATE POLICY ... ;
+```
+
+**Referencia oficial:** https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically
+
+### Tablas existentes del proyecto
+
+| Tabla | Migración | RLS | GRANTs |
+|---|---|---|---|
+| `barrios` | `docs/supabase-nuevo-schema.sql` | ✅ | ✅ (default pre-Oct2026) |
+| `puntos_relevamiento` | `supabase/migrations/20260315_add_puntos.sql` | ✅ | ✅ (default pre-Oct2026) |
+| `jornadas_relevamiento` | `supabase/migrations/20260313_add_jornadas.sql` | ✅ | ✅ (default pre-Oct2026) |
+| `espacios_verdes` | `supabase/migrations/20260420_add_espacios_verdes.sql` | ✅ | ✅ (default pre-Oct2026) |
+| `calles_pavimentadas` | (creada manualmente en dashboard) | pendiente | ✅ (default pre-Oct2026) |
+| `app_config` | `fix_policies.sql` | ✅ | ✅ (default pre-Oct2026) |
+
+> Las tablas existentes conservan sus grants actuales y no se ven afectadas. Solo hay que agregar GRANTs en **nuevas** migraciones.
