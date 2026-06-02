@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import type { Barrio, BarrioFeature, EstadoBarrio, TareaRelevamiento, JornadaRelevamiento, PuntoRelevamiento } from '@/types'
-import type { Session } from '@supabase/supabase-js'
+import type { Session, RealtimeChannel } from '@supabase/supabase-js'
 import area from '@turf/area'
 
 
@@ -83,6 +83,11 @@ interface BarrioState {
 
   // Inicialización y Sincronización desde GeoJSON
   importarPoligonosBarrios: (features: BarrioFeature[], modo?: 'reemplazar' | 'agregar') => Promise<{ creados: number; actualizados: number; eliminados: number; errores: string[] }>
+
+  // Realtime
+  realtimeChannel: RealtimeChannel | null
+  subscribeToRealtime: () => void
+  unsubscribeRealtime: () => void
 }
 
 export const useBarrioStore = create<BarrioState>()(
@@ -120,6 +125,49 @@ export const useBarrioStore = create<BarrioState>()(
       // Nuevos estados para configuración desde Supabase
       appConfigLoaded: false,
       appConfigError: null,
+      realtimeChannel: null,
+
+      subscribeToRealtime: () => {
+        const existing = get().realtimeChannel
+        if (existing) return
+
+        const channel = supabase.channel('puntos-realtime')
+          .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'puntos_relevamiento' },
+            (payload: any) => {
+              const current: PuntoRelevamiento[] = get().officialPoints
+              const event = payload.eventType
+
+              if (event === 'INSERT') {
+                const exists = current.some((p: PuntoRelevamiento) => p.id === payload.new.id)
+                if (!exists) {
+                  set({ officialPoints: [...current, payload.new as PuntoRelevamiento] })
+                }
+              } else if (event === 'UPDATE') {
+                set({
+                  officialPoints: current.map((p: PuntoRelevamiento) =>
+                    p.id === payload.new.id ? (payload.new as PuntoRelevamiento) : p
+                  )
+                })
+              } else if (event === 'DELETE') {
+                set({
+                  officialPoints: current.filter((p: PuntoRelevamiento) => p.id !== payload.old.id)
+                })
+              }
+            }
+          )
+          .subscribe()
+
+        set({ realtimeChannel: channel })
+      },
+
+      unsubscribeRealtime: () => {
+        const channel = get().realtimeChannel
+        if (channel) {
+          supabase.removeChannel(channel)
+          set({ realtimeChannel: null })
+        }
+      },
 
       setSession: (session: any) => {
         const userEmail = session?.user?.email

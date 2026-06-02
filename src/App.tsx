@@ -54,6 +54,8 @@ function App() {
     setSession,
     fetchBarrios,
     fetchOfficialPoints,
+    subscribeToRealtime,
+    unsubscribeRealtime,
     activeTab,
     setActiveTab
   } = useBarrioStore()
@@ -66,6 +68,9 @@ function App() {
       setIsLoading(false)
     })
 
+    // 2. Realtime: escuchar cambios en puntos_relevamiento
+    subscribeToRealtime()
+
     // 2. Listener de Autenticación
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -75,7 +80,10 @@ function App() {
       setSession(session)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      unsubscribeRealtime()
+    }
   }, [])
   /* Demo: Simular algunos barrios con progreso
   useEffect(() => {
