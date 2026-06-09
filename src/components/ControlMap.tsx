@@ -15,6 +15,26 @@ import { EspaciosVerdesLayer } from './EspaciosVerdesLayer'
 import PavimentoLayer from './PavimentoLayer'
 import { MAP_CONFIG } from '@/lib/constants'
 
+// Helper compartido para parsear coordenadas (WKT o GeoJSON)
+const parseCoords = (geom: PuntoRelevamiento['geom']): [number, number] | null => {
+  try {
+    if (typeof geom === 'string') {
+      if (geom.startsWith('POINT')) {
+        const match = geom.match(/\(([^)]+)\)/)
+        if (match?.[1]) {
+          const [lon, lat] = match[1].split(' ').map(Number)
+          if (!isNaN(lat) && !isNaN(lon)) return [lat, lon]
+        }
+      }
+    } else if (geom && typeof geom === 'object' && 'type' in geom && geom.type === 'Point' && Array.isArray(geom.coordinates)) {
+      return [geom.coordinates[1], geom.coordinates[0]]
+    }
+  } catch (e) {
+    console.error('Error parseando geometría:', e)
+  }
+  return null
+}
+
 interface ControlMapProps {
   tareas?: TareaRelevamiento[]
   onBarrioClick?: (barrio: Barrio) => void
@@ -26,39 +46,13 @@ const HeatmapLayer = ({ points, totalPoints }: { points: PuntoRelevamiento[], to
   const map = useMap()
   const heatLayerRef = useRef<any>(null)
 
-  // Helper para parsear coordenadas de forma segura
-  const parseCoords = (geom: PuntoRelevamiento['geom']): [number, number] | null => {
-    try {
-      if (typeof geom === 'string') {
-        if (geom.startsWith('POINT')) {
-          const match = geom.match(/\(([^)]+)\)/)
-          if (match?.[1]) {
-            const [lon, lat] = match[1].split(' ').map(Number)
-            if (!isNaN(lat) && !isNaN(lon)) return [lat, lon]
-          }
-        }
-      } else if (geom && typeof geom === 'object' && 'type' in geom && geom.type === 'Point' && Array.isArray(geom.coordinates)) {
-        return [geom.coordinates[1], geom.coordinates[0]]
-      }
-    } catch (e) {
-      console.error('Error parseando geometría:', e)
-    }
-    return null
-  }
-
-  // Memoizar los puntos procesados para evitar mapeos innecesarios
   const heatData = useMemo(() => {
     if (!points || points.length === 0) return []
-    if (points.length > 5000) return [] // Threshold de seguridad
+    if (points.length > 5000) return []
 
-    // Calcular ratio de visualización (qué tanto del total estamos viendo)
     const ratio = totalPoints > 0 ? points.length / totalPoints : 1
-    
-    // Intensidad inversamente proporcional al ratio:
-    // Si vemos pocos puntos (ratio bajo), subimos la intensidad (0.9)
-    // Si vemos muchos puntos (ratio alto), bajamos la intensidad (0.4)
     const intensity = ratio < 0.3 ? 0.9 : (ratio < 0.7 ? 0.6 : 0.4)
-    
+
     return points
       .map(p => {
         const coords = parseCoords(p.geom)
@@ -232,31 +226,24 @@ const OfficialPointsLayer = () => {
       
       {(showLuminarias) && filteredPoints.length > 0 && (
         <MarkerClusterGroup
-          key={`cluster-group-${filteredPoints.length}-${(mapFilters.estadosBase || []).join(',')}-${mapFilters.barrio}`}
           chunkedLoading
           iconCreateFunction={createClusterCustomIcon}
-          maxClusterRadius={40}
+          maxClusterRadius={60}
           showCoverageOnHover={true}
           spiderfyOnMaxZoom={true}
           zoomToBoundsOnClick={true}
-          disableClusteringAtZoom={19}
+          disableClusteringAtZoom={17}
+          spiderLegPolylineOptions={{
+            weight: 1.5,
+            color: '#0ea5e9',
+            opacity: 0.4,
+          }}
         >
           {filteredPoints.map((point: PuntoRelevamiento, idx: number) => {
             if (!point.geom) return null;
             
-            let position: [number, number] = [0, 0]
-            
-            if (typeof point.geom === 'string') {
-              if (point.geom.startsWith('POINT')) {
-                const match = point.geom.match(/\((.*)\)/);
-                if (match) {
-                  const coords = match[1].split(' ');
-                  position = [parseFloat(coords[1]), parseFloat(coords[0])]
-                }
-              }
-            } else if (point.geom && typeof point.geom === 'object' && 'type' in point.geom && point.geom.type === 'Point') {
-              position = [point.geom.coordinates[1], point.geom.coordinates[0]]
-            }
+            const position = parseCoords(point.geom)
+            if (!position) return null;
 
             const name = point.nombre || `L-${idx + 1}`
             
@@ -272,14 +259,14 @@ const OfficialPointsLayer = () => {
             
             const customIcon = L.divIcon({
               html: `
-                <div class="relative flex items-center justify-center w-6 h-6">
-                  ${sinLuz ? '<div class="absolute w-5 h-5 rounded-full border-2 border-slate-700 shadow-sm"></div>' : ''}
-                  <div class="w-2.5 h-2.5 rounded-full border border-white shadow-sm z-10" style="background-color: ${pinColor}"></div>
+                <div class="relative flex items-center justify-center w-7 h-7">
+                  ${sinLuz ? '<div class="absolute w-6 h-6 rounded-full border-2 border-slate-700 shadow-sm"></div>' : ''}
+                  <div class="w-3 h-3 rounded-full border-2 border-white shadow-md z-10" style="background-color: ${pinColor}"></div>
                 </div>
               `,
               className: 'custom-div-icon',
-              iconSize: [24, 24],
-              iconAnchor: [12, 12]
+              iconSize: [28, 28],
+              iconAnchor: [14, 14]
             })
             
             return (

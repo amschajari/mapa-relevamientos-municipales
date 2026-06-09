@@ -595,7 +595,6 @@ export const useBarrioStore = create<BarrioState>()(
 
   fetchOfficialPoints: async () => {
     try {
-      // Paginación para evitar el límite de 1000 filas de Supabase
       const allPoints: any[] = []
       const pageSize = 1000
       let offset = 0
