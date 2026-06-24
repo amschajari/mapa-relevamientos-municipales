@@ -37,6 +37,21 @@ const normalizarNombre = (str: string): string =>
     .replace(/[^a-z0-9]/g, '')
     .trim()
 
+const NORMALIZAR_ESTADO_BASE: Record<string, string> = {
+  'buena': 'Con base en buenas condiciones',
+  'bueno': 'Con base en buenas condiciones',
+  'mala': 'Con base en malas condiciones',
+  'malas condiciones': 'Con base en malas condiciones',
+  'sin base': 'Sin base',
+  'malo': 'Sin base',
+}
+
+const normalizarEstadoBase = (val: string): string =>
+  NORMALIZAR_ESTADO_BASE[val.trim().toLowerCase()] || val
+
+const normalizarSinLuz = (val: any): boolean =>
+  val === true || val === 'true' || val === 'True' || val === 1 || val === '1'
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204 })
@@ -123,9 +138,9 @@ Deno.serve(async (req: Request) => {
 
     const propiedades: Record<string, any> = {}
     if (payload.tipo_luminaria) propiedades.tipo = payload.tipo_luminaria
-    if (payload.sin_luz !== undefined) propiedades.sin_luz = payload.sin_luz
+    if (payload.sin_luz !== undefined) propiedades.sin_luz = normalizarSinLuz(payload.sin_luz)
     if (payload.tipo_cableado) propiedades.cableado = payload.tipo_cableado
-    if (payload.estado_base) propiedades.estado_base = payload.estado_base
+    if (payload.estado_base) propiedades.estado_base = normalizarEstadoBase(payload.estado_base)
     if (payload.tipologia) propiedades.tipologia = payload.tipologia
     if (payload.direccion) propiedades.direccion = payload.direccion
     if (payload.observacion) propiedades.observacion = payload.observacion
@@ -143,8 +158,8 @@ Deno.serve(async (req: Request) => {
         propiedades,
         tipo_luminaria: payload.tipo_luminaria || null,
         cableado: payload.tipo_cableado || null,
-        sin_luz: payload.sin_luz ?? false,
-        estado_base: payload.estado_base || null,
+        sin_luz: payload.sin_luz !== undefined ? normalizarSinLuz(payload.sin_luz) : false,
+        estado_base: payload.estado_base ? normalizarEstadoBase(payload.estado_base) : null,
         direccion: payload.direccion || null,
         barrio_nombre: barrioNombre || null,
       }, {
