@@ -262,18 +262,24 @@ export const useMapStore = create<MapState>()(
         if (!persistedState) return currentState
         // Forzar sincronización de layers con domains
         const layers = persistedState.layers || currentState.layers
+        // Capas siempre apagadas al iniciar (visible solo por sesión si el usuario logueado las enciende)
+        const LAYERS_OFF_BY_DEFAULT = ['pavimento-todas', 'espacios-verdes-todos']
         const domains = (persistedState.domains || currentState.domains).map((d: any) => ({
           ...d,
           layers: d.layers.map((l: any) => {
             const savedLayer = layers.find((saved: any) => saved.id === l.id)
-            return savedLayer ? { ...l, visible: savedLayer.visible, opacity: savedLayer.opacity } : l
+            const visible = LAYERS_OFF_BY_DEFAULT.includes(l.id) ? false : (savedLayer?.visible ?? l.visible)
+            return savedLayer ? { ...l, visible, opacity: savedLayer.opacity } : l
           })
         }))
+        const forcedLayers = layers.map((l: any) =>
+          LAYERS_OFF_BY_DEFAULT.includes(l.id) ? { ...l, visible: false } : l
+        )
         return {
           ...currentState,
           ...persistedState,
           domains,
-          layers
+          layers: forcedLayers
         }
       }
     }
