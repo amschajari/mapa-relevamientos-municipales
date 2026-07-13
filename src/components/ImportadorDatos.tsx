@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef } from 'react'
-import { UploadCloud, FileText, CheckCircle, AlertCircle, X, Eye, Download } from 'lucide-react'
+import { UploadCloud, FileText, CheckCircle, AlertCircle, X } from 'lucide-react'
 import { useBarrioStore } from '@/stores'
 import { supabase } from '@/lib/supabase'
-import { cn } from '@/lib/constants'
+import { AuditorLuminarias } from './AuditorLuminarias'
 
-interface RegistroPreview {
+export interface RegistroPreview {
   nombre: string
   lat: number
   lng: number
@@ -110,7 +110,6 @@ export const ImportadorDatos = () => {
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('replace')
   const [resultado, setResultado] = useState<{ ok: number; err: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
   const [confirmDeleteAll, setConfirmDeleteAll] = useState('')
   const [selectedBarrioReset, setSelectedBarrioReset] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -338,10 +337,6 @@ export const ImportadorDatos = () => {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const validosPreview = preview.filter(r => r.valido)
-  const invalidosPreview = preview.filter(r => !r.valido)
-  const previewParaMostrar = [...invalidosPreview, ...validosPreview].slice(0, 50)
-
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -415,114 +410,19 @@ export const ImportadorDatos = () => {
                 <FileText className="w-5 h-5 text-gray-500" />
                 <span className="font-medium text-gray-800 text-sm">{nombreArchivo}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
-                  {validosPreview.length} válidos
-                </span>
-                {invalidosPreview.length > 0 && (
-                  <span className="text-xs text-red-600 font-medium bg-red-100 px-2 py-1 rounded-full">
-                    {invalidosPreview.length} con errores
-                  </span>
-                )}
-                <button
-                  onClick={() => setShowPreview(v => !v)}
-                  className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-800 transition-colors"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  {showPreview ? 'Ocultar' : 'Ver registros'}
-                </button>
-                <button onClick={limpiar} className="text-gray-400 hover:text-gray-600">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {showPreview && (
-              <div className="max-h-64 overflow-y-auto">
-                <table className="w-full text-xs">
-                  <thead className="bg-gray-50 sticky top-0">
-                    <tr>
-                      <th className="text-left p-2 text-gray-500 font-medium">ID Luminaria</th>
-                      <th className="text-left p-2 text-gray-500 font-medium">Barrio</th>
-                      <th className="text-left p-2 text-gray-500 font-medium">Latitud</th>
-                      <th className="text-left p-2 text-gray-500 font-medium">Longitud</th>
-                      <th className="text-left p-2 text-gray-500 font-medium">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {previewParaMostrar.map((r, i) => (
-                      <tr key={i} className={r.valido ? '' : 'bg-red-50'}>
-                        <td className="p-2 font-mono text-gray-800">{r.nombre}</td>
-                        <td className="p-2 text-gray-600">{r.barrio || <span className="text-gray-400">—</span>}</td>
-                        <td className="p-2 text-gray-600">{isNaN(r.lat) ? '—' : r.lat.toFixed(5)}</td>
-                        <td className="p-2 text-gray-600">{isNaN(r.lng) ? '—' : r.lng.toFixed(5)}</td>
-                        <td className="p-2">
-                          {r.valido 
-                            ? <span className="text-green-600">✔</span>
-                            : <span className="text-red-500 font-medium" title={r.error}>✘ {r.error}</span>
-                          }
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="p-4 bg-primary-50/50 border-y border-primary-100">
-              <label className="text-sm font-semibold text-primary-900 block mb-2">Modo de Importación</label>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setImportMode('replace')}
-                  className={cn(
-                    "flex-1 p-3 rounded-xl border-2 transition-all text-left",
-                    importMode === 'replace' 
-                      ? "border-primary-500 bg-white shadow-sm ring-2 ring-primary-500/20" 
-                      : "border-gray-200 bg-gray-50 text-gray-400 opacity-60 hover:opacity-100"
-                  )}
-                >
-                  <p className="font-bold text-sm text-primary-700">Reemplazar Barrios (Default)</p>
-                  <p className="text-[11px] leading-tight mt-0.5">Limpia las luminarias viejas de los barrios incluidos e inserta las nuevas.</p>
-                </button>
-                <button
-                  onClick={() => setImportMode('merge')}
-                  className={cn(
-                    "flex-1 p-3 rounded-xl border-2 transition-all text-left",
-                    importMode === 'merge' 
-                      ? "border-amber-500 bg-white shadow-sm ring-2 ring-amber-500/20" 
-                      : "border-gray-200 bg-gray-50 text-gray-400 opacity-60 hover:opacity-100"
-                  )}
-                >
-                  <p className="font-bold text-sm text-amber-700">Mezclar (Update/Insert)</p>
-                  <p className="text-[11px] leading-tight mt-0.5">Suma los puntos nuevos y actualiza los existentes sin borrar nada previo.</p>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={limpiar}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancelar
+              <button onClick={limpiar} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
               </button>
-              <button
-                onClick={confirmarImportacion}
-                disabled={isImporting || validosPreview.length === 0}
-                className="px-5 py-2 text-sm font-semibold bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-              >
-                {isImporting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Importando...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    Importar {validosPreview.length} puntos
-                  </>
-                )}
-              </button>
+            </div>
+            <div className="p-4">
+              <AuditorLuminarias
+                records={preview}
+                isImporting={isImporting}
+                importMode={importMode}
+                onImportModeChange={setImportMode}
+                onImport={confirmarImportacion}
+                onCancel={limpiar}
+              />
             </div>
           </div>
         )}
