@@ -477,12 +477,10 @@ const BarriosLayer = ({
       }
       const color = estadoColor[barrio.estado] || '#9ca3af'
       const label = estadoLabel[barrio.estado] || 'Pendiente'
-      const lums = barrio.luminariasRelevadas ?? 0
-
       const tooltipContent = `
         <div style="font-family: system-ui, sans-serif; min-width: 140px; line-height: 1.4;">
           <div style="font-weight: 700; font-size: 13px; color: #1f2937; margin-bottom: 4px;">${nombre}</div>
-          <div style="font-size: 11px; color: #6b7280;">💡 <strong style="color:#1f2937">${lums}</strong> luminarias</div>
+          <div style="font-size: 11px; color: #6b7280;">💡 <strong style="color:#1f2937">{{LUMS}}</strong> luminarias</div>
           <div style="margin-top: 4px; display: flex; align-items: center; gap: 4px;">
             <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${color};"></span>
             <span style="font-size: 11px; color: ${color}; font-weight: 600;">${label}</span>
@@ -495,19 +493,21 @@ const BarriosLayer = ({
         mouseover: (e) => highlightFeature(e, feature),
         mouseout: (e) => resetHighlight(e, feature),
         click: (e: L.LeafletMouseEvent) => {
-          // Cerrar tooltip previo si existe
           if (activeTooltipRef.current) {
             activeTooltipRef.current.remove()
             activeTooltipRef.current = null
           }
 
-          // Abrir nuevo tooltip en la posición del click (sin centrar mapa)
+          const puntos = useBarrioStore.getState().officialPoints
+          const lumsReales = puntos.filter(p => p.barrio_nombre === nombre).length
+          const lums = lumsReales || (barrio.luminariasRelevadas ?? 0)
+
           const tt = L.tooltip({
             permanent: false,
             opacity: 0.95,
             className: 'barrio-tooltip',
           })
-            .setContent(tooltipContent)
+            .setContent(tooltipContent.replace('{{LUMS}}', String(lums)))
             .setLatLng(e.latlng)
             .addTo(map)
 
