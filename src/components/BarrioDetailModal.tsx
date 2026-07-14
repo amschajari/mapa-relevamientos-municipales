@@ -32,12 +32,16 @@ export const BarrioDetailModal = ({
 }: BarrioDetailModalProps) => {
   const { updateBarrio, addBarrio, user, fetchJornadas, addJornada, jornadas } = useBarrioStore()
   
+  const officialPoints = useBarrioStore(s => s.officialPoints)
+
   const isNew = !initialBarrio.id
   
-  // Suscripción reactiva al store para evitar datos fantasma tras reset
   const barrio = useBarrioStore(state => 
     state.barrios.find(b => b.id === initialBarrio.id) || initialBarrio
   )
+
+  const puntosReales = barrio?.nombre ? officialPoints.filter(p => p.barrio_nombre === barrio.nombre).length : 0
+  const luminariasCount = puntosReales || barrio?.luminariasRelevadas || 0
 
   const [isEditing, setIsEditing] = useState(isNew)
   const [isSaving, setIsSaving] = useState(false)
@@ -241,18 +245,18 @@ export const BarrioDetailModal = ({
               <MapPin className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-600">Luminarias</span>
             </div>
-            <p className="text-2xl font-bold text-gray-800">{barrio.luminariasRelevadas || 0}</p>
-            <p className="text-[10px] text-gray-400 mt-1">Conteo real importado</p>
+            <p className="text-2xl font-bold text-gray-800">{luminariasCount}</p>
+            <p className="text-[10px] text-gray-400 mt-1">Luminarias en mapa</p>
           </div>
           <div className="bg-gray-50 p-4 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-600">Densidad</span>
             </div>
-            {barrio.superficie_ha && barrio.luminariasRelevadas ? (
+            {barrio.superficie_ha && luminariasCount ? (
               <>
                 <p className="text-2xl font-bold text-gray-800">
-                  {(barrio.luminariasRelevadas / barrio.superficie_ha).toFixed(1)}
+                  {(luminariasCount / barrio.superficie_ha).toFixed(1)}
                 </p>
                 <p className="text-[10px] text-gray-400 mt-1">lum / Ha</p>
               </>

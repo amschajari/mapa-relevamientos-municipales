@@ -9,6 +9,8 @@ interface BarrioPopupProps {
 
 export const BarrioPopup = ({ barrio, onEdit }: BarrioPopupProps) => {
   const { user } = useBarrioStore()
+  const officialPoints = useBarrioStore(s => s.officialPoints)
+  const puntosReales = barrio?.nombre ? officialPoints.filter(p => p.barrio_nombre === barrio.nombre).length : 0
 
   const getStatusLabel = (estado: string) => {
     switch (estado) {
@@ -29,7 +31,7 @@ export const BarrioPopup = ({ barrio, onEdit }: BarrioPopupProps) => {
     }
   }
 
-  const relevadas = barrio.luminariasRelevadas || 0
+  const relevadas = puntosReales || barrio.luminariasRelevadas || 0
   const superficie = barrio.superficie_ha
   const densidad = superficie && superficie > 0 && relevadas > 0
     ? (relevadas / superficie).toFixed(1)
