@@ -17,6 +17,9 @@ dist-ssr
 *.csv
 *.xlsx
 
+# Odoo integration guide (sensitive config)
+Guia_integracion_produccion_odoo_supabase.md
+
 # IDE
 .vscode/*
 !.vscode/extensions.json
