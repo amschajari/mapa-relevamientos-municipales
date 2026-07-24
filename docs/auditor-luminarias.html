@@ -31,6 +31,8 @@
     tr.gris td:first-child { border-left: 3px solid #ca8a04; }
     tr.duplicado { background: #fff7ed; }
     tr.duplicado td:first-child { border-left: 3px solid #ea580c; }
+    tr.duplicado-global { background: #fef2f2; }
+    tr.duplicado-global td:first-child { border-left: 3px solid #dc2626; }
     .error { color: #dc2626; font-size: 12px; }
     .warning { color: #ca8a04; font-size: 12px; }
     .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -65,7 +67,11 @@
       </div>
       <div class="stat orange" data-filter="duplicados">
         <div class="stat-value" id="duplicadosCount">0</div>
-        <div class="stat-label">Duplicados</div>
+        <div class="stat-label">Duplicados consecutivos</div>
+      </div>
+      <div class="stat orange" data-filter="duplicados-global">
+        <div class="stat-value" id="duplicadosGlobalCount">0</div>
+        <div class="stat-label">Duplicados totales</div>
       </div>
       <div class="stat">
         <div class="stat-value" id="totalCount">0</div>
@@ -73,13 +79,17 @@
       </div>
     </div>
 
+    <div id="dedupBanner" style="display:none;background:#fef2f2;border:1px solid #dc2626;border-radius:8px;padding:12px 16px;margin:16px 0;color:#991b1b;font-size:14px;"></div>
+
     <div class="filters" id="filters" style="display:none">
       <button class="active" data-filter="all">Todos</button>
       <button data-filter="invalidos">Solo inválidos</button>
       <button data-filter="sin-id">Sin ID</button>
       <button data-filter="sin-coords">Sin coordenadas</button>
       <button data-filter="coord-cero">Coords = 0</button>
-      <button data-filter="duplicados">Duplicados</button>
+      <button data-filter="duplicados">Duplicados consecutivos</button>
+      <button data-filter="duplicados-global">Duplicados totales</button>
+      <button data-filter="dedup-perdida">Perdidos por dedup</button>
       <input type="text" class="search" id="search" placeholder="Buscar por ID, dirección o barrio...">
     </div>
 
@@ -188,18 +198,28 @@
           tieneId,
           tieneCoords,
           raw: fila,
-          duplicado: false
+          duplicado: false,
+          duplicadoGlobal: false
         }
       }).filter(r => r.nombre || r.direccion || r.barrio)
 
-      const ids = {}
+      for (let i = 1; i < regs.length; i++) {
+        const prev = regs[i - 1]
+        const curr = regs[i]
+        if (prev.tieneId && curr.tieneId && prev.nombre === curr.nombre) {
+          prev.duplicado = true
+          curr.duplicado = true
+        }
+      }
+
+      const idsGlobal = {}
       regs.forEach((r, i) => {
         if (r.tieneId) {
-          if (ids[r.nombre]) {
-            regs[i].duplicado = true
-            regs[ids[r.nombre]].duplicado = true
+          if (idsGlobal[r.nombre]) {
+            r.duplicadoGlobal = true
+            regs[idsGlobal[r.nombre]].duplicadoGlobal = true
           } else {
-            ids[r.nombre] = i
+            idsGlobal[r.nombre] = i
           }
         }
       })
@@ -245,12 +265,25 @@
       const sinId = registros.filter(r => !r.tieneId && (r.direccion || r.barrio))
       const sinCoords = registros.filter(r => r.tieneId && !r.tieneCoords)
       const duplicados = registros.filter(r => r.duplicado)
+      const duplicadosGlobal = registros.filter(r => r.duplicadoGlobal)
+
+      const idsUnicos = new Set(registros.filter(r => r.duplicadoGlobal).map(r => r.nombre))
+      const perdidosPorDedup = duplicadosGlobal.length - idsUnicos.size
 
       document.getElementById('validosCount').textContent = registros.length - invalidos.length
       document.getElementById('invalidosCount').textContent = invalidos.length
       document.getElementById('sinIdCount').textContent = sinId.length
       document.getElementById('duplicadosCount').textContent = duplicados.length
+      document.getElementById('duplicadosGlobalCount').textContent = duplicadosGlobal.length
       document.getElementById('totalCount').textContent = registros.length
+
+      const banner = document.getElementById('dedupBanner')
+      if (perdidosPorDedup > 0) {
+        banner.style.display = 'block'
+        banner.innerHTML = `⚠️ <b>${perdidosPorDedup}</b> registro${perdidosPorDedup > 1 ? 's' : ''} se perderá${perdidosPorDedup > 1 ? 'n' : ''} al importar porque comparte${perdidosPorDedup > 1 ? 'n' : ''} ID con otro. Revisá "Duplicados totales" y "Perdidos por dedup".`
+      } else {
+        banner.style.display = 'none'
+      }
       
       let filtrados = registros
       if (filtroActual === 'invalidos') filtrados = invalidos
@@ -258,6 +291,14 @@
       else if (filtroActual === 'sin-coords') filtrados = sinCoords
       else if (filtroActual === 'coord-cero') filtrados = registros.filter(r => r.tieneId && (r.lat === 0 || r.lng === 0))
       else if (filtroActual === 'duplicados') filtrados = duplicados
+      else if (filtroActual === 'duplicados-global') filtrados = duplicadosGlobal
+      else if (filtroActual === 'dedup-perdida') {
+        const idsPerdidos = [...idsUnicos]
+        filtrados = duplicadosGlobal.filter(r => {
+          const primero = registros.findIndex(x => x.tieneId && x.nombre === r.nombre)
+          return registros.indexOf(r) !== primero
+        })
+      }
       
       const search = document.getElementById('search').value.toLowerCase()
       if (search) {
@@ -274,11 +315,13 @@
       filtrados.slice(0, 200).forEach(r => {
         const tr = document.createElement('tr')
         if (r.duplicado) tr.classList.add('duplicado')
+        else if (r.duplicadoGlobal && !r.duplicado) tr.classList.add('duplicado-global')
         else if (!r.valido && r.error === 'Fila vacía') tr.classList.add('gris')
         else if (!r.valido) tr.classList.add('invalido')
 
         let msgError = r.error || ''
-        if (r.duplicado) msgError = 'ID duplicado'
+        if (r.duplicado) msgError = 'ID duplicado consecutivo'
+        else if (r.duplicadoGlobal && filtroActual !== 'duplicados-global' && filtroActual !== 'dedup-perdida') msgError = 'ID duplicado global'
         else if (!r.tieneId && (r.direccion || r.barrio)) msgError = 'Sin ID pero tiene dirección/barrio'
 
         tr.innerHTML = `
