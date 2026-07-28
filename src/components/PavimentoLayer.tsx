@@ -26,7 +26,7 @@ const ESTILOS = {
     calle: { color: '#004d4d', weight: 2, opacity: 0.9 },
     calleHover: { color: '#006666', weight: 4, opacity: 1 },
     avenidas: { color: '#004d4d', weight: 4, opacity: 0.9 },
-    conservado: { color: '#0ea5e9', weight: 2.5, opacity: 0.9 },
+    conservado: { color: '#0ea5e9', weight: 3.5, opacity: 0.95 },
     pendiente: { color: '#eab308', weight: 2, opacity: 0.7 },
     descartado: { color: '#ef4444', weight: 1.5, opacity: 0.5 }
   }
@@ -76,13 +76,18 @@ const PavimentoLayer = () => {
 const geojsonData = useMemo(() => {
       if (!callesData.length) return null
 
-      // Aplicar filtros
       let filtered = callesData
+
+      // Filtro por categoría (pestañas)
+      if (mapFilters.pavimentoFiltroEstado === 'con-datos') {
+        filtered = filtered.filter(c => c.observaciones && c.observaciones.trim() !== '')
+      } else if (mapFilters.pavimentoFiltroEstado === 'pendientes') {
+        filtered = filtered.filter(c => c.estado !== 'conservado')
+      }
+
+      // Mostrar/ocultar descartadas
       if (!mapFilters.pavimentoMostrarDescartadas) {
         filtered = filtered.filter(c => c.estado !== 'descartado')
-      }
-      if (mapFilters.pavimentoSoloConDatos) {
-        filtered = filtered.filter(c => c.observaciones && c.observaciones.trim() !== '')
       }
 
       return {
@@ -97,13 +102,14 @@ const geojsonData = useMemo(() => {
           tipo_obra: calle.tipo_obra,
           entre_calle_1: calle.entre_calle_1,
           entre_calle_2: calle.entre_calle_2,
+          observaciones: calle.observaciones,
           fecha_aprobacion_concejo: calle.fecha_aprobacion_concejo,
           fecha_inauguracion: calle.fecha_inauguracion
         },
         geometry: calle.geom?.crs ? { ...calle.geom, crs: undefined } : calle.geom
       }))
     }
-  }, [callesData])
+  }, [callesData, mapFilters])
 
 const getStyle = (feature: any) => {
       const props = feature?.properties || {}
