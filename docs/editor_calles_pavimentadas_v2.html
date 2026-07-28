@@ -373,12 +373,7 @@ async function loadGeoJSON(){
 }
 
 // Cargar desde archivo local (principal)
-async function loadFromLocalFile(){
- try {
- showToast('Cargando datos locales...');
- const response = await fetch('./calles_segmentadas.geojson');
- if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
- const geojsonData = await response.json();
+function cargarGeoJSONDesdeArchivo(geojsonData){
  geojson = geojsonData;
  segments = geojson.features.map((f,i)=>({
  id: f.properties.fid || i+1,
@@ -393,10 +388,38 @@ async function loadFromLocalFile(){
  buildLayers();
  detectIntersections();
  updateStats();
+}
+
+async function loadFromLocalFile(){
+ try {
+ showToast('Cargando datos locales...');
+ const response = await fetch('./calles_segmentadas.geojson');
+ if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+ const geojsonData = await response.json();
+ cargarGeoJSONDesdeArchivo(geojsonData);
  } catch(e) {
- console.error('Error cargando archivo local:', e);
- showToast('Error cargando GeoJSON local. Asegurate de tener el archivo calles_segmentadas.geojson');
+ console.warn('fetch falló (esperado si abriste con file://), usando selector de archivos...');
+ // Fallback: abrir selector de archivos
+ const input = document.createElement('input');
+ input.type = 'file';
+ input.accept = '.geojson';
+ input.onchange = (event) => {
+ const file = event.target.files[0];
+ if (!file) return;
+ const reader = new FileReader();
+ reader.onload = (e) => {
+ try {
+ cargarGeoJSONDesdeArchivo(JSON.parse(e.target.result));
+ } catch(err) {
+ showToast('Error al leer el archivo GeoJSON');
+ console.error(err);
  }
+ };
+ reader.readAsText(file);
+ };
+ input.click();
+ }
+}
 }
 
 // ==================== MAPA ====================
