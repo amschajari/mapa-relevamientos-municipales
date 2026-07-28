@@ -417,11 +417,10 @@ async function loadFromLocalFile(){
  };
  reader.readAsText(file);
  };
- input.click();
+  input.click();
+  }
  }
-}
-}
-
+ 
 // ==================== MAPA ====================
 const map = L.map('map',{center:[-30.755,-57.985],zoom:14,zoomControl:true});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(map);
