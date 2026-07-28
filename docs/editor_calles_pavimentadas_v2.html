@@ -1044,6 +1044,38 @@ function cargarProgreso(event){
 
 // ==================== SINCRONIZACIÓN CON SUPABASE ====================
 
+// Normalizar geometría para Supabase: LineString → MultiLineString, eliminar crs
+function normalizarGeometria(geom, segId){
+ if (!geom) {
+ console.warn('Segmento sin geometría:', segId);
+ return null;
+ }
+
+ // Clonar para no mutar el original
+ let g;
+ try {
+ g = JSON.parse(JSON.stringify(geom));
+ } catch(e) {
+ console.warn('Error clonando geometría del segmento', segId, e);
+ return null;
+ }
+
+ // PostGIS rechaza la propiedad crs (GeoJSON legacy)
+ if (g.crs) delete g.crs;
+
+ if (g.type === 'MultiLineString') return g;
+
+ if (g.type === 'LineString') {
+ return {
+ type: 'MultiLineString',
+ coordinates: [g.coordinates]
+ };
+ }
+
+ console.warn('Tipo de geometría no soportado para Supabase:', g.type, 'segmento', segId);
+ return null;
+}
+
 // Guardar todos los segmentos en Supabase (upsert)
 async function guardarEnSupabase(){
  if(segments.length === 0){
@@ -1055,28 +1087,17 @@ async function guardarEnSupabase(){
  console.log('Preparando', segments.length, 'segmentos para Supabase...');
 
  const records = segments.map((seg, idx) => {
- // Clonar la geometría para no modificar la original
- let geom = JSON.parse(JSON.stringify(seg.geom));
+ const geom = normalizarGeometria(seg.geom, seg.id);
  
- // Debug: mostrar tipo de geom
  if (idx < 3) {
  console.log(`Segmento ${seg.id}:`, {
  tipoOriginal: seg.geom?.type,
- tipoClonado: geom?.type,
- esArray: Array.isArray(geom?.coordinates)
+ tipoNormalizado: geom?.type,
+ esMultiLineString: geom?.type === 'MultiLineString'
  });
  }
  
-  // PostGIS rechaza la propiedad crs (GeoJSON legacy)
-  delete geom.crs;
-
-  // Convertir geometría a MultiLineString si es LineString
-  if(geom && geom.type === 'LineString') {
- geom = {
- type: 'MultiLineString',
- coordinates: [geom.coordinates]
- };
- }
+ if (!geom) return null;
  
  return {
  fid: seg.id,
@@ -1091,8 +1112,9 @@ async function guardarEnSupabase(){
   geom: geom,
   longitud_m: calcularLongitud(seg.geom)
  };
- });
+ }).filter(r => r !== null);
 
+ console.log(`Registros preparados: ${records.length} de ${segments.length}`);
  console.log('Primeros 3 registros:', records.slice(0, 3).map(r => ({
  fid: r.fid,
  tipoGeom: r.geom?.type,
@@ -1467,57 +1489,44 @@ async function reemplazarTodoEnSupabase(){
  // Intentar con TRUNCATE vía RPC si está disponible
  }
 
- // Paso 2: Preparar registros nuevos
- console.log('Preparando registros...');
- const records = segments.map((seg, idx) => {
- // Clonar la geometría para no modificar la original
- let geom = JSON.parse(JSON.stringify(seg.geom));
- 
- // Debug: mostrar tipo de geom para los primeros
- if (idx < 3) {
- console.log(`Segmento ${seg.id} (reemplazar):`, {
- tipoOriginal: seg.geom?.type,
- tipoClonado: geom?.type
- });
- }
- 
-  // PostGIS rechaza la propiedad crs
-  delete geom.crs;
-
-  // Verificar que geom es válido
-  if (!geom || !geom.type) {
- console.warn('Segmento sin geometría válida:', seg.id);
- return null;
- }
- 
- // Convertir geometría a MultiLineString si es LineString
- if(geom.type === 'LineString') {
- geom = {
- type: 'MultiLineString',
- coordinates: [geom.coordinates]
- };
- }
- 
- return {
- fid: seg.id,
- nombre: seg.name,
- estado: seg.props.estado || 'pendiente',
- tipo_obra: seg.props.tipo_obra || null,
- entre_calle_1: seg.props.entre_calle_1 || null,
- entre_calle_2: seg.props.entre_calle_2 || null,
-  fecha_aprobacion_concejo: sanitizarFecha(seg.props.fecha_aprobacion_concejo),
-  fecha_inauguracion: sanitizarFecha(seg.props.fecha_inauguracion),
-  observaciones: seg.props.observaciones || null,
-  geom: geom,
-  longitud_m: calcularLongitud(seg.geom)
-  };
-  }).filter(r => r !== null);
- 
- console.log(`Registros preparados: ${records.length} de ${segments.length}`);
- console.log('Muestra de registros:', records.slice(0, 3).map(r => ({
- fid: r.fid,
- tipoGeom: r.geom?.type,
- coordLength: r.geom?.coordinates?.length
+  // Paso 2: Preparar registros nuevos
+  console.log('Preparando registros...');
+  const records = segments.map((seg, idx) => {
+  const geom = normalizarGeometria(seg.geom, seg.id);
+  
+  if (idx < 3) {
+  console.log(`Segmento ${seg.id} (reemplazar):`, {
+  tipoOriginal: seg.geom?.type,
+  tipoNormalizado: geom?.type,
+  esMultiLineString: geom?.type === 'MultiLineString'
+  });
+  }
+  
+  if (!geom) {
+  console.warn('Segmento sin geometría válida (saltado):', seg.id, seg.name);
+  return null;
+  }
+  
+  return {
+  fid: seg.id,
+  nombre: seg.name,
+  estado: seg.props.estado || 'pendiente',
+  tipo_obra: seg.props.tipo_obra || null,
+  entre_calle_1: seg.props.entre_calle_1 || null,
+  entre_calle_2: seg.props.entre_calle_2 || null,
+   fecha_aprobacion_concejo: sanitizarFecha(seg.props.fecha_aprobacion_concejo),
+   fecha_inauguracion: sanitizarFecha(seg.props.fecha_inauguracion),
+   observaciones: seg.props.observaciones || null,
+   geom: geom,
+   longitud_m: calcularLongitud(seg.geom)
+   };
+   }).filter(r => r !== null);
+  
+  console.log(`Registros preparados: ${records.length} de ${segments.length}`);
+  console.log('Muestra de registros:', records.slice(0, 3).map(r => ({
+  fid: r.fid,
+  tipoGeom: r.geom?.type,
+  coordLength: r.geom?.coordinates?.length
  })));
 
  // Paso 3: Insertar en lotes de 100
