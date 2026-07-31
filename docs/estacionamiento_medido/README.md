@@ -81,7 +81,7 @@ Sistema de referencia principal consultado. Fuente: https://cdeluruguay.movilpar
 
 ### ⚠️ Observaciones técnicas
 
-1. El feature de Urquiza (`way/201783981`) tiene **coordenadas repetidas/duplicadas** al inicio — conviene limpiar antes de usar como dato definitivo.
+1. ~~El feature de Urquiza (`way/201783981`) tiene coordenadas repetidas/duplicadas al inicio~~ — **Resuelto 2026-07-31**: se limpiaron los duplicados de Urquiza y el spike de `way/544430199`. La capa quedó sin coordenadas repetidas.
 2. Los `id` provienen de OSM, no son FIDs propios. Para la app municipal se necesita un **`fid` propio** (numérico único).
 3. Se deberá normalizar la geometría a **MultiLineString** (como en Calles Pavimentadas) para consistencia con Supabase.
 
