@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="3.34.5-Prizren" projectname="" saveUser="ALE" saveUserFull="ALE" saveDateTime="2026-08-01T20:46:34">
+<qgis version="3.34.5-Prizren" projectname="" saveUser="ALE" saveUserFull="ALE" saveDateTime="2026-08-01T20:53:29">
   <homePath path=""/>
   <title></title>
   <transaction mode="Disabled"/>
@@ -52,7 +52,7 @@
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer patch_size="-1,-1" legend_exp="" expanded="1" name="Google Hybrid" checked="Qt::Unchecked" providerKey="wms" id="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Dy%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0" legend_split_behavior="0">
+    <layer-tree-layer patch_size="-1,-1" legend_exp="" expanded="1" name="Google Hybrid" checked="Qt::Checked" providerKey="wms" id="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Dy%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0" legend_split_behavior="0">
       <customproperties>
         <Option/>
       </customproperties>
@@ -80,10 +80,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>6405532.61984285339713097</xmin>
-      <ymin>6597174.52473204769194126</ymin>
-      <xmax>6405891.60224279388785362</xmax>
-      <ymax>6597518.65593188442289829</ymax>
+      <xmin>6405597.08938484732061625</xmin>
+      <ymin>6596778.94204433634877205</ymin>
+      <xmax>6407033.01898460928350687</xmax>
+      <ymax>6598155.46684368327260017</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -134,9 +134,9 @@
         <legendlayerfile isInOverview="0" layerid="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" visible="1"/>
       </filegroup>
     </legendlayer>
-    <legendlayer showFeatureCount="0" open="true" name="Google Hybrid" checked="Qt::Unchecked" drawingOrder="-1">
+    <legendlayer showFeatureCount="0" open="true" name="Google Hybrid" checked="Qt::Checked" drawingOrder="-1">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" visible="1"/>
       </filegroup>
     </legendlayer>
   </legend>
@@ -4353,7 +4353,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors/>
   <ProjectViewSettings rotation="0" UseProjectScales="0">
     <Scales/>
-    <DefaultViewExtent ymin="6597174.52473204769194126" xmin="6405394.07509984634816647" xmax="6406030.14698580093681812" ymax="6597518.65593188442289829">
+    <DefaultViewExtent ymin="6596778.94204433634877205" xmin="6405042.91041282005608082" xmax="6407587.1979566365480423" ymax="6598155.46684368327260017">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["POSGAR 2007 / Argentina 6",BASEGEOGCRS["POSGAR 2007",DATUM["Posiciones Geodesicas Argentinas 2007",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",5340]],CONVERSION["Argentina zone 6",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",-90,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-57,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",6500000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (X)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (Y)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["Argentina - between 58°30'W and 55°30'W, onshore."],BBOX[-38.59,-58.5,-24.84,-55.49]],ID["EPSG",5348]]</wkt>
         <proj4>+proj=tmerc +lat_0=-90 +lon_0=-57 +k=1 +x_0=6500000 +y_0=0 +ellps=WGS84 +units=m +no_defs</proj4>
@@ -4418,7 +4418,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings destinationLayerName="urquiza_sarmiento_entrecalles" destinationFollowsActiveLayer="1" destinationLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/urquiza_sarmiento_entrecalles.geojson" autoCommitFeatures="0" destinationLayerProvider="ogr" destinationLayer="urquiza_sarmiento_entrecalles_8bf5dcea_44bf_4cfa_9157_16f0d7c72e95" autoAddTrackVertices="0">
+  <ProjectGpsSettings destinationFollowsActiveLayer="1" autoCommitFeatures="0" destinationLayer="" autoAddTrackVertices="0">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>
