@@ -19,7 +19,7 @@ interface ReconcilePayload {
 
 const limpiarCoordenada = (val: string): number | null => {
   if (!val) return null
-  return parseFloat(val.replace(/[^0-9.\-]/g, '').replace(',', '.'))
+  return parseFloat(val.replace(/[^0-9.-]/g, '').replace(',', '.'))
 }
 
 const normalizarNombre = (str: string): string =>
@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
 
     let eliminados = 0
     let insertados = 0
-    let errores: string[] = []
+    const errores: string[] = []
 
     // 5. Ejecutar DELETE de huérfanos
     if (idsEliminar.length > 0) {

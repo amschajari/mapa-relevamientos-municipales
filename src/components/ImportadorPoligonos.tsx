@@ -30,17 +30,6 @@ export const ImportadorPoligonos = () => {
     ? barrios.filter(b => !preview.find(p => p.nombre.toLowerCase() === b.nombre.toLowerCase()))
     : []
 
-  if (user?.role !== 'admin') {
-    return (
-      <div className="h-full flex items-center justify-center text-gray-400">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">Solo disponible para administradores</p>
-        </div>
-      </div>
-    )
-  }
-
   const procesarArchivo = useCallback((file: File) => {
     setResultado(null)
     setErrorGlobal(null)
@@ -148,6 +137,17 @@ export const ImportadorPoligonos = () => {
   }
 
   const validosPreview = preview.filter(r => r.valido)
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-400">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
+          <p className="font-medium">Solo disponible para administradores</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full flex flex-col p-4 sm:p-6 bg-white overflow-y-auto">

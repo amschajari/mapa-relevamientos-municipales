@@ -375,7 +375,6 @@ const OfficialPointsLayer = () => {
 // Sub-componente para manejar la capa GeoJSON con acceso al contexto del mapa
 const BarriosLayer = ({
   geoJson,
-  onBarrioClick,
   selectedBarrio,
 }: {
   geoJson: GeoJsonObject
@@ -383,7 +382,7 @@ const BarriosLayer = ({
   selectedBarrio?: Barrio | null
 }) => {
   const map = useMap()
-  const { getBarrioByNombre, getBarrioStatus, getBarrioProgress, setSelectedBarrio, visibleLayers } = useBarrioStore()
+  const { getBarrioByNombre, getBarrioStatus, visibleLayers } = useBarrioStore()
   const { layers } = useMapStore()
   const geoJsonRef = useRef<L.GeoJSON | null>(null)
   const activeTooltipRef = useRef<L.Tooltip | null>(null)
@@ -426,10 +425,10 @@ const BarriosLayer = ({
         default: return { ...baseStyle, color: '#4b5563', fillColor: '#9ca3af' }
       }
     },
-    [getBarrioStatus, getBarrioProgress, selectedBarrio]
+    [getBarrioStatus, selectedBarrio]
   )
 
-  const highlightFeature = (e: L.LeafletEvent, feature?: any) => {
+  const highlightFeature = useCallback((e: L.LeafletEvent, feature?: any) => {
     const layer = e.target
     const nombre = feature?.properties?.Nombre || ''
     if (nombre === 'Sin Barrio') {
@@ -437,13 +436,13 @@ const BarriosLayer = ({
     } else {
       layer.setStyle({ weight: 2.5, fillOpacity: 0.5 })
     }
-  }
+  }, [])
 
-  const resetHighlight = (e: L.LeafletEvent, feature?: any) => {
+  const resetHighlight = useCallback((e: L.LeafletEvent, feature?: any) => {
     const layer = e.target
     const style = getBarrioStyle(feature)
     layer.setStyle(style)
-  }
+  }, [getBarrioStyle])
 
   const onEachFeature = useCallback(
     (feature: any, layer: L.Layer) => {
@@ -515,7 +514,7 @@ const BarriosLayer = ({
         },
       })
     },
-    [getBarrioByNombre, onBarrioClick, setSelectedBarrio, highlightFeature, resetHighlight, map]
+    [getBarrioByNombre, highlightFeature, resetHighlight, map]
   )
 
   return showBarrios ? (
