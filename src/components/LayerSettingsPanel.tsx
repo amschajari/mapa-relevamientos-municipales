@@ -1,4 +1,4 @@
-import { X, Sliders, Info, MapPin, Zap, AlertCircle } from 'lucide-react'
+import { X, Sliders, Info, MapPin, Zap, AlertCircle, Eye, Layers } from 'lucide-react'
 import { useMapStore } from '@/stores'
 import { useBarrioStore } from '@/stores/barrioStore'
 import { cn, ESTADO_BASE_OPTIONS, FUNCIONAMIENTO_OPTIONS } from '@/lib/constants'
@@ -155,8 +155,66 @@ export const LayerSettingsPanel = () => {
               </div>
             </div>
           </div>
-        )}
-      </div>
+)}
+
+          {/* Filtros para Pavimento */}
+          {layer.id === 'pavimento-todas' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              {/* Categoría */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Layers className="w-3 h-3" /> Categoría
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { value: 'todas', label: 'Todas', color: 'bg-gray-500' },
+                    { value: 'con-datos', label: 'Con datos', color: 'bg-cyan-500' },
+                    { value: 'pendientes', label: 'Pendientes', color: 'bg-yellow-500' },
+                  ] as const).map(opt => {
+                    const isSelected = mapFilters.pavimentoFiltroEstado === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => setMapFilter('pavimentoFiltroEstado', opt.value)}
+                        className={cn(
+                          "flex flex-col items-center gap-1 px-2 py-2 rounded-xl text-[10px] font-bold transition-all border",
+                          isSelected
+                            ? "bg-white border-primary-200 text-gray-900 shadow-sm"
+                            : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                        )}
+                      >
+                        <div className={cn("w-2 h-2 rounded-full", isSelected ? opt.color : "bg-gray-300")} />
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Mostrar descartadas */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Eye className="w-3 h-3" /> Mostrar descartadas
+                </label>
+                <button
+                  onClick={() => setMapFilter('pavimentoMostrarDescartadas', !mapFilters.pavimentoMostrarDescartadas)}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold transition-all border",
+                    mapFilters.pavimentoMostrarDescartadas
+                      ? "bg-white border-primary-200 text-gray-900 shadow-sm"
+                      : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                  )}
+                >
+                  <div className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    mapFilters.pavimentoMostrarDescartadas ? "bg-red-500" : "bg-gray-300"
+                  )} />
+                  {mapFilters.pavimentoMostrarDescartadas ? 'Visibles' : 'Ocultas'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
       {/* Footer Info */}
       <div className="p-3 bg-gray-50 border-t border-gray-100">

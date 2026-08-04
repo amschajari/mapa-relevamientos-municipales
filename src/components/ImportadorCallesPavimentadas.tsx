@@ -126,7 +126,6 @@ const confirmarImportacion = async () => {
 
     setIsImporting(true)
     const errores: string[] = []
-    let creados = 0
     let eliminados = 0
     const batchSize = 100 // Lotes de 100
 
@@ -199,8 +198,6 @@ const confirmarImportacion = async () => {
         if (error) {
           console.error('Error insertando:', JSON.stringify(error, null, 2))
           errores.push(`Error en lote ${i/batchSize + 1}: ${error.message}`)
-        } else {
-          creados += lote.length
         }
       }
 

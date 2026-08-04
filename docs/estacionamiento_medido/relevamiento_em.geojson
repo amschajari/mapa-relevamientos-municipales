@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "relevamiento_estacionamiento",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1, "calle": "Urquiza", "entre_calle_1": "Avenida 9 de Julio", "entre_calle_2": "Pablo Stampa", "lado": "impar", "tipo": "motos", "motivo": null, "arranque_m": 2, "largo_m": 12, "capacidad": 8, "horario": null, "tarifa": null, "senializacion": null, "observaciones": null, "origen": "esquina" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -57.986718509881392, -30.757238298075492 ], [ -57.986607880776781, -30.757331507318426 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 2, "calle": "Urquiza", "entre_calle_1": "Avenida 9 de Julio", "entre_calle_2": "Pablo Stampa", "lado": "par", "tipo": "prohibido", "motivo": "bocacalle", "arranque_m": 0, "largo_m": 10, "capacidad": null, "horario": null, "tarifa": null, "senializacion": "amarillo", "observaciones": null, "origen": "esquina" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -57.9867721, -30.7571391 ], [ -57.9860039, -30.7578098 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 3, "calle": "Urquiza", "entre_calle_1": "Avenida 9 de Julio", "entre_calle_2": "Pablo Stampa", "lado": "par", "tipo": "prohibido", "motivo": "subida_privada", "arranque_m": 40, "largo_m": 4, "capacidad": null, "horario": null, "tarifa": null, "senializacion": null, "observaciones": "rampa garaje", "origen": "esquina" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -57.9867721, -30.7571391 ], [ -57.9860039, -30.7578098 ] ] ] } }
+]
+}

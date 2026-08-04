@@ -84,7 +84,7 @@ function App() {
       subscription.unsubscribe()
       unsubscribeRealtime()
     }
-  }, [])
+  }, [fetchBarrios, fetchOfficialPoints, setSession, subscribeToRealtime, unsubscribeRealtime])
   /* Demo: Simular algunos barrios con progreso
   useEffect(() => {
     if (barrios.length > 0 && tareas.length === 0) {

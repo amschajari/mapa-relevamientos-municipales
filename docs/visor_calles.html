@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor de Calles Pavimentadas - Chajarí</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="calles_data.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;background:#1e293b;color:#e2e8f0}
+#container{display:flex;height:100%}
+#map{flex:1;height:100%}
+#sidebar{width:380px;min-width:380px;background:#1e293b;border-left:1px solid #334155;display:flex;flex-direction:column;overflow:hidden}
+#sidebar-header{padding:16px 20px;background:#0f172a;border-bottom:1px solid #334155}
+#sidebar-header h1{font-size:16px;font-weight:700;color:#f8fafc}
+#sidebar-header p{font-size:11px;color:#94a3b8;margin-top:4px}
+#sidebar-stats{display:flex;gap:8px;padding:12px 20px;background:#1e293b;border-bottom:1px solid #334155;font-size:12px}
+.stat{flex:1;text-align:center}
+.stat .num{font-size:22px;font-weight:700;display:block}
+.stat .label{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
+.stat.green .num{color:#22c55e}
+.stat.gray .num{color:#94a3b8}
+.stat.blue .num{color:#60a5fa}
+#sidebar-tabs{display:flex;border-bottom:1px solid #334155}
+.tab-btn{flex:1;padding:10px;background:0;border:none;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;border-bottom:2px solid transparent}
+.tab-btn:hover{color:#e2e8f0}
+.tab-btn.active{color:#60a5fa;border-bottom-color:#60a5fa}
+#sidebar-content{flex:1;overflow-y:auto;padding:12px 16px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.legend-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px}
+.legend-line{width:28px;height:4px;border-radius:2px;flex-shrink:0}
+.legend-line.green{background:#22c55e}
+.legend-line.gray{background:#475569;border:1px dashed #64748b}
+.legend-line.blue{background:#3b82f6}
+.legend-line.ambient{background:#3b82f6;opacity:.3}
+
+#search-input{width:100%;padding:8px 12px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;border-radius:6px;font-size:13px;margin-bottom:10px}
+#search-input::placeholder{color:#64748b}
+
+.qwen-row{padding:10px 12px;background:#0f172a;border-radius:6px;margin-bottom:6px;cursor:pointer;transition:.15s;border-left:3px solid #22c55e}
+.qwen-row:hover{background:#1e293b;border-color:#60a5fa}
+.qwen-row .calle{font-weight:600;font-size:13px;color:#f8fafc}
+.qwen-row .tramo{font-size:11px;color:#94a3b8;margin:2px 0}
+.qwen-row .meta{font-size:10px;color:#64748b;margin-top:4px}
+.qwen-row .meta span{margin-right:12px}
+.qwen-row .meta .badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.badge.ord{background:#1e3a5f;color:#60a5fa}
+.badge.res{background:#3b0f0f;color:#f87171}
+.badge.proy{background:#3b2f0f;color:#fbbf24}
+.badge.inaug{background:#0f3b1f;color:#4ade80}
+
+#detail-panel{display:none;padding:12px 16px;background:#0f172a;border-top:1px solid #334155;max-height:200px;overflow-y:auto}
+#detail-panel.visible{display:block}
+#detail-panel .close{float:right;background:0;border:none;color:#64748b;cursor:pointer;font-size:18px;padding:0 4px}
+#detail-panel .close:hover{color:#e2e8f0}
+#detail-panel .d-calle{font-size:15px;font-weight:700;color:#f8fafc}
+#detail-panel .d-meta{font-size:11px;color:#94a3b8;margin:4px 0 8px}
+.d-qwen{font-size:12px;padding:8px 10px;background:#1e293b;border-radius:4px;margin-bottom:4px;border-left:2px solid #22c55e}
+.d-qwen .d-q-norma{font-weight:600;color:#60a5fa}
+.d-qwen .d-q-tramo{color:#94a3b8}
+.d-noqwen{font-size:12px;color:#64748b;font-style:italic}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#e2e8f0;padding:8px 16px;border-radius:6px;font-size:12px;border:1px solid #334155;opacity:0;transition:opacity .3s;pointer-events:none;z-index:10000}
+#toast.show{opacity:1}
+
+.leaflet-popup-content-wrapper{background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:8px}
+.leaflet-popup-tip{background:#0f172a;border:1px solid #334155}
+.leaflet-popup-content{margin:10px 14px;font-size:13px}
+.leaflet-popup-content strong{color:#f8fafc}
+.leaflet-popup-content .qwen-match{color:#22c55e;font-weight:600;margin-top:6px}
+.leaflet-popup-content .qwen-detail{font-size:11px;color:#94a3b8;border-left:2px solid #22c55e;padding-left:8px;margin-top:4px}
+.leaflet-popup-content .no-qwen{color:#64748b;font-style:italic;margin-top:6px}
+
+@media(max-width:768px){#sidebar{width:100%;min-width:100%;max-height:40%;border-left:none;border-top:1px solid #334155}
+#container{flex-direction:column-reverse}
+}
+</style>
+</head>
+<body>
+
+<div id="container">
+  <div id="map"></div>
+
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>Calles Pavimentadas · Chajarí</h1>
+      <p>Datos: calles_pavim_040526_1050.geojson (892 segmentos) · Normativa: Digestos Qwen</p>
+    </div>
+
+    <div id="sidebar-stats">
+      <div class="stat green"><span class="num" id="stat-matched">-</span><span class="label">Con Normativa</span></div>
+      <div class="stat gray"><span class="num" id="stat-unmatched">-</span><span class="label">Sin Datos</span></div>
+      <div class="stat blue"><span class="num" id="stat-total">-</span><span class="label">Segmentos</span></div>
+    </div>
+
+    <div id="sidebar-tabs">
+      <button class="tab-btn active" data-tab="leyenda">Leyenda</button>
+      <button class="tab-btn" data-tab="qwen">Normativa Qwen</button>
+      <button class="tab-btn" data-tab="info">Info</button>
+    </div>
+
+    <div id="sidebar-content">
+      <div class="tab-panel active" id="panel-leyenda">
+        <div class="legend-item">
+          <div class="legend-line green"></div>
+          <span>Calle con datos normativos (Qwen)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line gray"></div>
+          <span>Calle sin datos normativos</span>
+        </div>
+        <div class="legend-item" style="margin-top:6px;padding-top:8px;border-top:1px solid #334155">
+          <div class="legend-line blue" style="opacity:0.4"></div>
+          <span style="font-size:11px;color:#94a3b8">Hacé clic en un segmento para ver detalles</span>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-qwen">
+        <input id="search-input" type="text" placeholder="Buscar calle en normativa..." oninput="filterQwen()" />
+        <div id="qwen-list"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-info">
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:10px">Este visor muestra los <strong style="color:#e2e8f0">892 segmentos</strong> de calles pavimentadas de Chajarí, cruzados con <strong style="color:#e2e8f0">18 registros normativos</strong> extraídos del digesto municipal.</p>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:10px"><strong style="color:#e2e8f0">Leyenda de colores:</strong></p>
+        <ul style="font-size:12px;color:#94a3b8;list-style:none;padding:0">
+          <li style="padding:3px 0">🟢 <strong style="color:#22c55e">Verde</strong> — La calle tiene al menos un registro normativo</li>
+          <li style="padding:3px 0">⬜ <strong style="color:#64748b">Gris</strong> — Sin normativa asociada</li>
+        </ul>
+        <p style="font-size:12px;color:#64748b;margin-top:12px;padding-top:10px;border-top:1px solid #334155">
+          <strong>Calles de Qwen sin match:</strong><br>
+          <span id="info-unmatched-qwen"></span>
+        </p>
+      </div>
+    </div>
+
+    <div id="detail-panel">
+      <button class="close" onclick="closeDetail()">&times;</button>
+      <div class="d-calle" id="d-calle"></div>
+      <div class="d-meta" id="d-meta"></div>
+      <div id="d-content"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// QWEN DATA — 18 registros normativos del digesto municipal
+// ============================================================
+const QWEN = [
+  { calle: "Pablo Stampa", desde: "Presb. Fochesatto", hasta: "Champagnat", norma: "Ordenanza 3293", tipo: "Ord", fecha_aprobacion: "2024", fecha_inauguracion: "", tipo_obra: "Pavimentación Nueva", financiamiento: "Contribución por Mejoras", observaciones: "Declara de interés municipal." },
+  { calle: "Pablo Stampa", desde: "Virgen del Luján", hasta: "Presb. Fochesatto", norma: "Resolución 028/2007 HCD", tipo: "Res", fecha_aprobacion: "2007", fecha_inauguracion: "", tipo_obra: "Pavimentación", financiamiento: "-", observaciones: "Expediente Nº 286." },
+  { calle: "Pío XII", desde: "Av. 9 de Julio", hasta: "Pablo Stampa", norma: "Ordenanza 3293", tipo: "Ord", fecha_aprobacion: "2024", fecha_inauguracion: "", tipo_obra: "Pavimentación Nueva", financiamiento: "Contribución por Mejoras", observaciones: "Declara de interés municipal." },
+  { calle: "Brasil", desde: "Múltiples tramos", hasta: "Múltiples tramos", norma: "Ord. 2980, 3132, 3162, 3208, 3229", tipo: "Ord", fecha_aprobacion: "2018-2023", fecha_inauguracion: "", tipo_obra: "Pavimentación", financiamiento: "Contribución por Mejoras", observaciones: "Planes de pago especiales para frentistas." },
+  { calle: "Av. 25 de Mayo", desde: "Av. 1° de Mayo", hasta: "Güemes", norma: "Ordenanza (PDF 3442)", tipo: "Ord", fecha_aprobacion: "-", fecha_inauguracion: "", tipo_obra: "Obra Pública Municipal", financiamiento: "Administración", observaciones: "Dispónese construir como Obra Pública Municipal." },
+  { calle: "Av. 25 de Mayo", desde: "Pablo Stampa", hasta: "Pancho Ramírez", norma: "Ordenanza (PDF 3609)", tipo: "Ord", fecha_aprobacion: "-", fecha_inauguracion: "", tipo_obra: "Obra Pública Municipal", financiamiento: "Administración", observaciones: "Obra por administración." },
+  { calle: "Av. José Iglesias", desde: "Av. Alem", hasta: "Sarmiento", norma: "-", tipo: "", fecha_aprobacion: "-", fecha_inauguracion: "2025 (En ejecución)", tipo_obra: "Pavimentación", financiamiento: "Hormigón", observaciones: "Obra en ejecución (2025)." },
+  { calle: "Av. Siburu", desde: "Av. 1 de Mayo", hasta: "Av. 28 de Mayo", norma: "-", tipo: "", fecha_aprobacion: "-", fecha_inauguracion: "Mayo 2020", tipo_obra: "Pavimentación Urbana", financiamiento: "-", observaciones: "Inaugurada en Mayo 2020. 270m por calzada." },
+  { calle: "Av. Almirante Brown", desde: "Múltiples tramos", hasta: "Múltiples tramos", norma: "-", tipo: "", fecha_aprobacion: "-", fecha_inauguracion: "", tipo_obra: "Pavimentación / Repav.", financiamiento: "Hormigón", observaciones: "Doble calzada, cantero central y desagües." },
+  { calle: "Ángel Repetto", desde: "Brasil", hasta: "Av. Almirante Brown", norma: "Proyecto de Ordenanza", tipo: "Proy", fecha_aprobacion: "2023", fecha_inauguracion: "", tipo_obra: "Pavimentación", financiamiento: "-", observaciones: "Unión de pavimento de Av. Almirante Brown con calle Brasil." },
+  { calle: "Presb. Fochesatto", desde: "Av. 1° de Mayo", hasta: "C. T. de Rocamora", norma: "Ordenanza / Licitación 13/2025", tipo: "Ord", fecha_aprobacion: "2025", fecha_inauguracion: "Sept. 2025", tipo_obra: "Pavimentación", financiamiento: "Hormigón", observaciones: "Presupuesto $55M. Inauguradas 2 cuadras en Sept 2025." },
+  { calle: "Guarumba", desde: "Av. Alem", hasta: "Av. Belgrano", norma: "-", tipo: "", fecha_aprobacion: "-", fecha_inauguracion: "2026 (En ejecución)", tipo_obra: "Pavimentación Continua", financiamiento: "-", observaciones: "Completando el pavimento de calle Guarumba (5 cuadras)." },
+  { calle: "Champagnat", desde: "Av. Belgrano", hasta: "Av. Siburu", norma: "-", tipo: "", fecha_aprobacion: "-", fecha_inauguracion: "2022", tipo_obra: "Pavimentación", financiamiento: "Hormigón", observaciones: "Finalizaron los trabajos en 2022." },
+  { calle: "Champagnat", desde: "9 de Julio", hasta: "Pancho Ramírez", norma: "-", tipo: "", fecha_aprobacion: "-", fecha_inauguracion: "Marzo 2021", tipo_obra: "Pavimentación", financiamiento: "Hormigón", observaciones: "Comenzó el colado de hormigón en Marzo 2021." },
+  { calle: "Córdoba", desde: "Estrada", hasta: "Guarumba", norma: "Proyecto de Ordenanza", tipo: "Proy", fecha_aprobacion: "Oct. 2025", fecha_inauguracion: "", tipo_obra: "Pavimentación", financiamiento: "-", observaciones: "Declarando de Interés General la obra." },
+  { calle: "San Luis", desde: "Estrada", hasta: "Guarumba", norma: "Ordenanza 3182", tipo: "Ord", fecha_aprobacion: "28/08/2025", fecha_inauguracion: "", tipo_obra: "Pavimentación Urbana", financiamiento: "-", observaciones: "Declara de interés municipal." },
+  { calle: "Antártida", desde: "Estrada", hasta: "Guarumba", norma: "Ordenanza 3199", tipo: "Ord", fecha_aprobacion: "09/10/2025", fecha_inauguracion: "", tipo_obra: "Pavimentación", financiamiento: "-", observaciones: "Declarar de Interés Municipal obra de pavimento." },
+  { calle: "Av. H. Yrigoyen", desde: "Champagnat", hasta: "Av. Belgrano", norma: "Ordenanza", tipo: "Ord", fecha_aprobacion: "2022", fecha_inauguracion: "", tipo_obra: "Pavimentación", financiamiento: "-", observaciones: "Declarando de Interés General de pavimentación." }
+];
+
+// ============================================================
+// STREET NAME MAPPING (Qwen → Supabase)
+// ============================================================
+const STREET_MAP = {
+  "Pablo Stampa": "Pablo Stampa",
+  "Pío XII": "Pio XII",
+  "Brasil": "Brasil",
+  "Av. 25 de Mayo": "Avenida 25 de Mayo",
+  "Av. José Iglesias": null,
+  "Av. Siburu": "Avenida Siburu",
+  "Av. Almirante Brown": "Avenida Almirante Brown",
+  "Ángel Repetto": "Ángel Repetto",
+  "Presb. Fochesatto": "Presbítero Fochesatto",
+  "Guarumba": "Guarumba",
+  "Champagnat": "Champagnat",
+  "Córdoba": "Córdoba",
+  "San Luis": "San Luis",
+  "Antártida": "Antártida",
+  "Av. H. Yrigoyen": "Avenida Hipólito Yrigoyen"
+};
+
+// Build reverse: Supabase name → array of Qwen records
+const qwenByStreet = {};
+QWEN.forEach(q => {
+  const mapped = STREET_MAP[q.calle];
+  if (!mapped) return;
+  if (!qwenByStreet[mapped]) qwenByStreet[mapped] = [];
+  qwenByStreet[mapped].push(q);
+});
+
+const matchedStreets = new Set(Object.keys(qwenByStreet));
+
+// ============================================================
+// MAP SETUP
+// ============================================================
+const map = L.map('map', {
+  center: [-30.752, -57.985],
+  zoom: 14,
+  zoomControl: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OSM</a>'
+}).addTo(map);
+
+// ============================================================
+// RENDER SEGMENTS
+// ============================================================
+let matchedCount = 0;
+let unmatchedCount = 0;
+const segmentLayers = {};
+
+function getColor(nombre) {
+  return matchedStreets.has(nombre) ? '#22c55e' : '#475569';
+}
+
+function getWeight(nombre) {
+  return matchedStreets.has(nombre) ? 3.5 : 2.5;
+}
+
+const segmentLayer = L.geoJSON(CALLES_GEOJSON, {
+  style: function(feature) {
+    const n = feature.properties.nombre;
+    return {
+      color: getColor(n),
+      weight: getWeight(n),
+      opacity: 0.85
+    };
+  },
+  onEachFeature: function(feature, layer) {
+    const n = feature.properties.nombre;
+    if (matchedStreets.has(n)) matchedCount++;
+    else unmatchedCount++;
+
+    const fid = feature.properties.fid;
+    segmentLayers[fid] = layer;
+
+    layer.on('click', function() {
+      showSegmentDetail(feature, layer);
+    });
+
+    layer.on('mouseover', function() {
+      this.setStyle({ weight: 5, opacity: 1 });
+    });
+
+    layer.on('mouseout', function() {
+      this.setStyle({ weight: getWeight(n), opacity: 0.85 });
+    });
+  }
+}).addTo(map);
+
+// De-duplicate counts (each feature was counted)
+matchedCount = 0;
+unmatchedCount = 0;
+const seen = new Set();
+CALLES_GEOJSON.features.forEach(f => {
+  const n = f.properties.nombre;
+  if (!seen.has(n)) {
+    seen.add(n);
+    if (matchedStreets.has(n)) matchedCount++;
+    else unmatchedCount++;
+  }
+});
+
+document.getElementById('stat-matched').textContent = matchedCount;
+document.getElementById('stat-unmatched').textContent = unmatchedCount;
+document.getElementById('stat-total').textContent = CALLES_GEOJSON.features.length;
+
+// Fit bounds
+const bounds = segmentLayer.getBounds();
+if (bounds.isValid()) map.fitBounds(bounds.pad(0.05));
+
+// ============================================================
+// POPUP / DETAIL PANEL
+// ============================================================
+function showSegmentDetail(feature, layer) {
+  const p = feature.properties;
+  const nombre = p.nombre;
+  const qwenRecords = qwenByStreet[nombre] || [];
+
+  const popupContent = document.createElement('div');
+  popupContent.innerHTML = `
+    <strong style="font-size:15px">${nombre}</strong>
+    <div style="font-size:11px;color:#94a3b8;margin:4px 0">
+      FID: ${p.fid} · ${p.longitud_m.toFixed(1)}m · ${p.tipo_obra || 'H°A°'}
+    </div>
+    ${qwenRecords.length > 0 ? `
+      <div class="qwen-match">${qwenRecords.length} registro(s) normativo(s)</div>
+      ${qwenRecords.map(q => `
+        <div class="qwen-detail">
+          <strong>${q.tramo ? q.desde + ' → ' + q.hasta : q.desde}</strong><br>
+          ${q.norma} · ${q.fecha_aprobacion} · ${q.tipo_obra}
+        </div>
+      `).join('')}
+    ` : `
+      <div class="no-qwen">Sin datos normativos</div>
+    `}
+  `;
+
+  layer.bindPopup(popupContent).openPopup();
+
+  // Also update detail panel
+  document.getElementById('d-calle').textContent = nombre;
+  document.getElementById('d-meta').innerHTML = `FID: ${p.fid} · ${p.longitud_m.toFixed(1)}m · ${p.tipo_obra || 'H°A°'}`;
+  const dc = document.getElementById('d-content');
+  dc.innerHTML = '';
+  if (qwenRecords.length > 0) {
+    qwenRecords.forEach(q => {
+      const div = document.createElement('div');
+      div.className = 'd-qwen';
+      div.innerHTML = `
+        <div class="d-q-norma">${q.norma || 'Sin norma'}</div>
+        <div class="d-q-tramo">${q.desde} → ${q.hasta}</div>
+        <div style="color:#64748b;font-size:11px;margin-top:2px">${q.tipo_obra} · ${q.fecha_aprobacion}${q.fecha_inauguracion ? ' · Inaug: ' + q.fecha_inauguracion : ''}</div>
+        <div style="color:#64748b;font-size:10px;margin-top:2px">${q.observaciones}</div>
+      `;
+      dc.appendChild(div);
+    });
+  } else {
+    dc.innerHTML = '<div class="d-noqwen">Sin datos normativos para esta calle</div>';
+  }
+  document.getElementById('detail-panel').classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('visible');
+  map.closePopup();
+}
+
+// ============================================================
+// QWEN SIDEBAR TABLE
+// ============================================================
+function renderQwenTable(filter) {
+  const list = document.getElementById('qwen-list');
+  list.innerHTML = '';
+
+  let filtered = QWEN;
+  if (filter) {
+    const f = filter.toLowerCase();
+    filtered = QWEN.filter(q =>
+      q.calle.toLowerCase().includes(f) ||
+      q.norma.toLowerCase().includes(f) ||
+      q.desde.toLowerCase().includes(f) ||
+      q.hasta.toLowerCase().includes(f)
+    );
+  }
+
+  filtered.forEach(q => {
+    const mapped = STREET_MAP[q.calle];
+    const hasMatch = mapped && matchedStreets.has(mapped);
+    const div = document.createElement('div');
+    div.className = 'qwen-row';
+    div.style.borderLeftColor = hasMatch ? '#22c55e' : '#64748b';
+    div.innerHTML = `
+      <div class="calle">${q.calle} ${!hasMatch ? '<span style="color:#64748b;font-weight:400;font-size:10px">(sin match)</span>' : ''}</div>
+      <div class="tramo">${q.desde} → ${q.hasta}</div>
+      <div class="meta">
+        <span class="badge ${q.tipo === 'Ord' ? 'ord' : q.tipo === 'Res' ? 'res' : q.tipo === 'Proy' ? 'proy' : 'inaug'}">${q.norma || 'N/D'}</span>
+        <span>${q.tipo_obra}</span>
+        ${q.fecha_inauguracion ? '<span style="color:#4ade80">Inaug: ' + q.fecha_inauguracion + '</span>' : ''}
+        <span style="color:#60a5fa">${q.fecha_aprobacion}</span>
+      </div>
+    `;
+    div.onclick = function() {
+      if (mapped && matchedStreets.has(mapped)) {
+        flyToStreet(mapped);
+      } else {
+        showToast('Calle no encontrada en el mapa');
+      }
+    };
+    list.appendChild(div);
+  });
+}
+
+function filterQwen() {
+  const val = document.getElementById('search-input').value;
+  renderQwenTable(val);
+}
+
+function flyToStreet(nombre) {
+  const features = CALLES_GEOJSON.features.filter(f => f.properties.nombre === nombre);
+  if (features.length === 0) return;
+
+  // Calculate centroid
+  let latSum = 0, lngSum = 0, count = 0;
+  features.forEach(f => {
+    const coords = f.g.coordinates;
+    coords.forEach(ring => {
+      ring.forEach(c => {
+        lngSum += c[0];
+        latSum += c[1];
+        count++;
+      });
+    });
+  });
+
+  const center = [latSum / count, lngSum / count];
+  map.setView(center, 17);
+
+  // Highlight segments
+  features.forEach(f => {
+    const layer = segmentLayers[f.properties.fid];
+    if (layer) {
+      layer.setStyle({ color: '#60a5fa', weight: 5, opacity: 1 });
+      setTimeout(() => {
+        layer.setStyle({ color: getColor(nombre), weight: getWeight(nombre), opacity: 0.85 });
+      }, 2000);
+    }
+  });
+
+  showToast(`Mostrando ${nombre} (${features.length} segmentos)`);
+
+  // Switch to leyenda tab
+  switchTab('leyenda');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    switchTab(this.dataset.tab);
+  });
+});
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+// ============================================================
+// INFO PANEL: unmatched Qwen streets
+// ============================================================
+const unmatchedQwen = QWEN.filter(q => {
+  const m = STREET_MAP[q.calle];
+  return !m || !matchedStreets.has(m);
+});
+const uniqueUnmatched = [...new Set(unmatchedQwen.map(q => q.calle))];
+document.getElementById('info-unmatched-qwen').innerHTML = uniqueUnmatched.length > 0
+  ? uniqueUnmatched.map(n => `<span style="color:#64748b">${n}</span>`).join(' · ')
+  : 'Ninguna — todas las calles de Qwen tienen match en Supabase.';
+
+// Init
+renderQwenTable();
+</script>
+</body>
+</html>

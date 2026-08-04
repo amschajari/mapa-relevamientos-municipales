@@ -46,7 +46,6 @@ function enrichRecords(records: RegistroPreview[]): AuditRecord[] {
   return audit
 }
 
-export { enrichRecords }
 export type { AuditRecord }
 
 const FILTER_LABELS: Record<AuditFilter, string> = {

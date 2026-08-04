@@ -28,7 +28,7 @@ const limpiarCoordenada = (val: any): number | null => {
   if (val === undefined || val === null) return null
   const str = String(val).trim()
   if (!str) return null
-  return parseFloat(str.replace(/[^0-9.\-]/g, '').replace(',', '.'))
+  return parseFloat(str.replace(/[^0-9.-]/g, '').replace(',', '.'))
 }
 
 const normalizarNombre = (str: string): string =>

@@ -114,17 +114,6 @@ export const ImportadorDatos = () => {
   const [selectedBarrioReset, setSelectedBarrioReset] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  if (user?.role !== 'admin') {
-    return (
-      <div className="h-full flex items-center justify-center text-gray-400">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">Solo disponible para administradores</p>
-        </div>
-      </div>
-    )
-  }
-
   const procesarArchivo = useCallback((file: File) => {
     setResultado(null)
     setError(null)
@@ -335,6 +324,17 @@ export const ImportadorDatos = () => {
     setResultado(null)
     setError(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-400">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-40" />
+          <p className="font-medium">Solo disponible para administradores</p>
+        </div>
+      </div>
+    )
   }
 
   return (
