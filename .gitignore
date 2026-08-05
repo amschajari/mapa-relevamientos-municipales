@@ -53,3 +53,8 @@ skills-lock.json
 
 Guia_integracion_produccion_odoo_supabase.md
 supabase/.temp/
+
+# QGIS derivados de prueba (binarios pesados)
+*.gpkg
+*.gpkg-shm
+*.gpkg-wal
