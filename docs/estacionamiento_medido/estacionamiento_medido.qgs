@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis projectname="" saveDateTime="2026-08-05T00:46:50" saveUser="ALE" saveUserFull="ALE" version="4.2.0-Belém do Pará">
+<qgis projectname="" saveDateTime="2026-08-06T19:58:53" saveUser="ALE" saveUserFull="ALE" version="4.2.0-Belém do Pará">
   <homePath path=""/>
   <title></title>
   <transaction mode="Disabled"/>
@@ -110,7 +110,7 @@
         </Option>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Checked" expanded="1" id="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" legend_exp="" legend_split_behavior="0" name="Google Satellite" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Ds%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0">
+    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" legend_exp="" legend_split_behavior="0" name="Google Satellite" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Ds%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0">
       <customproperties>
         <Option type="Map">
           <Option name="cached_name" type="QString" value="Google Satellite"/>
@@ -149,10 +149,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>-6455350.01879208069294691</xmin>
-      <ymin>-3602184.34842833084985614</ymin>
-      <xmax>-6454515.51501266937702894</xmax>
-      <ymax>-3600679.20418532891198993</ymax>
+      <xmin>-6454744.11941457632929087</xmin>
+      <ymin>-3601868.84434901457279921</ymin>
+      <xmax>-6454358.1766984099522233</xmax>
+      <ymax>-3601487.73711157869547606</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -238,9 +238,9 @@
         <legendlayerfile isInOverview="0" layerid="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" visible="1"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Checked" drawingOrder="-1" name="Google Satellite" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Google Satellite" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" visible="1"/>
+        <legendlayerfile isInOverview="0" layerid="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" visible="0"/>
       </filegroup>
     </legendlayer>
     <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Google Hybrid" open="true" showFeatureCount="0">
@@ -2346,16 +2346,16 @@
     </maplayer>
     <maplayer autoRefreshMode="Disabled" autoRefreshTime="0" geometry="Line" hasScaleBasedVisibilityFlag="0" labelsEnabled="1" layerType="Vector" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="MultiLineString">
       <extent>
-        <xmin>6405525.92360728047788143</xmin>
-        <ymin>6597217.83581973519176245</ymin>
-        <xmax>6405805.21137522161006927</xmax>
-        <ymax>6597493.7727411026135087</ymax>
+        <xmin>6405528.723963662981987</xmin>
+        <ymin>6597149.00524211954325438</ymin>
+        <xmax>6405873.77238657511770725</xmax>
+        <ymax>6597492.32840246055275202</ymax>
       </extent>
       <wgs84extent>
-        <xmin>-57.98672505445563274</xmin>
-        <ymin>-30.75971799671953022</ymin>
-        <xmax>-57.98378312062307316</xmax>
-        <ymax>-30.75720727455754044</ymax>
+        <xmin>-57.9867021417127475</xmin>
+        <ymin>-30.7603441820049639</ymin>
+        <xmax>-57.98306728214424055</xmax>
+        <ymax>-30.75722052292926989</ymax>
       </wgs84extent>
       <id>relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb</id>
       <datasource>./relevamiento_em_P07F6_ALE.geojson</datasource>
@@ -2573,8 +2573,9 @@
       </elevation>
       <renderer-v2 attr="tipo" enableorderby="0" forceraster="0" referencescale="-1" symbollevels="0" type="categorizedSymbol">
         <categories>
-          <category label="autos" render="true" symbol="0" type="string" uuid="{9d2cd464-05be-497d-aaf0-1da1277e9ce9}" value="autos"/>
-          <category label="motos" render="true" symbol="1" type="string" uuid="{a5f8f064-4378-4ddb-885e-c58e9ca4462d}" value="motos"/>
+          <category label="autos" render="true" symbol="0" type="string" uuid="{89eeaff5-6e4f-4c3f-bd3e-32729be85a67}" value="autos"/>
+          <category label="motos" render="true" symbol="1" type="string" uuid="{6c4bf734-dd95-4568-9c61-de8492374732}" value="motos"/>
+          <category label="prohibido" render="true" symbol="2" type="string" uuid="{7a69c049-bcfa-4942-80ff-a607dd70e028}" value="prohibido"/>
         </categories>
         <symbols>
           <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="0" renderer_should_use_levels="1" type="line">
@@ -2585,7 +2586,7 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleLine" enabled="1" id="{b776cfa0-fda4-4a07-a3c4-e16ed60735ad}" locked="1" pass="0">
+            <layer class="SimpleLine" enabled="1" id="{479af80f-3db3-4188-8b84-e19ec51fc07e}" locked="1" pass="0">
               <Option type="Map">
                 <Option name="align_dash_pattern" type="QString" value="0"/>
                 <Option name="capstyle" type="QString" value="round"/>
@@ -2623,7 +2624,7 @@
                 </Option>
               </data_defined_properties>
             </layer>
-            <layer class="SimpleLine" enabled="1" id="{6eae9418-2750-4aff-99f2-081b9452881b}" locked="0" pass="0">
+            <layer class="SimpleLine" enabled="1" id="{b6c38768-ec5f-44f2-b465-7e245a01ad63}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="align_dash_pattern" type="QString" value="0"/>
                 <Option name="capstyle" type="QString" value="round"/>
@@ -2635,7 +2636,7 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="round"/>
-                <Option name="line_color" type="QString" value="59,229,133,255,rgb:0.2313726,0.8980392,0.5215687,1"/>
+                <Option name="line_color" type="QString" value="66,117,218,255,hsv:0.6111111044883728,0.69803923368453979,0.85490196943283081,1"/>
                 <Option name="line_style" type="QString" value="solid"/>
                 <Option name="line_width" type="QString" value="1.46"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
@@ -2670,7 +2671,7 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleLine" enabled="1" id="{b776cfa0-fda4-4a07-a3c4-e16ed60735ad}" locked="1" pass="0">
+            <layer class="SimpleLine" enabled="1" id="{405c97f2-6a45-434b-85ea-165436ee47b4}" locked="1" pass="0">
               <Option type="Map">
                 <Option name="align_dash_pattern" type="QString" value="0"/>
                 <Option name="capstyle" type="QString" value="round"/>
@@ -2708,7 +2709,7 @@
                 </Option>
               </data_defined_properties>
             </layer>
-            <layer class="SimpleLine" enabled="1" id="{6eae9418-2750-4aff-99f2-081b9452881b}" locked="0" pass="0">
+            <layer class="SimpleLine" enabled="1" id="{fefaebe8-16da-4f89-805d-0207bfbec071}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="align_dash_pattern" type="QString" value="0"/>
                 <Option name="capstyle" type="QString" value="round"/>
@@ -2720,7 +2721,92 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="round"/>
-                <Option name="line_color" type="QString" value="230,10,17,255,rgb:0.9019608,0.0392157,0.0666667,1"/>
+                <Option name="line_color" type="QString" value="205,48,176,255,hsv:0.86388885974884033,0.76470589637756348,0.80392158031463623,1"/>
+                <Option name="line_style" type="QString" value="solid"/>
+                <Option name="line_width" type="QString" value="1.46"/>
+                <Option name="line_width_unit" type="QString" value="MM"/>
+                <Option name="offset" type="QString" value="0"/>
+                <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="offset_unit" type="QString" value="MM"/>
+                <Option name="ring_filter" type="QString" value="0"/>
+                <Option name="trim_distance_end" type="QString" value="0"/>
+                <Option name="trim_distance_end_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="trim_distance_end_unit" type="QString" value="MM"/>
+                <Option name="trim_distance_start" type="QString" value="0"/>
+                <Option name="trim_distance_start_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="trim_distance_start_unit" type="QString" value="MM"/>
+                <Option name="tweak_dash_pattern_on_corners" type="QString" value="0"/>
+                <Option name="use_custom_dash" type="QString" value="0"/>
+                <Option name="width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+              </Option>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option name="name" type="QString" value=""/>
+                  <Option name="properties"/>
+                  <Option name="type" type="QString" value="collection"/>
+                </Option>
+              </data_defined_properties>
+            </layer>
+          </symbol>
+          <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="2" renderer_should_use_levels="1" type="line">
+            <data_defined_properties>
+              <Option type="Map">
+                <Option name="name" type="QString" value=""/>
+                <Option name="properties"/>
+                <Option name="type" type="QString" value="collection"/>
+              </Option>
+            </data_defined_properties>
+            <layer class="SimpleLine" enabled="1" id="{27cf335d-3b5c-43c9-8d94-9c649ad70ee2}" locked="1" pass="0">
+              <Option type="Map">
+                <Option name="align_dash_pattern" type="QString" value="0"/>
+                <Option name="capstyle" type="QString" value="round"/>
+                <Option name="customdash" type="QString" value="5;2"/>
+                <Option name="customdash_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="customdash_unit" type="QString" value="MM"/>
+                <Option name="dash_pattern_offset" type="QString" value="0"/>
+                <Option name="dash_pattern_offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
+                <Option name="draw_inside_polygon" type="QString" value="0"/>
+                <Option name="joinstyle" type="QString" value="round"/>
+                <Option name="line_color" type="QString" value="0,0,0,255,rgb:0,0,0,1"/>
+                <Option name="line_style" type="QString" value="solid"/>
+                <Option name="line_width" type="QString" value="2.06"/>
+                <Option name="line_width_unit" type="QString" value="MM"/>
+                <Option name="offset" type="QString" value="0"/>
+                <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="offset_unit" type="QString" value="MM"/>
+                <Option name="ring_filter" type="QString" value="0"/>
+                <Option name="trim_distance_end" type="QString" value="0"/>
+                <Option name="trim_distance_end_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="trim_distance_end_unit" type="QString" value="MM"/>
+                <Option name="trim_distance_start" type="QString" value="0"/>
+                <Option name="trim_distance_start_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="trim_distance_start_unit" type="QString" value="MM"/>
+                <Option name="tweak_dash_pattern_on_corners" type="QString" value="0"/>
+                <Option name="use_custom_dash" type="QString" value="0"/>
+                <Option name="width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+              </Option>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option name="name" type="QString" value=""/>
+                  <Option name="properties"/>
+                  <Option name="type" type="QString" value="collection"/>
+                </Option>
+              </data_defined_properties>
+            </layer>
+            <layer class="SimpleLine" enabled="1" id="{8538da5b-a20b-41a8-9985-6e2e251f72e9}" locked="0" pass="0">
+              <Option type="Map">
+                <Option name="align_dash_pattern" type="QString" value="0"/>
+                <Option name="capstyle" type="QString" value="round"/>
+                <Option name="customdash" type="QString" value="5;2"/>
+                <Option name="customdash_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="customdash_unit" type="QString" value="MM"/>
+                <Option name="dash_pattern_offset" type="QString" value="0"/>
+                <Option name="dash_pattern_offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
+                <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
+                <Option name="draw_inside_polygon" type="QString" value="0"/>
+                <Option name="joinstyle" type="QString" value="round"/>
+                <Option name="line_color" type="QString" value="133,239,151,255,hsv:0.3611111044883728,0.44313725829124451,0.93725490570068359,1"/>
                 <Option name="line_style" type="QString" value="solid"/>
                 <Option name="line_width" type="QString" value="1.46"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
@@ -2835,6 +2921,9 @@
             </layer>
           </symbol>
         </source-symbol>
+        <colorramp name="[source]" type="randomcolors">
+          <Option/>
+        </colorramp>
         <rotation/>
         <sizescale/>
         <data-defined-properties>
@@ -3039,7 +3128,11 @@
           <Option name="QFieldSync/value_map_button_interface_threshold" type="int" value="0"/>
           <Option name="dualview/previewExpressions" type="List">
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
+            <Option type="QString" value=""/>
+            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="QString" value="&quot;calle&quot;"/>
+            <Option type="QString" value=""/>
+            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="invalid"/>
           </Option>
           <Option name="embeddedWidgets/count" type="int" value="0"/>
@@ -3125,35 +3218,54 @@
         <field configurationFlags="0" name="fid">
           <editWidget type="Range">
             <config>
-              <Option/>
+              <Option type="Map">
+                <Option name="AllowNull" type="bool" value="true"/>
+                <Option name="Max" type="int" value="2147483647"/>
+                <Option name="Min" type="int" value="-2147483648"/>
+                <Option name="Precision" type="int" value="0"/>
+                <Option name="Step" type="int" value="1"/>
+                <Option name="Style" type="QString" value="SpinBox"/>
+              </Option>
             </config>
           </editWidget>
         </field>
         <field configurationFlags="0" name="calle">
           <editWidget type="TextEdit">
             <config>
-              <Option/>
+              <Option type="Map">
+                <Option name="IsMultiline" type="bool" value="false"/>
+                <Option name="UseHtml" type="bool" value="false"/>
+              </Option>
             </config>
           </editWidget>
         </field>
         <field configurationFlags="0" name="entre_calle_1">
           <editWidget type="TextEdit">
             <config>
-              <Option/>
+              <Option type="Map">
+                <Option name="IsMultiline" type="bool" value="false"/>
+                <Option name="UseHtml" type="bool" value="false"/>
+              </Option>
             </config>
           </editWidget>
         </field>
         <field configurationFlags="0" name="entre_calle_2">
           <editWidget type="TextEdit">
             <config>
-              <Option/>
+              <Option type="Map">
+                <Option name="IsMultiline" type="bool" value="false"/>
+                <Option name="UseHtml" type="bool" value="false"/>
+              </Option>
             </config>
           </editWidget>
         </field>
         <field configurationFlags="0" name="lado">
           <editWidget type="TextEdit">
             <config>
-              <Option/>
+              <Option type="Map">
+                <Option name="IsMultiline" type="bool" value="false"/>
+                <Option name="UseHtml" type="bool" value="false"/>
+              </Option>
             </config>
           </editWidget>
         </field>
@@ -3398,13 +3510,13 @@ def my_form_open(dialog, layer, feature):
       </labelOnTop>
       <reuseLastValuePolicy>
         <field name="arranque_m" reuseLastValuePolicy="NotAllowed"/>
-        <field name="calle" reuseLastValuePolicy="NotAllowed"/>
+        <field name="calle" reuseLastValuePolicy="AllowedDefaultOn"/>
         <field name="capacidad" reuseLastValuePolicy="NotAllowed"/>
-        <field name="entre_calle_1" reuseLastValuePolicy="NotAllowed"/>
-        <field name="entre_calle_2" reuseLastValuePolicy="NotAllowed"/>
+        <field name="entre_calle_1" reuseLastValuePolicy="AllowedDefaultOn"/>
+        <field name="entre_calle_2" reuseLastValuePolicy="AllowedDefaultOn"/>
         <field name="fid" reuseLastValuePolicy="NotAllowed"/>
         <field name="horario" reuseLastValuePolicy="NotAllowed"/>
-        <field name="lado" reuseLastValuePolicy="NotAllowed"/>
+        <field name="lado" reuseLastValuePolicy="AllowedDefaultOn"/>
         <field name="largo_m" reuseLastValuePolicy="NotAllowed"/>
         <field name="longitud_geom" reuseLastValuePolicy="NotAllowed"/>
         <field name="motivo" reuseLastValuePolicy="NotAllowed"/>
@@ -7030,7 +7142,7 @@ def my_form_open(dialog, layer, feature):
         </LayoutItem>
         <GuideCollection visible="1"/>
       </PageCollection>
-      <LayoutItem background="false" blendMode="0" excludeFromExports="0" frame="false" frameJoinStyle="miter" groupUuid="" hideBackgroundIfEmpty="0" hidePageIfEmpty="0" id="" itemRotation="0" multiFrame="{68bf764a-d6dd-488d-a326-da427d237cae}" multiFrameTemplateUuid="{68bf764a-d6dd-488d-a326-da427d237cae}" opacity="1" outlineWidthM="0.3,mm" position="97.1893,31.4473,mm" positionLock="false" positionOnPage="97.1893,31.4473,mm" referencePoint="0" sectionHeight="122.791" sectionWidth="119.036" sectionX="0" sectionY="0" size="119.036,122.791,mm" templateUuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}" type="65647" uuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}" visibility="1" zValue="5">
+      <LayoutItem background="false" blendMode="0" excludeFromExports="0" frame="false" frameJoinStyle="miter" groupUuid="" hideBackgroundIfEmpty="0" hidePageIfEmpty="0" id="" itemRotation="0" multiFrame="{68bf764a-d6dd-488d-a326-da427d237cae}" multiFrameTemplateUuid="{68bf764a-d6dd-488d-a326-da427d237cae}" opacity="1" outlineWidthM="0.3,mm" position="97.1893,31.4473,mm" positionLock="false" positionOnPage="97.1893,31.4473,mm" referencePoint="0" sectionHeight="122.791" sectionWidth="124.468" sectionX="0" sectionY="0" size="124.468,122.791,mm" templateUuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}" type="65647" uuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}" visibility="1" zValue="5">
         <FrameColor alpha="255" blue="0" green="0" red="0"/>
         <BackgroundColor alpha="255" blue="255" green="255" red="255"/>
         <LayoutObject>
@@ -7750,10 +7862,7 @@ def my_form_open(dialog, layer, feature):
               </Option>
             </customproperties>
           </layer-tree-layer>
-          <custom-order enabled="0">
-            <item>urquiza_sarmiento_entrecalles_8bf5dcea_44bf_4cfa_9157_16f0d7c72e95</item>
-            <item>relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb</item>
-          </custom-order>
+          <custom-order enabled="0"/>
         </layer-tree-group>
       </LayoutItem>
       <LayoutItem background="true" blendMode="0" drawCanvasItems="true" enableZRange="0" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="Mapa 1" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="15.7644,18.2535,mm" positionLock="false" positionOnPage="15.7644,18.2535,mm" referencePoint="0" size="266.335,386.642,mm" templateUuid="{ba521c32-62fa-4889-90ee-cc65bc944e61}" type="65639" uuid="{ba521c32-62fa-4889-90ee-cc65bc944e61}" visibility="1" zValue="1">
@@ -7948,7 +8057,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors/>
   <ProjectViewSettings UseProjectScales="0" rotation="0">
     <Scales/>
-    <DefaultViewExtent xmax="-6453535.13296244479715824" xmin="-6456330.40084230527281761" ymax="-3600679.20418532891198993" ymin="-3602184.34842833084985614">
+    <DefaultViewExtent xmax="-6454184.10549091547727585" xmin="-6454918.19062207080423832" ymax="-3601487.73711157869547606" ymin="-3601868.84434901457279921">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["WGS 84 / Pseudo-Mercator",BASEGEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4326]],CONVERSION["Popular Visualisation Pseudo-Mercator",METHOD["Popular Visualisation Pseudo Mercator",ID["EPSG",1024]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["easting (X)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["northing (Y)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Web mapping and visualisation."],AREA["World between 85.06°S and 85.06°N."],BBOX[-85.06,-180,85.06,180]],ID["EPSG",3857]]</wkt>
         <proj4>+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs</proj4>
@@ -8013,7 +8122,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="urquiza_sarmiento_entrecalles_8bf5dcea_44bf_4cfa_9157_16f0d7c72e95" destinationLayerName="urquiza_sarmiento_entrecalles" destinationLayerProvider="ogr" destinationLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/urquiza_sarmiento_entrecalles.geojson">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" destinationLayerName="relevamiento_em_P07F6_ALE" destinationLayerProvider="ogr" destinationLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>
