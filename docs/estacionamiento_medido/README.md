@@ -1,7 +1,7 @@
 # Estacionamiento Medido — Chajarí
 
 > Documento de trabajo para la capa de **Estacionamiento Medido (EM)** del sistema de gestión municipal.
-> Última actualización: 2026-07-31
+> Última actualización: 2026-08-05
 
 ---
 
@@ -87,23 +87,56 @@ Sistema de referencia principal consultado. Fuente: https://cdeluruguay.movilpar
 
 ---
 
-## 4. Relevamiento a Campo (pendiente)
+## 4. Relevamiento a Campo
 
-> Planificado para el **lunes**. Salir a relevar los estacionamientos en Urquiza y Sarmiento.
+> Relevamiento en curso (2026-08). Urquiza en proceso; pendiente Sarmiento.
 
-Campos preliminares a capturar por tramo/cuadra:
+### Modelo de datos del relevamiento (por tramo)
 
-- `calle` — nombre de calle
-- `altura` o `entre_calles` — ubicación del tramo (desde/hasta)
-- `lado_vereda` — vereda par/impar
-- `capacidad` — cantidad estimada de espacios
-- `tipo_zona` — general / frentista
-- `horario` — franja horaria (si varía por tramo)
-- `tarifa` — valor por hora
-- `senializacion` — estado de cartelería / demarcación
-- `observaciones` — notas del relevamiento
+Capa fuente: `relevamiento_em_P07F6_ALE` (EPSG:5348). Geometría **MultiLineString** (segmentos sobre el cordón de calle).
 
-> La lista definitiva se ajusta después del relevamiento.
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `fid` | int | Identificador único del tramo |
+| `calle` | text | Nombre de la calle (`Urquiza`, `Sarmiento`) |
+| `entre_calle_1` | text | Esquina inicial |
+| `entre_calle_2` | text | Esquina final |
+| `lado` | text | `par` / `impar` |
+| `tipo` | text | Ver lista cerrada abajo |
+| `motivo` | text | Motivo de restricción (ver abajo) |
+| `arranque_m` | int | Metros desde la esquina donde arranca el tramo |
+| `largo_m` | int | Longitud del tramo en metros |
+| `capacidad` | int | Plazas estimadas (calculado: ver regla 5.5m) |
+| `horario` | text | Franja horaria (pendiente de definir) |
+| `tarifa` | text | Valor por hora (pendiente de definir) |
+| `senializacion` | text | Cartelería/demarcación presente |
+| `observaciones` | text | Notas del relevamiento |
+| `origen` | text | `esquina` u otra referencia |
+
+### `tipo` — lista cerrada
+
+- `autos` — espacio normal de autos
+- `motos` — espacio de motos
+- `prohibido` — lugar NO estacionable
+
+### `motivo` — para tramos `tipo=prohibido` (y restricciones en general)
+
+- `bocacalle` — esquina / ochava
+- `subida_privada` — rampa de garaje
+- `marca_amarilla` — demarcación amarilla
+- `estacionamiento_privado` — dársena / espacio privado
+
+**Ejemplo:** rampa de garaje → `tipo=prohibido, motivo=subida_privada`. Bocacalle con pintura amarilla → `tipo=prohibido, motivo=bocacalle, senializacion=amarillo`.
+
+> ⚠️ **Tramos ya relevados sin `prohibido`:** las cuadras relevadas antes de esta definición pueden completarse luego editando el GeoJSON en QGIS (agregando los segmentos faltantes con `tipo=prohibido`). Es una edición excepcional pero práctica: se hace sobre la capa de relevamiento y se re-exporta.
+
+### Regla de cálculo de capacidad (5.5 m/vehículo)
+
+Se toma un **promedio de 5.5 m de largo por vehículo** para computar cuántos entran por tramo/cuadra:
+
+- **Capacidad por tramo** = `floor(largo_m / 5.5)`
+- **Descuentos:** bocacalles, rampas (subida_privada), marcas amarillas, estacionamiento de motos y estacionamientos privados **NO suman** plazas de autos.
+- El cálculo se hará en la app con PostGIS cuando se cargue la capa.
 
 ---
 
@@ -112,7 +145,7 @@ Campos preliminares a capturar por tramo/cuadra:
 Estructura prevista siguiendo el patrón de las capas existentes:
 
 1. **Migración SQL** (`supabase/migrations/20260730_add_estacionamiento_medido.sql`)
-   - Tabla `estacionamiento_medido`: `id`, `fid UNIQUE`, `nombre`, `calle`, `tipo`, `horario`, `tarifa`, `capacidad`, `geom (MultiPolygon o MultiLineString)`, `observaciones`, `created_at`, `updated_at`.
+   - Tabla `estacionamiento_medido`: `id`, `fid UNIQUE`, `calle`, `entre_calle_1`, `entre_calle_2`, `lado`, `tipo`, `motivo`, `arranque_m`, `largo_m`, `capacidad`, `horario`, `tarifa`, `senializacion`, `observaciones`, `origen`, `geom (MultiLineString)`, `created_at`, `updated_at`.
    - **GRANTs explícitos** para `anon`, `authenticated`, `service_role` (obligatorio post-Oct 2026).
    - RLS: lectura pública, escritura para authenticated.
    - Índices espaciales y por nombre/tipo.
@@ -125,7 +158,7 @@ Estructura prevista siguiendo el patrón de las capas existentes:
 
 3. **Componente de capa** (`src/components/EstacionamientoMedidoLayer.tsx`)
    - Patrón imperativo (como EspaciosVerdesLayer).
-   - Estilo por tipo de zona con tooltip (nombre, calle, horario, tarifa).
+   - Estilo por `tipo` con tooltip (calle, entre calles, tipo/motivo, largo, capacidad).
 
 4. **Importador** (`src/components/ImportadorEstacionamientoMedido.tsx`)
    - Drag & drop de GeoJSON, preview con validación, modo merge/upsert por FID, batch de 100.
@@ -139,10 +172,10 @@ Estructura prevista siguiendo el patrón de las capas existentes:
 
 ## 6. Próximos Pasos / Decisiones Abiertas
 
-- [ ] Realizar relevamiento a campo en Urquiza y Sarmiento (lunes).
-- [ ] Definir lista definitiva de campos de la capa.
-- [ ] Definir el tipo de geometría definitivo (segmentos de línea vs. polígonos de zona).
+- [ ] Completar relevamiento a campo: terminar **Urquiza** y agregar tramos **`prohibido`** (rampas, marcas amarillas, privados).
+- [ ] Relevar **Sarmiento**.
+- [ ] Definir `horario` y `tarifa` (¿global para toda la zona o por tramo?).
+- [ ] Confirmar GeoJSON definitivo (EPSG:5348 vs CRS84) y que la capa quede con FID estable.
 - [ ] Revisar experiencias de otras ciudades (Victoria, Gualeguay, Nogoyá, La Paz).
 - [ ] Definir alcance del componente digital (solo visualización municipal vs. operativo para controladores).
-- [ ] Limpiar y normalizar la capa QGIS (FID propio, geometría, duplicados de Urquiza).
 - [ ] Ejecutar migración Supabase y subir la capa a la app.

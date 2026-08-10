@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis projectname="" saveDateTime="2026-08-09T11:41:41" saveUser="ALE" saveUserFull="ALE" version="4.2.0-Belém do Pará">
+<qgis projectname="" saveDateTime="2026-08-10T11:22:33" saveUser="Desarrollo" saveUserFull="Desarrollo" version="4.2.0-Belém do Pará">
   <homePath path=""/>
   <title></title>
   <transaction mode="Disabled"/>
@@ -77,7 +77,7 @@
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="relevamiento_b2d5d157_11ce_4115_a739_76291496c356" legend_exp="" legend_split_behavior="0" name="estacionamiento_medido — relevamiento" patch_size="-1,-1" providerKey="ogr" source="./estacionamiento_medido.gpkg|layername=relevamiento">
+    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="relevamiento_b2d5d157_11ce_4115_a739_76291496c356" legend_exp="" legend_split_behavior="0" name="estacionamiento_medido — relevamiento" patch_size="-1,-1" providerKey="ogr" source="C:/WINDOWS/system32">
       <customproperties>
         <Option/>
       </customproperties>
@@ -149,10 +149,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>-6454609.84015322756022215</xmin>
-      <ymin>-3601790.7655708771198988</ymin>
-      <xmax>-6454513.35447419714182615</xmax>
-      <ymax>-3601695.48876151256263256</ymax>
+      <xmin>-6454353.47243388742208481</xmin>
+      <ymin>-3601526.96899902634322643</ymin>
+      <xmax>-6454256.98675485700368881</xmax>
+      <ymax>-3601431.6921896617859602</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -1842,7 +1842,7 @@
         <ymax>-30.7572051516312257</ymax>
       </wgs84extent>
       <id>relevamiento_b2d5d157_11ce_4115_a739_76291496c356</id>
-      <datasource>./estacionamiento_medido.gpkg|layername=relevamiento</datasource>
+      <datasource>C:/WINDOWS/system32</datasource>
       <layername>estacionamiento_medido — relevamiento</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
@@ -1858,25 +1858,25 @@
         </spatialrefsys>
       </srs>
       <resourceMetadata>
-        <identifier></identifier>
-        <parentidentifier></parentidentifier>
-        <language></language>
+        <identifier/>
+        <parentidentifier/>
+        <language/>
         <type>dataset</type>
-        <title></title>
-        <abstract></abstract>
+        <title/>
+        <abstract/>
         <contact>
-          <name></name>
-          <organization></organization>
-          <position></position>
-          <voice></voice>
-          <fax></fax>
-          <email></email>
-          <role></role>
+          <name/>
+          <organization/>
+          <position/>
+          <voice/>
+          <fax/>
+          <email/>
+          <role/>
         </contact>
         <links/>
         <dates/>
-        <fees></fees>
-        <encoding></encoding>
+        <fees/>
+        <encoding/>
         <crs>
           <spatialrefsys nativeFormat="Wkt">
             <wkt>PROJCRS["POSGAR 94 / Argentina 6",BASEGEOGCRS["POSGAR 94",DATUM["Posiciones Geodesicas Argentinas 1994",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4694]],CONVERSION["Argentina zone 6",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",-90,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-57,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",6500000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (X)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (Y)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["Argentina - between 58°30'W and 55°30'W, onshore."],BBOX[-38.59,-58.5,-24.84,-55.49]],ID["EPSG",22186]]</wkt>
@@ -1894,8 +1894,8 @@
           <spatial crs="EPSG:22186" dimensions="2" maxx="-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368" maxy="-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368" maxz="0" minx="179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368" miny="179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368" minz="0"/>
           <temporal>
             <period>
-              <start></start>
-              <end></end>
+              <start/>
+              <end/>
             </period>
           </temporal>
         </extent>
@@ -1917,8 +1917,8 @@
       </flags>
       <temporal accumulate="0" durationField="" durationUnit="min" enabled="0" endExpression="" endField="" fixedDuration="0" limitMode="0" mode="0" startExpression="" startField="">
         <fixedRange>
-          <start></start>
-          <end></end>
+          <start/>
+          <end/>
         </fixedRange>
       </temporal>
       <elevation binding="Centroid" clamping="Terrain" customToleranceEnabled="1" extrusion="0" extrusionEnabled="0" respectLayerSymbol="1" showMarkerSymbolInSurfacePlots="0" symbology="Line" type="IndividualFeatures" zoffset="0" zscale="1">
@@ -2329,10 +2329,10 @@
         <fieldstyles/>
       </conditionalstyles>
       <storedexpressions/>
-      <editform tolerant="1"></editform>
+      <editform tolerant="1"/>
       <editforminit/>
       <editforminitcodesource>0</editforminitcodesource>
-      <editforminitfilepath></editforminitfilepath>
+      <editforminitfilepath/>
       <editforminitcode><![CDATA[]]></editforminitcode>
       <featformsuppress>0</featformsuppress>
       <editorlayout>generatedlayout</editorlayout>
@@ -2341,20 +2341,20 @@
       <reuseLastValuePolicy/>
       <dataDefinedFieldProperties/>
       <widgets/>
-      <previewExpression></previewExpression>
-      <mapTip enabled="1"></mapTip>
+      <previewExpression/>
+      <mapTip enabled="1"/>
     </maplayer>
     <maplayer autoRefreshMode="Disabled" autoRefreshTime="0" geometry="Line" hasScaleBasedVisibilityFlag="0" labelsEnabled="1" layerType="Vector" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="MultiLineString">
       <extent>
         <xmin>6405528.723963662981987</xmin>
-        <ymin>6597149.00524211954325438</ymin>
-        <xmax>6405873.77238657511770725</xmax>
+        <ymin>6596956.14110877364873886</ymin>
+        <xmax>6406115.49354679230600595</xmax>
         <ymax>6597492.32840246055275202</ymax>
       </extent>
       <wgs84extent>
-        <xmin>-57.98670861315761726</xmin>
-        <ymin>-30.76098417555542142</ymin>
-        <xmax>-57.98233512054962802</xmax>
+        <xmin>-57.9867198840162672</xmin>
+        <ymin>-30.76210559123702737</ymin>
+        <xmax>-57.98015513336060422</xmax>
         <ymax>-30.75722052292926989</ymax>
       </wgs84extent>
       <id>relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb</id>
@@ -3125,18 +3125,18 @@
           <Option name="QFieldSync/value_map_button_interface_threshold" type="int" value="0"/>
           <Option name="dualview/previewExpressions" type="List">
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="invalid"/>
+            <Option type="QString" value=""/>
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="invalid"/>
-            <Option type="QString" value="&quot;calle&quot;"/>
+            <Option type="QString" value=""/>
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="invalid"/>
+            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
+            <Option type="QString" value=""/>
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="invalid"/>
           </Option>
           <Option name="embeddedWidgets/count" type="int" value="0"/>
-          <Option name="variableNames"/>
-          <Option name="variableValues"/>
+          <Option name="variableNames" type="invalid"/>
+          <Option name="variableValues" type="invalid"/>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -7888,7 +7888,7 @@ def my_form_open(dialog, layer, feature):
         </atlasClippingSettings>
         <itemClippingSettings clipSource="" clippingType="1" enabled="0" forceLabelsInside="0"/>
       </LayoutItem>
-      <LayoutMultiFrame backgroundColor="255,255,255,255,rgb:1,1,1,1" cellMargin="1" emptyTableMessage="" emptyTableMode="0" featureFilter="" filterFeatures="false" filterToAtlasIntersection="0" gridColor="0,0,0,255,rgb:0,0,0,1" gridStrokeWidth="0.5" headerHAlignment="0" headerMode="0" horizontalGrid="1" maxFeatures="30" relationId="" resizeMode="0" showEmptyRows="0" showGrid="1" showOnlyVisibleFeatures="0" showUniqueRowsOnly="0" source="0" templateUuid="{68bf764a-d6dd-488d-a326-da427d237cae}" type="65649" useConditionalStyling="0" uuid="{68bf764a-d6dd-488d-a326-da427d237cae}" vectorLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" vectorLayerName="relevamiento_em_P07F6_ALE" vectorLayerProvider="ogr" vectorLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson" verticalGrid="1" wrapBehavior="0" wrapString="">
+      <LayoutMultiFrame backgroundColor="255,255,255,255,rgb:1,1,1,1" cellMargin="1" emptyTableMessage="" emptyTableMode="0" featureFilter="" filterFeatures="false" filterToAtlasIntersection="0" gridColor="0,0,0,255,rgb:0,0,0,1" gridStrokeWidth="0.5" headerHAlignment="0" headerMode="0" horizontalGrid="1" maxFeatures="30" relationId="" resizeMode="0" showEmptyRows="0" showGrid="1" showOnlyVisibleFeatures="0" showUniqueRowsOnly="0" source="0" templateUuid="{68bf764a-d6dd-488d-a326-da427d237cae}" type="65649" useConditionalStyling="0" uuid="{68bf764a-d6dd-488d-a326-da427d237cae}" vectorLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" vectorLayerName="relevamiento_em_P07F6_ALE" vectorLayerProvider="ogr" vectorLayerSource="D:/ALE-GIS-DEV/repos/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson" verticalGrid="1" wrapBehavior="0" wrapString="">
         <childFrame templateUuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}" uuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}"/>
         <LayoutObject>
           <dataDefinedProperties>
@@ -8056,7 +8056,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors/>
   <ProjectViewSettings UseProjectScales="0" rotation="0">
     <Scales/>
-    <DefaultViewExtent xmax="-6454469.83667231258004904" xmin="-6454653.35795511212199926" ymax="-3601695.48876151256263256" ymin="-3601790.7655708771198988">
+    <DefaultViewExtent xmax="-6454207.9603042034432292" xmin="-6454402.49888454098254442" ymax="-3601431.6921896617859602" ymin="-3601526.96899902634322643">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["WGS 84 / Pseudo-Mercator",BASEGEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4326]],CONVERSION["Popular Visualisation Pseudo-Mercator",METHOD["Popular Visualisation Pseudo Mercator",ID["EPSG",1024]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["easting (X)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["northing (Y)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Web mapping and visualisation."],AREA["World between 85.06°S and 85.06°N."],BBOX[-85.06,-180,85.06,180]],ID["EPSG",3857]]</wkt>
         <proj4>+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs</proj4>
@@ -8121,7 +8121,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" destinationLayerName="relevamiento_em_P07F6_ALE" destinationLayerProvider="ogr" destinationLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" destinationLayerName="relevamiento_em_P07F6_ALE" destinationLayerProvider="ogr" destinationLayerSource="D:/ALE-GIS-DEV/repos/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>
