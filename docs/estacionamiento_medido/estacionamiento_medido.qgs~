@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis projectname="" saveDateTime="2026-08-10T11:22:33" saveUser="Desarrollo" saveUserFull="Desarrollo" version="4.2.0-Belém do Pará">
+<qgis projectname="" saveDateTime="2026-08-10T18:29:49" saveUser="ALE" saveUserFull="ALE" version="4.2.0-Belém do Pará">
   <homePath path=""/>
   <title></title>
   <transaction mode="Disabled"/>
@@ -103,7 +103,7 @@
         </Option>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" legend_exp="" legend_split_behavior="0" name="OSM Standard" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://tile.openstreetmap.org/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" legend_exp="" legend_split_behavior="0" name="OSM Standard" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://tile.openstreetmap.org/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0">
       <customproperties>
         <Option type="Map">
           <Option name="cached_name" type="QString" value="OSM Standard"/>
@@ -117,7 +117,7 @@
         </Option>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" legend_exp="" legend_split_behavior="0" name="Google Hybrid" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Dy%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" legend_exp="" legend_split_behavior="0" name="Google Hybrid" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Dy%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0">
       <customproperties>
         <Option type="Map">
           <Option name="cached_name" type="QString" value="Google Hybrid"/>
@@ -149,10 +149,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>-6454353.47243388742208481</xmin>
-      <ymin>-3601526.96899902634322643</ymin>
-      <xmax>-6454256.98675485700368881</xmax>
-      <ymax>-3601431.6921896617859602</ymax>
+      <xmin>-6455180.96325081121176481</xmin>
+      <ymin>-3602535.67522262688726187</ymin>
+      <xmax>-6453563.67948787938803434</xmax>
+      <ymax>-3600938.65441774483770132</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -233,9 +233,9 @@
         <legendlayerfile isInOverview="0" layerid="urquiza_sarmiento_centro_de8c8872_aa3f_4b59_9f5d_3ca0264fbf80" visible="0"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="OSM Standard" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Checked" drawingOrder="-1" name="OSM Standard" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" visible="1"/>
       </filegroup>
     </legendlayer>
     <legendlayer checked="Qt::Checked" drawingOrder="-1" name="Google Satellite" open="true" showFeatureCount="0">
@@ -243,9 +243,9 @@
         <legendlayerfile isInOverview="0" layerid="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" visible="1"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Google Hybrid" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Checked" drawingOrder="-1" name="Google Hybrid" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="Google_Hybrid_5f6b4c45_4741_43f8_8b14_984fc7c0c192" visible="1"/>
       </filegroup>
     </legendlayer>
   </legend>
@@ -2348,14 +2348,14 @@
       <extent>
         <xmin>6405528.723963662981987</xmin>
         <ymin>6596956.14110877364873886</ymin>
-        <xmax>6406115.49354679230600595</xmax>
-        <ymax>6597492.32840246055275202</ymax>
+        <xmax>6406197.89045731816440821</xmax>
+        <ymax>6597587.23481071647256613</ymax>
       </extent>
       <wgs84extent>
         <xmin>-57.9867198840162672</xmin>
-        <ymin>-30.76210559123702737</ymin>
-        <xmax>-57.98015513336060422</xmax>
-        <ymax>-30.75722052292926989</ymax>
+        <ymin>-30.7621091618091036</ymin>
+        <xmax>-57.97967390276520661</xmax>
+        <ymax>-30.75636459871221362</ymax>
       </wgs84extent>
       <id>relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb</id>
       <datasource>./relevamiento_em_P07F6_ALE.geojson</datasource>
@@ -2636,7 +2636,7 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="round"/>
-                <Option name="line_color" type="QString" value="66,117,218,255,hsv:0.6111111044883728,0.69803923368453979,0.85490196943283081,1"/>
+                <Option name="line_color" type="QString" value="63,228,21,255,hsv:0.30000001192092896,0.90588235855102539,0.89411765336990356,1"/>
                 <Option name="line_style" type="QString" value="solid"/>
                 <Option name="line_width" type="QString" value="1.46"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
@@ -2721,7 +2721,7 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="round"/>
-                <Option name="line_color" type="QString" value="205,48,176,255,hsv:0.86388885974884033,0.76470589637756348,0.80392158031463623,1"/>
+                <Option name="line_color" type="QString" value="237,129,50,255,hsv:0.07083333283662796,0.78878462314605713,0.92770272493362427,1"/>
                 <Option name="line_style" type="QString" value="solid"/>
                 <Option name="line_width" type="QString" value="1.46"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
@@ -2806,7 +2806,7 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="round"/>
-                <Option name="line_color" type="QString" value="133,239,151,255,hsv:0.3611111044883728,0.44313725829124451,0.93725490570068359,1"/>
+                <Option name="line_color" type="QString" value="253,240,49,255,hsv:0.15577778220176697,0.80654609203338623,0.99229419231414795,1"/>
                 <Option name="line_style" type="QString" value="solid"/>
                 <Option name="line_width" type="QString" value="1.46"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
@@ -3125,12 +3125,6 @@
           <Option name="QFieldSync/value_map_button_interface_threshold" type="int" value="0"/>
           <Option name="dualview/previewExpressions" type="List">
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="QString" value=""/>
-            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="QString" value=""/>
-            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="QString" value=""/>
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="invalid"/>
           </Option>
@@ -7888,7 +7882,7 @@ def my_form_open(dialog, layer, feature):
         </atlasClippingSettings>
         <itemClippingSettings clipSource="" clippingType="1" enabled="0" forceLabelsInside="0"/>
       </LayoutItem>
-      <LayoutMultiFrame backgroundColor="255,255,255,255,rgb:1,1,1,1" cellMargin="1" emptyTableMessage="" emptyTableMode="0" featureFilter="" filterFeatures="false" filterToAtlasIntersection="0" gridColor="0,0,0,255,rgb:0,0,0,1" gridStrokeWidth="0.5" headerHAlignment="0" headerMode="0" horizontalGrid="1" maxFeatures="30" relationId="" resizeMode="0" showEmptyRows="0" showGrid="1" showOnlyVisibleFeatures="0" showUniqueRowsOnly="0" source="0" templateUuid="{68bf764a-d6dd-488d-a326-da427d237cae}" type="65649" useConditionalStyling="0" uuid="{68bf764a-d6dd-488d-a326-da427d237cae}" vectorLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" vectorLayerName="relevamiento_em_P07F6_ALE" vectorLayerProvider="ogr" vectorLayerSource="D:/ALE-GIS-DEV/repos/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson" verticalGrid="1" wrapBehavior="0" wrapString="">
+      <LayoutMultiFrame backgroundColor="255,255,255,255,rgb:1,1,1,1" cellMargin="1" emptyTableMessage="" emptyTableMode="0" featureFilter="" filterFeatures="false" filterToAtlasIntersection="0" gridColor="0,0,0,255,rgb:0,0,0,1" gridStrokeWidth="0.5" headerHAlignment="0" headerMode="0" horizontalGrid="1" maxFeatures="30" relationId="" resizeMode="0" showEmptyRows="0" showGrid="1" showOnlyVisibleFeatures="0" showUniqueRowsOnly="0" source="0" templateUuid="{68bf764a-d6dd-488d-a326-da427d237cae}" type="65649" useConditionalStyling="0" uuid="{68bf764a-d6dd-488d-a326-da427d237cae}" vectorLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" vectorLayerName="relevamiento_em_P07F6_ALE" vectorLayerProvider="ogr" vectorLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson" verticalGrid="1" wrapBehavior="0" wrapString="">
         <childFrame templateUuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}" uuid="{6a57136c-934a-467f-9d0a-a70ea14f2c30}"/>
         <LayoutObject>
           <dataDefinedProperties>
@@ -8056,7 +8050,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors/>
   <ProjectViewSettings UseProjectScales="0" rotation="0">
     <Scales/>
-    <DefaultViewExtent xmax="-6454207.9603042034432292" xmin="-6454402.49888454098254442" ymax="-3601431.6921896617859602" ymin="-3601526.96899902634322643">
+    <DefaultViewExtent xmax="-6452834.23823702428489923" xmin="-6455910.40450166631489992" ymax="-3600938.65441774483770132" ymin="-3602535.67522262688726187">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["WGS 84 / Pseudo-Mercator",BASEGEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4326]],CONVERSION["Popular Visualisation Pseudo-Mercator",METHOD["Popular Visualisation Pseudo Mercator",ID["EPSG",1024]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["easting (X)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["northing (Y)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Web mapping and visualisation."],AREA["World between 85.06°S and 85.06°N."],BBOX[-85.06,-180,85.06,180]],ID["EPSG",3857]]</wkt>
         <proj4>+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs</proj4>
@@ -8121,7 +8115,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" destinationLayerName="relevamiento_em_P07F6_ALE" destinationLayerProvider="ogr" destinationLayerSource="D:/ALE-GIS-DEV/repos/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb" destinationLayerName="relevamiento_em_P07F6_ALE" destinationLayerProvider="ogr" destinationLayerSource="D:/ZZ_PARA ANALISIS IA REPORTES/mapa-relevamientos-municipales/docs/estacionamiento_medido/relevamiento_em_P07F6_ALE.geojson">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>
