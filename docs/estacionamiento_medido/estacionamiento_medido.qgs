@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis projectname="" saveDateTime="2026-08-06T19:58:53" saveUser="ALE" saveUserFull="ALE" version="4.2.0-Belém do Pará">
+<qgis projectname="" saveDateTime="2026-08-09T12:13:02" saveUser="ALE" saveUserFull="ALE" version="4.2.0-Belém do Pará">
   <homePath path=""/>
   <title></title>
   <transaction mode="Disabled"/>
@@ -103,14 +103,14 @@
         </Option>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Checked" expanded="1" id="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" legend_exp="" legend_split_behavior="0" name="OSM Standard" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://tile.openstreetmap.org/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0">
+    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" legend_exp="" legend_split_behavior="0" name="OSM Standard" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://tile.openstreetmap.org/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0">
       <customproperties>
         <Option type="Map">
           <Option name="cached_name" type="QString" value="OSM Standard"/>
         </Option>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" legend_exp="" legend_split_behavior="0" name="Google Satellite" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Ds%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" legend_exp="" legend_split_behavior="0" name="Google Satellite" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://mt1.google.com/vt/lyrs%3Ds%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D&amp;zmax=20&amp;zmin=0">
       <customproperties>
         <Option type="Map">
           <Option name="cached_name" type="QString" value="Google Satellite"/>
@@ -149,10 +149,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>-6454744.11941457632929087</xmin>
-      <ymin>-3601868.84434901457279921</ymin>
-      <xmax>-6454358.1766984099522233</xmax>
-      <ymax>-3601487.73711157869547606</ymax>
+      <xmin>-6454556.66520180925726891</xmin>
+      <ymin>-3601844.67778331832960248</ymin>
+      <xmax>-6454460.17952277883887291</xmax>
+      <ymax>-3601749.40097395377233624</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -233,14 +233,14 @@
         <legendlayerfile isInOverview="0" layerid="urquiza_sarmiento_centro_de8c8872_aa3f_4b59_9f5d_3ca0264fbf80" visible="0"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Checked" drawingOrder="-1" name="OSM Standard" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="OSM Standard" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" visible="1"/>
+        <legendlayerfile isInOverview="0" layerid="OSM_Standard_87a65521_9949_48b8_9cad_4733e587c3c0" visible="0"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Google Satellite" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Checked" drawingOrder="-1" name="Google Satellite" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="Google_Satellite_d4bbd83d_39b5_4688_b35f_0485eb43e810" visible="1"/>
       </filegroup>
     </legendlayer>
     <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Google Hybrid" open="true" showFeatureCount="0">
@@ -2347,14 +2347,14 @@
     <maplayer autoRefreshMode="Disabled" autoRefreshTime="0" geometry="Line" hasScaleBasedVisibilityFlag="0" labelsEnabled="1" layerType="Vector" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="MultiLineString">
       <extent>
         <xmin>6405528.723963662981987</xmin>
-        <ymin>6597149.00524211954325438</ymin>
-        <xmax>6405873.77238657511770725</xmax>
+        <ymin>6597078.65676230471581221</ymin>
+        <xmax>6405943.88378808740526438</xmax>
         <ymax>6597492.32840246055275202</ymax>
       </extent>
       <wgs84extent>
-        <xmin>-57.9867021417127475</xmin>
-        <ymin>-30.7603441820049639</ymin>
-        <xmax>-57.98306728214424055</xmax>
+        <xmin>-57.98671541843327049</xmin>
+        <ymin>-30.76165689776017942</ymin>
+        <xmax>-57.98159949134264224</xmax>
         <ymax>-30.75722052292926989</ymax>
       </wgs84extent>
       <id>relevamiento_em_P07F6_ALE_980b8590_f816_4321_92c0_7ef5fcbd53bb</id>
@@ -2921,9 +2921,6 @@
             </layer>
           </symbol>
         </source-symbol>
-        <colorramp name="[source]" type="randomcolors">
-          <Option/>
-        </colorramp>
         <rotation/>
         <sizescale/>
         <data-defined-properties>
@@ -3130,7 +3127,7 @@
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="QString" value=""/>
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
-            <Option type="QString" value="&quot;calle&quot;"/>
+            <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="QString" value=""/>
             <Option type="QString" value="COALESCE( &quot;calle&quot;, '&lt;NULL>' )"/>
             <Option type="invalid"/>
@@ -3514,7 +3511,7 @@ def my_form_open(dialog, layer, feature):
         <field name="capacidad" reuseLastValuePolicy="NotAllowed"/>
         <field name="entre_calle_1" reuseLastValuePolicy="AllowedDefaultOn"/>
         <field name="entre_calle_2" reuseLastValuePolicy="AllowedDefaultOn"/>
-        <field name="fid" reuseLastValuePolicy="NotAllowed"/>
+        <field name="fid" reuseLastValuePolicy="AllowedDefaultOn"/>
         <field name="horario" reuseLastValuePolicy="NotAllowed"/>
         <field name="lado" reuseLastValuePolicy="AllowedDefaultOn"/>
         <field name="largo_m" reuseLastValuePolicy="NotAllowed"/>
@@ -8057,7 +8054,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors/>
   <ProjectViewSettings UseProjectScales="0" rotation="0">
     <Scales/>
-    <DefaultViewExtent xmax="-6454184.10549091547727585" xmin="-6454918.19062207080423832" ymax="-3601487.73711157869547606" ymin="-3601868.84434901457279921">
+    <DefaultViewExtent xmax="-6454416.66172089427709579" xmin="-6454600.18300369381904602" ymax="-3601749.40097395377233624" ymin="-3601844.67778331832960248">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["WGS 84 / Pseudo-Mercator",BASEGEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4326]],CONVERSION["Popular Visualisation Pseudo-Mercator",METHOD["Popular Visualisation Pseudo Mercator",ID["EPSG",1024]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["easting (X)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["northing (Y)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Web mapping and visualisation."],AREA["World between 85.06°S and 85.06°N."],BBOX[-85.06,-180,85.06,180]],ID["EPSG",3857]]</wkt>
         <proj4>+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs</proj4>
