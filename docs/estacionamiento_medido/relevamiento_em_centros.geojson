@@ -1,0 +1,1455 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:EPSG::5348"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 1,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405533.088579117,
+          6597481.863752579
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 2,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405551.00316214,
+          6597464.303487897
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 10,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "motos",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405580.623438776,
+          6597445.4701915085
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 5,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405546.845291277,
+          6597478.916087614
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 11,
+        "calle": "Urquiza",
+        "entre_calle_1": "Pablo Stampa",
+        "entre_calle_2": "Rivadavia",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405602.93100406,
+          6597411.700988947
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 13,
+        "calle": "Urquiza",
+        "entre_calle_1": "Pablo Stampa",
+        "entre_calle_2": "Rivadavia",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405641.82395266,
+          6597371.532453677
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 12,
+        "calle": "Urquiza",
+        "entre_calle_1": "Pablo Stampa",
+        "entre_calle_2": "Rivadavia",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405622.427588487,
+          6597391.513956899
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 14,
+        "calle": "Urquiza",
+        "entre_calle_1": "Pablo Stampa",
+        "entre_calle_2": "Rivadavia",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405613.7017646,
+          6597410.781511197
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 22,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "par",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405674.17866008,
+          6597352.350373525
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 26,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "par",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405721.573182663,
+          6597306.31957976
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 23,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405691.206620673,
+          6597335.987037629
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 17,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405674.532835927,
+          6597340.378819186
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 27,
+        "calle": "Urquiza",
+        "entre_calle_1": "3 de Febrero",
+        "entre_calle_2": "Entre Ríos",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405745.150884388,
+          6597271.397613991
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 29,
+        "calle": "Urquiza",
+        "entre_calle_1": "3 de Febrero",
+        "entre_calle_2": "Entre Ríos",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405792.898710998,
+          6597223.594658662
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 28,
+        "calle": "Urquiza",
+        "entre_calle_1": "3 de Febrero",
+        "entre_calle_2": "Entre Ríos",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405769.029707169,
+          6597247.48459781
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 30,
+        "calle": "Urquiza",
+        "entre_calle_1": "3 de Febrero",
+        "entre_calle_2": "Entre Ríos",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405762.8762587365,
+          6597266.081823018
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 3,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "impar",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405565.713667357,
+          6597449.761106816
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 4,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405572.151032224,
+          6597443.415052634
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 9,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405574.4864083575,
+          6597451.408333529
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 8,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405571.472140007,
+          6597454.325897669
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 7,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405566.268062009,
+          6597459.419532346
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 6,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av 9 de Julio",
+        "entre_calle_2": "Pablo Stampa",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405561.058159153,
+          6597464.436552977
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 15,
+        "calle": "Urquiza",
+        "entre_calle_1": "Pablo Stampa",
+        "entre_calle_2": "Rivadavia",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405624.278432384,
+          6597400.359328216
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 16,
+        "calle": "Urquiza",
+        "entre_calle_1": "Pablo Stampa",
+        "entre_calle_2": "Rivadavia",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405638.161997911,
+          6597386.617271109
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 24,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405705.122435113,
+          6597322.550434571
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 25,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405711.842717715,
+          6597315.975192949
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 18,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "impar",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405684.721373958,
+          6597330.38218276
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 19,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405688.364118863,
+          6597326.697614682
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 20,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "impar",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405691.943693886,
+          6597322.9727917835
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 21,
+        "calle": "Urquiza",
+        "entre_calle_1": "Rivadavia",
+        "entre_calle_2": "3 de Febrero",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405705.156252738,
+          6597310.001487214
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 31,
+        "calle": "Urquiza",
+        "entre_calle_1": "3 de Febrero",
+        "entre_calle_2": "Entre Ríos",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405779.857452705,
+          6597249.2390300175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 32,
+        "calle": "Urquiza",
+        "entre_calle_1": "3 de Febrero",
+        "entre_calle_2": "Entre Ríos",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405793.208172645,
+          6597235.936338438
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 33,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405824.454808579,
+          6597191.692650599
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 34,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405848.376681402,
+          6597168.2501272
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 40,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "par",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405869.452986502,
+          6597159.069375837
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 39,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405861.766780794,
+          6597166.081560551
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 38,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405857.112945441,
+          6597170.22372173
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 37,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405850.051272575,
+          6597176.779612642
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 36,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405840.201540872,
+          6597186.424808115
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 35,
+        "calle": "Urquiza",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Alberdi",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405830.23089955,
+          6597196.042547075
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 41,
+        "calle": "Urquiza",
+        "entre_calle_1": "Alberdi",
+        "entre_calle_2": "Sáenz Peña",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405891.276585372,
+          6597126.645779527
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 45,
+        "calle": "Urquiza",
+        "entre_calle_1": "Alberdi",
+        "entre_calle_2": "Sáenz Peña",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405918.310611935,
+          6597110.658172682
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 42,
+        "calle": "Urquiza",
+        "entre_calle_1": "Alberdi",
+        "entre_calle_2": "Sáenz Peña",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405906.553770012,
+          6597111.283985641
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 43,
+        "calle": "Urquiza",
+        "entre_calle_1": "Alberdi",
+        "entre_calle_2": "Sáenz Peña",
+        "lado": "impar",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405919.331975484,
+          6597098.313822524
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 44,
+        "calle": "Urquiza",
+        "entre_calle_1": "Alberdi",
+        "entre_calle_2": "Sáenz Peña",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405929.974631995,
+          6597087.538958419
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 46,
+        "calle": "Urquiza",
+        "entre_calle_1": "Sáenz Peña",
+        "entre_calle_2": "Av H Yrigoyen",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405963.503519399,
+          6597054.167276612
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 47,
+        "calle": "Urquiza",
+        "entre_calle_1": "Sáenz Peña",
+        "entre_calle_2": "Av H Yrigoyen",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405991.048012789,
+          6597027.349853264
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 48,
+        "calle": "Urquiza",
+        "entre_calle_1": "Sáenz Peña",
+        "entre_calle_2": "Av H Yrigoyen",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405976.329040302,
+          6597051.494002639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 49,
+        "calle": "Urquiza",
+        "entre_calle_1": "Sáenz Peña",
+        "entre_calle_2": "Av H Yrigoyen",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6405994.820802726,
+          6597033.125996714
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 50,
+        "calle": "Urquiza",
+        "entre_calle_1": "Sáenz Peña",
+        "entre_calle_2": "Av H Yrigoyen",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406004.7621963695,
+          6597023.17716966
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 51,
+        "calle": "Urquiza",
+        "entre_calle_1": "Sáenz Peña",
+        "entre_calle_2": "Av H Yrigoyen",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "estacion_servicio_ypf"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406013.752441706,
+          6597014.603439766
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 52,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Sarmiento",
+        "lado": "impar",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406041.49271723,
+          6596977.416392153
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 53,
+        "calle": "Urquiza",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Sarmiento",
+        "lado": "impar",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406059.8343336135,
+          6596962.430733318
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 54,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Urquiza",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406077.974699232,
+          6596975.959398812
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 55,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Urquiza",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406079.264433846,
+          6596981.394172368
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 56,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Urquiza",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406082.267362466,
+          6596994.999086656
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 57,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Urquiza",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406085.271562702,
+          6597008.657099575
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 58,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Av H Yrigoyen",
+        "entre_calle_2": "Urquiza",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406088.5216227,
+          6597021.338334687
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 59,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Bolivar",
+        "entre_calle_2": "San Martín",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406110.422615213,
+          6597124.952987955
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 60,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Bolivar",
+        "entre_calle_2": "San Martín",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406115.908778387,
+          6597153.137794059
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 61,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Bolivar",
+        "entre_calle_2": "San Martín",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406124.370081389,
+          6597192.485980321
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 62,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Bolivar",
+        "entre_calle_2": "San Martín",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406132.734154889,
+          6597231.291518434
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 63,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Bolivar",
+        "entre_calle_2": "San Martín",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406133.759457216,
+          6597235.719752241
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 64,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Bolivar",
+        "entre_calle_2": "San Martín",
+        "lado": "par",
+        "tipo": "motos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406135.616479453,
+          6597244.5827082945
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 65,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Av Belgrano",
+        "entre_calle_2": "Bolivar",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406146.6741443565,
+          6597306.98919213
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 66,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "parada_taxi"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406167.010661657,
+          6597398.361342734
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 72,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406182.696463021,
+          6597471.540448185
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 71,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406178.39227324,
+          6597451.116482623
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 67,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406170.397912023,
+          6597413.177002016
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 68,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406172.091271547,
+          6597421.163309235
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 69,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406173.218901342,
+          6597426.633715417
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 70,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406174.359252267,
+          6597432.110591201
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 73,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Jaime Tabeni",
+        "entre_calle_2": "Av Belgrano",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406186.497706372,
+          6597489.37588514
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 74,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Jaime Tabeni",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406197.826431505,
+          6597560.382579742
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 75,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Jaime Tabeni",
+        "lado": "par",
+        "tipo": "prohibido",
+        "motivo": "subida_privada"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406197.376063941,
+          6597579.842299173
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 76,
+        "calle": "Sarmiento",
+        "entre_calle_1": "Entre Ríos",
+        "entre_calle_2": "Jaime Tabeni",
+        "lado": "par",
+        "tipo": "autos",
+        "motivo": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6406197.24975303,
+          6597584.28480674
+        ]
+      }
+    }
+  ]
+}
