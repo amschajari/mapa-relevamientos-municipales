@@ -1,7 +1,7 @@
 # Estacionamiento Medido — Chajarí
 
 > Documento de trabajo para la capa de **Estacionamiento Medido (EM)** del sistema de gestión municipal.
-> Última actualización: 2026-08-05
+> Última actualización: 2026-08-11
 
 ---
 
@@ -18,7 +18,8 @@ Implementar la digitalización del **estacionamiento medido** en Chajarí como u
 **Qué se está haciendo:**
 - Se releva y documenta la experiencia de otras ciudades vecinas con sistemas EM ya implementados.
 - Se prepara la capa geográfica en QGIS (Urquiza y Sarmiento).
-- Se planifica un relevamiento a campo de los estacionamientos en ambas calles.
+- Se realizó un relevamiento a campo de los estacionamientos en ambas calles (completo a 11/08).
+- Se presentó el anteproyecto en **layout A1** (11/08, bien recibido por el jefe).
 
 ---
 
@@ -89,7 +90,7 @@ Sistema de referencia principal consultado. Fuente: https://cdeluruguay.movilpar
 
 ## 4. Relevamiento a Campo
 
-> Relevamiento en curso (2026-08). Urquiza en proceso; pendiente Sarmiento.
+> Relevamiento **completo** (11/08): Urquiza + Sarmiento, **76 tramos** sobre la capa `relevamiento_em_P07F6_ALE` (EPSG:5348).
 
 ### Modelo de datos del relevamiento (por tramo)
 
@@ -134,13 +135,50 @@ Capa fuente: `relevamiento_em_P07F6_ALE` (EPSG:5348). Geometría **MultiLineStri
 
 Se toma un **promedio de 5.5 m de largo por vehículo** para computar cuántos entran por tramo/cuadra:
 
-- **Capacidad por tramo** = `floor(largo_m / 5.5)`
-- **Descuentos:** bocacalles, rampas (subida_privada), marcas amarillas, estacionamiento de motos y estacionamientos privados **NO suman** plazas de autos.
-- El cálculo se hará en la app con PostGIS cuando se cargue la capa.
+- **Tramo ≥ 5.5 m** → `floor(largo_m / 5.5)` plazas.
+- **Tramo entre 4.5 y 5.5 m** → **1 plaza** (auto compacto; ej. el tramo de 5.2 m que con floor daba 0).
+- **Tramo < 4.5 m** → 0 plazas.
+- **Descuentos:** motos y tramos `prohibido` (bocacalles, rampas/subida_privada, marcas amarillas, estacionamientos privados) **NO suman** plazas de autos.
+- El cálculo se hizo en QGIS con campos virtuales (ver `RUNBOOK_campos_virtuales_layoutA3.md`) y validado desde el GeoJSON.
+
+### Resultados de capacidad (validados 11/08)
+
+**Capacidad de autos por cuadra:**
+
+**Urquiza**
+
+| Cuadra | Plazas |
+|---|---|
+| e/Av 9 de Julio y Pablo Stampa | 17 |
+| e/Pablo Stampa y Rivadavia | 18 |
+| e/Rivadavia y 3 de Febrero | 19 |
+| e/3 de Febrero y Entre Ríos | 24 |
+| e/Entre Ríos y Alberdi | 15 |
+| e/Alberdi y Sáenz Peña | 22 |
+| e/Sáenz Peña y Av H Yrigoyen | 18 |
+| e/Av H Yrigoyen y Sarmiento | 6 |
+| **Total Urquiza** | **139** |
+
+**Sarmiento**
+
+| Cuadra | Plazas |
+|---|---|
+| e/Av Belgrano y Bolivar | 12 |
+| e/Bolivar y San Martín | 23 |
+| e/Entre Ríos y Jaime Tabeni | 7 |
+| e/Jaime Tabeni y Av Belgrano | 14 |
+| e/Av H Yrigoyen y Urquiza | 9 |
+| **Total Sarmiento** | **65** |
+
+**TOTAL AMBAS CALLES: 204 plazas**
+
+> Nota: el `ESTADO_RELEVAMIENTO.md` menciona 201 plazas (cómputo previo). El número definitivo validado es **204**.
 
 ---
 
-## 5. Plan de Implementación en la App
+## 5. Plan de Implementación en la App (en pausa)
+
+> ⏸️ **Pausado a partir del 11/08** — por decisión del usuario no se implementará la capa/migración en la app hasta nuevo aviso. El plan queda documentado como referencia.
 
 Estructura prevista siguiendo el patrón de las capas existentes:
 
@@ -172,10 +210,12 @@ Estructura prevista siguiendo el patrón de las capas existentes:
 
 ## 6. Próximos Pasos / Decisiones Abiertas
 
-- [ ] Completar relevamiento a campo: terminar **Urquiza** y agregar tramos **`prohibido`** (rampas, marcas amarillas, privados).
-- [ ] Relevar **Sarmiento**.
+- [x] Realizar relevamiento a campo completo (Urquiza + Sarmiento, 76 tramos).
+- [x] Definir modelo de datos y regla de capacidad (5.5 m/plaza + ajuste compacto 4.5–5.5 m).
+- [x] Presentar anteproyecto en layout A1 (11/08, bien recibido).
+- [ ] Validar el total de **204 plazas** con el jefe (confirmación final).
 - [ ] Definir `horario` y `tarifa` (¿global para toda la zona o por tramo?).
 - [ ] Confirmar GeoJSON definitivo (EPSG:5348 vs CRS84) y que la capa quede con FID estable.
 - [ ] Revisar experiencias de otras ciudades (Victoria, Gualeguay, Nogoyá, La Paz).
 - [ ] Definir alcance del componente digital (solo visualización municipal vs. operativo para controladores).
-- [ ] Ejecutar migración Supabase y subir la capa a la app.
+- [ ] ⏸️ (Pausado) Ejecutar migración Supabase y subir la capa a la app.

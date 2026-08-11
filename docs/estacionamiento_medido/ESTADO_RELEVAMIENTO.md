@@ -1,8 +1,10 @@
 # Estado de Relevamiento EM — Continuación entre ambientes
 
-**Última actualización:** 10/08/2026
+**Última actualización:** 11/08/2026
 **Ambiente origen:** casa (QGIS 4.2.0 — Belém do Pará)
 **Rama:** `feature/filtros-pavimento`
+
+> ✅ **Relevamiento COMPLETO y presentado.** El anteproyecto se presentó en **layout A1** el 11/08 con buena recepción del jefe. La capa/migración en la app queda **en pausa** (ver `README.md` §5). Total validado: **204 plazas de autos** (ver tabla en `README.md` §4).
 
 ---
 
