@@ -58,3 +58,6 @@ supabase/.temp/
 *.gpkg
 *.gpkg-shm
 *.gpkg-wal
+
+# Presentación EM (archivos de salida, no versionar)
+docs/estacionamiento_medido/presentacion/
