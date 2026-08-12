@@ -15,11 +15,11 @@ Los 3 campos virtuales ya fueron agregados al `estacionamiento_medido.qgs` (en a
 | `plazas_auto` | entero | `if("tipo" = 'autos', floor("longitud_geom" / 5.5) + if("longitud_geom" >= 4.5 AND "longitud_geom" < 5.5 AND floor("longitud_geom" / 5.5) = 0, 1, 0), NULL)` |
 | `plazas_auto_frac` | decimal | `if("tipo" = 'autos', "longitud_geom" / 5.5, NULL)` |
 
-**Regla de plazas (revisada 10/08):**
+**Regla de plazas (revisada 10/08, validada 11/08):**
 - Tramo ≥ 5.5 m → `floor(larg/5.5)` plazas.
 - Tramo entre **4.5 m y 5.5 m** → cuenta **1 plaza** (cabe un auto compacto; ej. el tramo de 5.2 m que antes daba 0).
 - Tramos < 4.5 m o `tipo ≠ autos` → `NULL`.
-- **Total del sector: 201 plazas** (antes 200 con floor estricto). ⚠️ Pendiente validar con el jefe.
+- **Total definitivo validado: 204 plazas** (139 Urquiza + 65 Sarmiento; ver `README.md` §4). El cómputo previo de 201 quedó superado por la validación final del 11/08.
 
 Al abrir el proyecto en QGIS se ven en la tabla de atributos; motos/prohibido quedan `NULL`.
 
