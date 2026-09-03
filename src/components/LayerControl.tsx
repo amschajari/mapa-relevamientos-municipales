@@ -138,7 +138,7 @@ export const LayerControl = () => {
                   : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
               )}
             >
-              <div className="w-full h-10 rounded-lg bg-[url('https://a.basemaps.cartocdn.com/dark_all/12/2048/1287.png')] bg-cover bg-center border border-gray-200" />
+              <div className="w-full h-10 rounded-lg bg-[url('https://a.basemaps.cartocdn.com/dark_all/12/2048/1287.png?key=cb1_2utq_1_756617375ccc0946120f6f2b')] bg-cover bg-center border border-gray-200" />
               <span className="text-[10px] font-bold">Oscuro</span>
             </button>
 
