@@ -586,7 +586,7 @@ export const ControlMap = ({
           url={activeBaseMap === 'osm' 
             ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             : activeBaseMap === 'osm-dark'
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=cb1_2utq_1_756617375ccc0946120f6f2b"
             : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           }
           maxZoom={20}
