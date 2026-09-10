@@ -23,12 +23,8 @@ Los datos provienen del sistema Odoo de la municipalidad y están disponibles en
 | Medidor | Número de medidor asociado |
 | Created on | Fecha de creación del registro |
 | Last Updated on | Fecha de última actualización |
-| Mantenimientos | Registros de mantenimiento realizados |
-| Mantenimientos/Created by | Operario que realizó el mantenimiento |
-| Mantenimientos/Created on | Fecha del mantenimiento |
 | Tipo de Cableado | Aéreo / Subterráneo |
 | Observación | Notas adicionales |
-| Observación mantenimiento | Notas del mantenimiento |
 
 ---
 
@@ -84,9 +80,8 @@ Los datos provienen del sistema Odoo de la municipalidad y están disponibles en
 - Cantidad de luminarias apagadas por barrio
 - Zonas críticas identificadas
 
-#### Página 4: Mantenimiento
-- Intervenciones realizadas por operario
-- Proyección de necesidades
+#### Página 4: Luminarias que Requieren Intervención
+- Intervenciones requeridas (apagadas + bases con problema)
 
 #### Página 5: Observaciones Cualitativas
 - Patrones identificados

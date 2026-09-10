@@ -1,6 +1,6 @@
 ---
 title: "Relevamiento de Alumbrado Público"
-subtitle: "Municipalidad de Chajarí — Informe al 09/09/2026"
+subtitle: "Municipalidad de Chajarí — Informe al 10/09/2026"
 format:
   typst:
     papersize: a4
@@ -32,7 +32,7 @@ mpl.rcParams.update({
 
 plt.style.use("seaborn-v0_8-whitegrid")
 
-CSV = "datos_odoo_090926.csv"
+CSV = "datos_odoo_100926.csv"
 df = pd.read_csv(CSV, dtype=str, encoding="utf-8-sig", keep_default_na=False)
 
 df = df[df["ID Luminaria"].str.strip() != ""].copy()
@@ -52,17 +52,6 @@ def fmt(x):
 
 def pct(x, y):
     return f"{x/y*100:.1f}%".replace(".", ",")
-
-def md_table(dataframe, max_rows=None):
-    if max_rows:
-        dataframe = dataframe.head(max_rows)
-    headers = list(dataframe.columns)
-    lines = ["| " + " | ".join(str(h) for h in headers) + " |"]
-    lines.append("|" + "|".join(["---"] * len(headers)) + "|")
-    for _, row in dataframe.iterrows():
-        cells = [str(v) if not isinstance(v, float) else f"{v:.1f}" for v in row]
-        lines.append("| " + " | ".join(cells) + " |")
-    return "\n".join(lines)
 
 barrios = df.groupby("Barrio").agg(
     total=("ID Luminaria", "count"),
@@ -86,18 +75,6 @@ n_barrios = df["Barrio"].nunique()
 
 operarios = df["Created by"].value_counts()
 operarios = operarios[operarios.index != ""].head(10)
-
-mant = df[df["Mantenimientos"].str.strip() != ""].copy()
-
-DESC_COL = "Mantenimientos/Descripción del mantenimiento"
-df["desc_mant"] = df[DESC_COL].str.strip() if DESC_COL in df.columns else ""
-
-mant_con_ticket = df[df["Mantenimientos"].str.strip() != ""].copy()
-mant_con_desc = df[df["desc_mant"] != ""].copy()
-
-mant_all = df[(df["Mantenimientos"].str.strip() != "") | (df["desc_mant"] != "")].copy()
-mant_all = mant_all[["ID Luminaria", "Barrio", "Mantenimientos", "desc_mant"]].copy()
-mant_all.columns = ["ID Luminaria", "Barrio", "N° Ticket", "Descripción"]
 
 TOP = 15
 ```
@@ -134,18 +111,6 @@ cable = cable[cable.index != ""]
 print("\n**Tipo de cableado:**")
 for t, c in cable.items():
     print(f"- {t}: {fmt(c)} ({pct(c, total)})")
-```
-
-### Mantenimientos realizados
-
-Sólo **`{python} f"{mant.shape[0]}"` luminarias** presentan referencia de ticket de mantenimiento (columna `Mantenimientos`). Además, **`{python} f"{len(mant_con_desc)}"` luminarias** incluyen descripción del trabajo realizado sin ticket formal. En total, **`{python} f"{len(mant_all)}"` luminarias** tienen registro de mantenimiento.
-
-```{python}
-#| output: asis
-if len(mant_all) > 0:
-    print(md_table(mant_all))
-else:
-    print("No hay registros de mantenimiento disponibles.")
 ```
 
 ```{python}
@@ -197,12 +162,47 @@ fig.tight_layout()
 
 ```{python}
 #| label: tbl-estado
-#| tbl-cap: "Resumen por barrio (ordenado por cantidad total)"
 tbl = barrios[["Barrio", "total", "apagadas", "sin_base", "base_mala", "pct_problema"]].copy()
 tbl.columns = ["Barrio", "Total", "Apagadas", "Sin base", "Base mala", "% problema"]
 tbl = tbl.sort_values("Total", ascending=False).reset_index(drop=True)
 tbl["% problema"] = tbl["% problema"].apply(lambda x: f"{x:.1f}%".replace(".", ","))
-print(md_table(tbl))
+
+def typst_escape(x):
+    return str(x).replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]").replace("#", "\\#")
+
+lines = []
+lines.append("#[")
+lines.append("#set text(font: \"Arial\", size: 11pt)")
+lines.append("#table(")
+lines.append('  columns: (auto, auto, auto, auto, auto, auto),')
+lines.append("  stroke: 0.5pt + rgb(\"#999999\"),")
+lines.append("  inset: (x: 4pt, y: 1.5pt),")
+lines.append("  align: (left, center, center, center, center, center),")
+lines.append("  table.header(")
+for col in tbl.columns:
+    lines.append(f'    table.cell(fill: rgb("#1565c0"), text(fill: white, weight: "bold")[{typst_escape(col)}]),')
+lines.append("  ),")
+for _, r in tbl.iterrows():
+    cells = ", ".join(f"[{typst_escape(v)}]" for v in r)
+    lines.append(f"  {cells},")
+lines.append(")")
+lines.append("]")
+with open("tabla_barrios.typ", "w", encoding="utf-8") as f:
+    f.write("\n".join(lines))
+```
+
+```{=typst}
+#pagebreak()
+```
+
+**Tabla 1: Resumen por barrio (ordenado por cantidad total)**
+
+```{=typst}
+#include "tabla_barrios.typ"
+```
+
+```{=typst}
+#pagebreak()
 ```
 
 ## Luminarias Apagadas
@@ -222,6 +222,10 @@ ax.set_xlabel("Cantidad apagadas")
 ax.set_title("Luminarias apagadas por barrio", fontsize=11)
 ax.set_xlim(0, barrios_apag["apagadas"].max() * 1.35)
 fig.tight_layout()
+```
+
+```{=typst}
+#pagebreak()
 ```
 
 ```{python}
@@ -257,7 +261,7 @@ fig.tight_layout()
 fig, ax = plt.subplots(figsize=(5, 3.5))
 labels = ["Sin base", "Base malas condiciones", "Apagadas"]
 vals = [sin_base_total, base_mala_total, apagadas]
-colores = ["#f57c00", "#c62828", "#1a237e"]
+colores = ["#f57c00", "#c62828", "#90caf9"]
 wedges, texts, autotexts = ax.pie(vals, labels=labels, autopct=lambda p: f"{p:.1f}%".replace(".", ","), colors=colores, startangle=90, textprops={"fontsize": 8})
 ax.set_title("Desglose de intervenciones requeridas", fontsize=11)
 fig.tight_layout()
@@ -288,7 +292,7 @@ print(f"""
 
 2. **Luminarias apagadas**: {fmt(apagadas)} ({pct(apagadas, total)} del total). Las proporciones más altas se observan en Salto ({barrios[barrios['Barrio']=='Salto']['pct_apagadas'].values[0] if len(barrios[barrios['Barrio']=='Salto']) > 0 else 'N/A'}%) y Curiyú ({barrios[barrios['Barrio']=='Curiyú']['pct_apagadas'].values[0] if len(barrios[barrios['Barrio']=='Curiyú']) > 0 else 'N/A'}%).
 
-3. **Mantenimiento registrado**: Solo {fmt(mant.shape[0])} luminarias presentan ticket de mantenimiento en Odoo y {fmt(len(mant_con_desc))} incluyen descripción del trabajo realizado (sin ticket). Las intervenciones más frecuentes son cambio de luminaria INGEMAR y fotocélula LUMNIA.
+3. **Nuevo barrio Area Industrial**: incorpora {fmt(int(barrios[barrios['Barrio']=='Area Industrial']['total'].values[0])) if len(barrios[barrios['Barrio']=='Area Industrial']) > 0 else '0'} luminarias al relevamiento.
 """)
 
 print("""
@@ -296,10 +300,8 @@ print("""
 
 1. **Priorizar intervención en El Naranjal, Pinar y Centro** — estos barrios acumulan la mayor carga de trabajo con bases con problema.
 
-2. **Completar los campos de mantenimiento en Odoo**: Sin datos de fecha y operario de mantenimiento no es posible medir tiempos de respuesta ni asignar responsabilidades.
+2. **Crear protocolo de inspección de bases**: Dado el alto porcentaje de luminarias sin base (18,0%), se recomienda una campaña preventiva antes de nuevas instalaciones.
 
-3. **Crear protocolo de inspección de bases**: Dado el alto porcentaje de luminarias sin base (17,9%), se recomienda una campaña preventiva antes de nuevas instalaciones.
-
-4. **Mapear las 60 luminarias apagadas** en campo con prioridad, especialmente en Salto (9,1%) y Curiyú (8,6%) donde la proporción es crítica.
+3. **Mapear las 60 luminarias apagadas** en campo con prioridad, especialmente en Salto (9,1%) y Curiyú (6,1%) donde la proporción es crítica.
 """)
 ```
