@@ -1,0 +1,307 @@
+---
+title: "Relevamiento de Alumbrado Público"
+subtitle: "Municipalidad de Chajarí — Informe al 10/09/2026"
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: "2cm"
+      y: "2.5cm"
+    toc: true
+    number-sections: true
+lang: es
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{python}
+#| label: setup
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+mpl.rcParams.update({
+    "figure.dpi": 150,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "font.size": 10,
+})
+
+plt.style.use("seaborn-v0_8-whitegrid")
+
+CSV = "datos_odoo_100926.csv"
+df = pd.read_csv(CSV, dtype=str, encoding="utf-8-sig", keep_default_na=False)
+
+df = df[df["ID Luminaria"].str.strip() != ""].copy()
+
+for c in df.columns:
+    df[c] = df[c].str.strip()
+
+df["apagada"] = df["Sin Luz"] == "True"
+df["creado"] = pd.to_datetime(df["Created on"], errors="coerce")
+df["mes"] = df["creado"].dt.to_period("M")
+
+BASES_MALA = ["Sin base", "Con base en malas condiciones"]
+df["base_problema"] = df["Estado de la base"].isin(BASES_MALA)
+
+def fmt(x):
+    return f"{x:,.0f}".replace(",", ".")
+
+def pct(x, y):
+    return f"{x/y*100:.1f}%".replace(".", ",")
+
+barrios = df.groupby("Barrio").agg(
+    total=("ID Luminaria", "count"),
+    apagadas=("apagada", "sum"),
+    sin_base=("Estado de la base", lambda x: (x == "Sin base").sum()),
+    base_mala=("Estado de la base", lambda x: (x == "Con base en malas condiciones").sum()),
+).reset_index()
+barrios["problema"] = barrios["sin_base"] + barrios["base_mala"]
+barrios["pct_problema"] = (barrios["problema"] / barrios["total"] * 100).round(1)
+barrios["pct_apagadas"] = (barrios["apagadas"] / barrios["total"] * 100).round(1)
+barrios["req_intervencion"] = barrios["apagadas"] + barrios["problema"]
+barrios = barrios.sort_values("total", ascending=False)
+
+total = len(df)
+apagadas = int(df["apagada"].sum())
+sin_base_total = int((df["Estado de la base"] == "Sin base").sum())
+base_mala_total = int((df["Estado de la base"] == "Con base en malas condiciones").sum())
+sin_datos = int((df["Estado de the base"] == "").sum()) if "Estado de the base" in df.columns else int((df["Estado de la base"] == "").sum())
+req_total = int(df["apagada"].sum() + df["base_problema"].sum())
+n_barrios = df["Barrio"].nunique()
+
+operarios = df["Created by"].value_counts()
+operarios = operarios[operarios.index != ""].head(10)
+
+TOP = 15
+```
+
+## Resumen Ejecutivo
+
+```{python}
+#| output: asis
+print(f"""
+| Indicador | Valor |
+|---|---|
+| Total de luminarias relevadas | {fmt(total)} |
+| Barrios cubiertos | {n_barrios} |
+| Luminarias apagadas (Sin Luz) | {fmt(apagadas)} ({pct(apagadas, total)}) |
+| Bases con problemas (sin base + mal estado) | {fmt(sin_base_total + base_mala_total)} ({pct(sin_base_total + base_mala_total, total)}) |
+| Requieren intervención (total) | {fmt(req_total)} ({pct(req_total, total)}) |
+| Período del relevamiento | Marzo – Septiembre 2026 |
+| Operarios de campo | {len(operarios)} |
+""")
+```
+
+### Distribución por tipo de luminaria y cableado
+
+```{python}
+#| output: asis
+tipo_lum = df["Tipo Luminaria"].value_counts()
+tipo_lum = tipo_lum[tipo_lum.index != ""]
+print("**Tipo de luminaria:**")
+for t, c in tipo_lum.items():
+    print(f"- {t}: {fmt(c)} ({pct(c, total)})")
+
+cable = df["Tipo de Cableado"].value_counts()
+cable = cable[cable.index != ""]
+print("\n**Tipo de cableado:**")
+for t, c in cable.items():
+    print(f"- {t}: {fmt(c)} ({pct(c, total)})")
+```
+
+```{python}
+#| label: fig-evolucion
+#| fig-cap: "Evolución de luminarias relevadas por mes de carga"
+meses = df.groupby("mes").size()
+fig, ax = plt.subplots(figsize=(7, 3.5))
+meses.plot(kind="bar", ax=ax, color="#1565c0", edgecolor="white")
+ax.set_xlabel("Mes de carga")
+ax.set_ylabel("Cantidad de luminarias")
+ax.set_xticklabels([str(m) for m in meses.index], rotation=45, ha="right")
+fig.tight_layout()
+```
+
+## Estado de Conservación por Barrio
+
+```{python}
+#| label: fig-base-estado
+#| fig-cap: "Distribución del estado de base a nivel general (6 luminarias sin datos excluidas)"
+fig, ax = plt.subplots(figsize=(5, 3.5))
+colores = ["#2e7d32", "#f57c00", "#c62828"]
+labels = ["Buenas condiciones", "Sin base", "Malas condiciones"]
+vals = [
+    total - sin_base_total - base_mala_total - sin_datos,
+    sin_base_total,
+    base_mala_total,
+]
+wedges, texts, autotexts = ax.pie(vals, labels=labels, autopct="%1.1f%%", colors=colores, startangle=90, textprops={"fontsize": 8})
+ax.set_title("Estado de base (todas las luminarias)", fontsize=11)
+fig.tight_layout()
+```
+
+```{python}
+#| label: fig-barrio-base
+#| fig-cap: "Estado de base por barrio — barras apiladas (orden: total de luminarias)"
+barrios_sorted = barrios.sort_values("total", ascending=True).tail(TOP)
+fig, ax = plt.subplots(figsize=(8, 7))
+buenas = barrios_sorted["total"] - barrios_sorted["sin_base"] - barrios_sorted["base_mala"]
+buenas.plot(kind="barh", ax=ax, color="#2e7d32", label="Buenas condiciones")
+barrios_sorted["sin_base"].plot(kind="barh", ax=ax, left=buenas, color="#f57c00", label="Sin base")
+barrios_sorted["base_mala"].plot(kind="barh", ax=ax, left=buenas.values + barrios_sorted["sin_base"].values, color="#c62828", label="Malas condiciones")
+ax.set_yticks(range(len(barrios_sorted)))
+ax.set_yticklabels(barrios_sorted["Barrio"])
+ax.set_xlabel("Cantidad de luminarias")
+ax.set_title(f"Estado de base — Top {TOP} barrios por cantidad", fontsize=11)
+ax.legend(loc="lower right", fontsize=8)
+fig.tight_layout()
+```
+
+```{python}
+#| label: tbl-estado
+tbl = barrios[["Barrio", "total", "apagadas", "sin_base", "base_mala", "pct_problema"]].copy()
+tbl.columns = ["Barrio", "Total", "Apagadas", "Sin base", "Base mala", "% problema"]
+tbl = tbl.sort_values("Total", ascending=False).reset_index(drop=True)
+tbl["% problema"] = tbl["% problema"].apply(lambda x: f"{x:.1f}%".replace(".", ","))
+
+def typst_escape(x):
+    return str(x).replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]").replace("#", "\\#")
+
+lines = []
+lines.append("#[")
+lines.append("#set text(font: \"Arial\", size: 11pt)")
+lines.append("#table(")
+lines.append('  columns: (auto, auto, auto, auto, auto, auto),')
+lines.append("  stroke: 0.5pt + rgb(\"#999999\"),")
+lines.append("  inset: (x: 4pt, y: 1.5pt),")
+lines.append("  align: (left, center, center, center, center, center),")
+lines.append("  table.header(")
+for col in tbl.columns:
+    lines.append(f'    table.cell(fill: rgb("#1565c0"), text(fill: white, weight: "bold")[{typst_escape(col)}]),')
+lines.append("  ),")
+for _, r in tbl.iterrows():
+    cells = ", ".join(f"[{typst_escape(v)}]" for v in r)
+    lines.append(f"  {cells},")
+lines.append(")")
+lines.append("]")
+with open("tabla_barrios.typ", "w", encoding="utf-8") as f:
+    f.write("\n".join(lines))
+```
+
+```{=typst}
+#pagebreak()
+```
+
+**Tabla 1: Resumen por barrio (ordenado por cantidad total)**
+
+```{=typst}
+#include "tabla_barrios.typ"
+```
+
+```{=typst}
+#pagebreak()
+```
+
+## Luminarias Apagadas
+
+Del total de **`{python} fmt(total)`** luminarias, **`{python} fmt(apagadas)`** (`{python} pct(apagadas, total)`) se encuentran apagadas (Sin Luz = True).
+
+```{python}
+#| label: fig-apagadas
+#| fig-cap: "Luminarias apagadas por barrio"
+barrios_apag = barrios[barrios["apagadas"] > 0].sort_values("apagadas", ascending=True)
+fig, ax = plt.subplots(figsize=(7, max(4, len(barrios_apag) * 0.35)))
+colors = ["#c62828" if p >= 5 else "#f57c00" if p >= 2 else "#90a4ae" for p in barrios_apag["apagadas"]]
+barrios_apag.plot(kind="barh", x="Barrio", y="apagadas", ax=ax, color=colors, legend=False, edgecolor="white")
+for i, (v, b) in enumerate(zip(barrios_apag["apagadas"], barrios_apag["Barrio"])):
+    ax.text(v + 0.1, i, f" {v} ({barrios_apag.iloc[i]['pct_apagadas']:.1f}%)", va="center", fontsize=8)
+ax.set_xlabel("Cantidad apagadas")
+ax.set_title("Luminarias apagadas por barrio", fontsize=11)
+ax.set_xlim(0, barrios_apag["apagadas"].max() * 1.35)
+fig.tight_layout()
+```
+
+```{=typst}
+#pagebreak()
+```
+
+```{python}
+#| output: asis
+print("### Zonas críticas")
+criticas = barrios[barrios["pct_apagadas"] >= 2].sort_values("pct_apagadas", ascending=False)
+if len(criticas) > 0:
+    print(f"\nBarrios con **2% o más** de luminarias apagadas:")
+    for _, r in criticas.iterrows():
+        print(f"- **{r['Barrio']}**: {fmt(int(r['apagadas']))} de {fmt(int(r['total']))} ({r['pct_apagadas']:.1f}%)")
+else:
+    print("\nNo se detectaron barrios con más del 2% de luminarias apagadas.")
+```
+
+## Luminarias que Requieren Intervención
+
+```{python}
+#| label: fig-intervencion
+#| fig-cap: "Luminarias que requieren intervención por barrio (apagadas + bases con problema)"
+barrios_req = barrios[barrios["req_intervencion"] > 0].sort_values("req_intervencion", ascending=True)
+fig, ax = plt.subplots(figsize=(8, 7))
+barrios_req.plot(kind="barh", x="Barrio", y="req_intervencion", ax=ax, color="#1565c0", legend=False, edgecolor="white")
+for i, (v, b) in enumerate(zip(barrios_req["req_intervencion"], barrios_req["Barrio"])):
+    ax.text(v + 1, i, f" {v}", va="center", fontsize=8)
+ax.set_xlabel("Cantidad que requiere intervención")
+ax.set_title("Total luminarias que requieren intervención", fontsize=11)
+fig.tight_layout()
+```
+
+```{python}
+#| label: fig-tipo-intervencion
+#| fig-cap: "Composición de la intervención requerida"
+fig, ax = plt.subplots(figsize=(5, 3.5))
+labels = ["Sin base", "Base malas condiciones", "Apagadas"]
+vals = [sin_base_total, base_mala_total, apagadas]
+colores = ["#f57c00", "#c62828", "#90caf9"]
+wedges, texts, autotexts = ax.pie(vals, labels=labels, autopct=lambda p: f"{p:.1f}%".replace(".", ","), colors=colores, startangle=90, textprops={"fontsize": 8})
+ax.set_title("Desglose de intervenciones requeridas", fontsize=11)
+fig.tight_layout()
+```
+
+```{python}
+#| output: asis
+print(f"""
+### Resumen de intervenciones
+
+| Tipo | Cantidad | % del total |
+|---|---|---|
+| Apagadas (Sin Luz) | {fmt(apagadas)} | {pct(apagadas, total)} |
+| Sin base | {fmt(sin_base_total)} | {pct(sin_base_total, total)} |
+| Base en malas condiciones | {fmt(base_mala_total)} | {pct(base_mala_total, total)} |
+| **Total a intervenir** | **{fmt(req_total)}** | **{pct(req_total, total)}** |
+""")
+```
+
+## Recomendaciones Operativas
+
+```{python}
+#| output: asis
+print(f"""
+### Hallazgos clave
+
+1. **Bases con problema**: {fmt(sin_base_total + base_mala_total)} luminarias ({pct(sin_base_total + base_mala_total, total)} del total) tienen la base en mal estado o ausente. El Naranjal ({barrios[barrios['Barrio']=='El Naranjal']['pct_problema'].values[0] if len(barrios[barrios['Barrio']=='El Naranjal']) > 0 else 'N/A'}%), Pinar ({barrios[barrios['Barrio']=='Pinar']['pct_problema'].values[0] if len(barrios[barrios['Barrio']=='Pinar']) > 0 else 'N/A'}%) y Centro ({barrios[barrios['Barrio']=='Centro']['pct_problema'].values[0] if len(barrios[barrios['Barrio']=='Centro']) > 0 else 'N/A'}%) concentran la mayor carga.
+
+2. **Luminarias apagadas**: {fmt(apagadas)} ({pct(apagadas, total)} del total). Las proporciones más altas se observan en Salto ({barrios[barrios['Barrio']=='Salto']['pct_apagadas'].values[0] if len(barrios[barrios['Barrio']=='Salto']) > 0 else 'N/A'}%) y Curiyú ({barrios[barrios['Barrio']=='Curiyú']['pct_apagadas'].values[0] if len(barrios[barrios['Barrio']=='Curiyú']) > 0 else 'N/A'}%).
+
+3. **Nuevo barrio Area Industrial**: incorpora {fmt(int(barrios[barrios['Barrio']=='Area Industrial']['total'].values[0])) if len(barrios[barrios['Barrio']=='Area Industrial']) > 0 else '0'} luminarias al relevamiento.
+""")
+
+print("""
+### Recomendaciones
+
+1. **Priorizar intervención en El Naranjal, Pinar y Centro** — estos barrios acumulan la mayor carga de trabajo con bases con problema.
+
+2. **Crear protocolo de inspección de bases**: Dado el alto porcentaje de luminarias sin base (18,0%), se recomienda una campaña preventiva antes de nuevas instalaciones.
+
+3. **Mapear las 60 luminarias apagadas** en campo con prioridad, especialmente en Salto (9,1%) y Curiyú (6,1%) donde la proporción es crítica.
+""")
+```
