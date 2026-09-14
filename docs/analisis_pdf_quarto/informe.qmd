@@ -1,6 +1,6 @@
 ---
 title: "Relevamiento de Alumbrado Público"
-subtitle: "Municipalidad de Chajarí — Informe al 10/09/2026"
+subtitle: "Municipalidad de Chajarí — Informe al 14/09/2026"
 format:
   typst:
     papersize: a4
@@ -32,7 +32,7 @@ mpl.rcParams.update({
 
 plt.style.use("seaborn-v0_8-whitegrid")
 
-CSV = "datos_odoo_100926.csv"
+CSV = "datos_odoo_140926.csv"
 df = pd.read_csv(CSV, dtype=str, encoding="utf-8-sig", keep_default_na=False)
 
 df = df[df["ID Luminaria"].str.strip() != ""].copy()
@@ -69,7 +69,7 @@ total = len(df)
 apagadas = int(df["apagada"].sum())
 sin_base_total = int((df["Estado de la base"] == "Sin base").sum())
 base_mala_total = int((df["Estado de la base"] == "Con base en malas condiciones").sum())
-sin_datos = int((df["Estado de the base"] == "").sum()) if "Estado de the base" in df.columns else int((df["Estado de la base"] == "").sum())
+sin_datos = int((df["Estado de la base"] == "").sum())
 req_total = int(df["apagada"].sum() + df["base_problema"].sum())
 n_barrios = df["Barrio"].nunique()
 
@@ -129,7 +129,7 @@ fig.tight_layout()
 
 ```{python}
 #| label: fig-base-estado
-#| fig-cap: "Distribución del estado de base a nivel general (6 luminarias sin datos excluidas)"
+#| fig-cap: "Distribución del estado de base a nivel general (3 luminarias sin datos excluidas)"
 fig, ax = plt.subplots(figsize=(5, 3.5))
 colores = ["#2e7d32", "#f57c00", "#c62828"]
 labels = ["Buenas condiciones", "Sin base", "Malas condiciones"]
@@ -300,8 +300,8 @@ print("""
 
 1. **Priorizar intervención en El Naranjal, Pinar y Centro** — estos barrios acumulan la mayor carga de trabajo con bases con problema.
 
-2. **Crear protocolo de inspección de bases**: Dado el alto porcentaje de luminarias sin base (18,0%), se recomienda una campaña preventiva antes de nuevas instalaciones.
+2. **Crear protocolo de inspección de bases**: Dado el alto porcentaje de luminarias sin base (18,1%), se recomienda una campaña preventiva antes de nuevas instalaciones.
 
-3. **Mapear las 60 luminarias apagadas** en campo con prioridad, especialmente en Salto (9,1%) y Curiyú (6,1%) donde la proporción es crítica.
+3. **Mapear las 60 luminarias apagadas** en campo con prioridad, especialmente en Salto (9,1%) y Curiyú (5,3%) donde la proporción es crítica.
 """)
 ```
