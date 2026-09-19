@@ -37,6 +37,53 @@ const normalizarNombre = (str: string): string =>
     .replace(/[^a-z0-9]/g, '')
     .trim()
 
+// Normaliza valores de catálogo a su forma canónica (mismo criterio que el importer)
+const VALORES_CANONICOS: Record<string, string> = {
+  'sin base': 'Sin base',
+  'sin_base': 'Sin base',
+  'buena': 'Con base en buenas condiciones',
+  'bueno': 'Con base en buenas condiciones',
+  'con base': 'Con base',
+  'con base en buenas condiciones': 'Con base en buenas condiciones',
+  'mala': 'Con base en malas condiciones',
+  'malas condiciones': 'Con base en malas condiciones',
+  'con base en malas condiciones': 'Con base en malas condiciones',
+  'aereo': 'Aéreo',
+  'aéreo': 'Aéreo',
+  'subterraneo': 'Subterráneo',
+  'subterráneo': 'Subterráneo',
+  'led': 'LED',
+  'sodio': 'Sodio',
+  'otro': 'Otro',
+  'no se puede identificar': 'No se puede identificar',
+}
+
+const normalizarClave = (val: string): string =>
+  val.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const normalizarValor = (val?: string): string => {
+  if (!val) return val ?? ''
+  const v = val.trim()
+  if (!v) return ''
+  const clave = normalizarClave(v)
+  if (VALORES_CANONICOS[clave]) return VALORES_CANONICOS[clave]
+  // Tipo luminaria: capitalizar palabras y mantener vatios/acrónimos en mayúscula
+  return v
+    .split(/\s+/)
+    .map(p => {
+      const conVatios = p.match(/^(\d+)\s*w$/i)
+      if (conVatios) return `${conVatios[1]}W`
+      if (p.toLowerCase() === 'led') return 'LED'
+      const baja = p.toLowerCase()
+      return baja.charAt(0).toUpperCase() + baja.slice(1)
+    })
+    .join(' ')
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204 })
@@ -122,10 +169,10 @@ Deno.serve(async (req: Request) => {
     }
 
     const propiedades: Record<string, any> = {}
-    if (payload.tipo_luminaria) propiedades.tipo = payload.tipo_luminaria
+    if (payload.tipo_luminaria) propiedades.tipo = normalizarValor(payload.tipo_luminaria)
     if (payload.sin_luz !== undefined) propiedades.sin_luz = payload.sin_luz
-    if (payload.tipo_cableado) propiedades.cableado = payload.tipo_cableado
-    if (payload.estado_base) propiedades.estado_base = payload.estado_base
+    if (payload.tipo_cableado) propiedades.cableado = normalizarValor(payload.tipo_cableado)
+    if (payload.estado_base) propiedades.estado_base = normalizarValor(payload.estado_base)
     if (payload.tipologia) propiedades.tipologia = payload.tipologia
     if (payload.direccion) propiedades.direccion = payload.direccion
     if (payload.observacion) propiedades.observacion = payload.observacion
@@ -141,10 +188,10 @@ Deno.serve(async (req: Request) => {
         barrio_id,
         geom: `POINT(${lng} ${lat})`,
         propiedades,
-        tipo_luminaria: payload.tipo_luminaria || null,
-        cableado: payload.tipo_cableado || null,
+        tipo_luminaria: normalizarValor(payload.tipo_luminaria) || null,
+        cableado: normalizarValor(payload.tipo_cableado) || null,
         sin_luz: payload.sin_luz ?? false,
-        estado_base: payload.estado_base || null,
+        estado_base: normalizarValor(payload.estado_base) || null,
         direccion: payload.direccion || null,
         barrio_nombre: barrioNombre || null,
       }, {
