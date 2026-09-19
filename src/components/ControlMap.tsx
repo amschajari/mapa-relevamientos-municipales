@@ -8,6 +8,7 @@ import { useBarrioStore } from '@/stores/barrioStore'
 import { useMapStore } from '@/stores'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { cn } from '@/lib/utils'
+import { formatearValorCatalogo } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { BaseMapToggle } from './BaseMapToggle'
 import { MobileMapControls } from './MobileMapControls'
@@ -297,9 +298,9 @@ const OfficialPointsLayer = () => {
                         const sinLuzRaw = point.sin_luz ?? props.sin_luz
                         const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
 
-                        const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia || ''
-                        const estadoBase = point.estado_base || props.estado_base || ''
-                        const cableado = point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado || ''
+                        const tipo = formatearValorCatalogo(point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia)
+                        const estadoBase = formatearValorCatalogo(point.estado_base || props.estado_base)
+                        const cableado = formatearValorCatalogo(point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado)
                         const medidor = props.medidor || point.medidor || ''
 
                         return (
