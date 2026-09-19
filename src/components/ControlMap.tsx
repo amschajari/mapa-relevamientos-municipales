@@ -168,7 +168,7 @@ const OfficialPointsLayer = () => {
 
       // Filtrar por Estados de Base (Multi-selección)
       if (mapFilters.estadosBase && mapFilters.estadosBase.length > 0) {
-        const estadoBaseStr = (point.estado_base || props.estado_base || '').toLowerCase()
+        const estadoBaseStr = (point.estado_base || props.estado_base || '').toLowerCase().replace(/_/g, ' ')
         const isSinBase = estadoBaseStr.includes('sin base')
         const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
         const isOk = !isSinBase && !isMala && estadoBaseStr !== ''
@@ -248,7 +248,8 @@ const OfficialPointsLayer = () => {
             const name = point.nombre || `L-${idx + 1}`
             
             // Determinar si poner el pin en rojo (mala) o naranja (sin base)
-            const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase()
+            // Normalizar "_" de Odoo (ej "sin_base") a espacio para que matchee
+            const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase().replace(/_/g, ' ')
             const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
             const isSinBase = estadoBaseStr.includes('sin base')
             
@@ -336,9 +337,9 @@ const OfficialPointsLayer = () => {
                                 <span className="text-gray-400 w-4 shrink-0">🔩</span>
                                 <span className={cn(
                                   "font-semibold",
-                                  estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') 
+                                  estadoBase.toLowerCase().replace(/_/g, ' ').includes('deteriorada') || estadoBase.toLowerCase().replace(/_/g, ' ').includes('mala') 
                                     ? 'text-red-500' 
-                                    : estadoBase.toLowerCase().includes('sin base')
+                                    : estadoBase.toLowerCase().replace(/_/g, ' ').includes('sin base')
                                       ? 'text-yellow-600'
                                       : 'text-green-600'
                                 )}>
