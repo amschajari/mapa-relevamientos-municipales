@@ -149,19 +149,87 @@ Deno.serve(async (req: Request) => {
     if (payload.agente) propiedades.agente_odoo = payload.agente
     if (payload.fecha) propiedades.fecha_odoo = payload.fecha
 
+    const fila = {
+      barrio_id,
+      geom: `POINT(${lng} ${lat})`,
+      propiedades,
+      tipo_luminaria: payload.tipo_luminaria || null,
+      cableado: payload.tipo_cableado || null,
+      sin_luz: payload.sin_luz !== undefined ? normalizarSinLuz(payload.sin_luz) : false,
+      estado_base: payload.estado_base ? normalizarEstadoBase(payload.estado_base) : null,
+      direccion: payload.direccion || null,
+      barrio_nombre: barrioNombre || null,
+    }
+
+    const odooId = payload.id !== undefined && payload.id !== null ? Number(payload.id) : null
+
+    // Estrategia de upsert priorizando odoo_id (identidad estable).
+    // - Si llega odoo_id: buscar por odoo_id → update (un rename actualiza la misma fila).
+    // - Si no existe por odoo_id pero hay EXACTAMENTE UNA fila con ese nombre y odoo_id NULL
+    //   → update + asignar odoo_id (migración gradual de datos existentes).
+    // - Si hay 0 o >1 filas con ese nombre sin odoo_id → INSERT (no tocar ambigüedad).
+    // - Si NO llega odoo_id → fallback al comportamiento histórico (upsert por nombre).
+    if (odooId !== null && !isNaN(odooId)) {
+      const { data: porOdooId } = await supabase
+        .from('puntos_relevamiento')
+        .select('id')
+        .eq('odoo_id', odooId)
+        .limit(1)
+
+      if (porOdooId && porOdooId.length > 0) {
+        const { error } = await supabase
+          .from('puntos_relevamiento')
+          .update({ nombre: nombreLuminaria, ...fila })
+          .eq('id', porOdooId[0].id)
+
+        if (error) {
+          return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+        }
+        return new Response(
+          JSON.stringify({ success: true, op: 'update-odoo', nombre: nombreLuminaria }),
+          { status: 200 }
+        )
+      }
+
+      const { data: candidatosNombre } = await supabase
+        .from('puntos_relevamiento')
+        .select('id')
+        .eq('nombre', nombreLuminaria)
+        .is('odoo_id', null)
+
+      if (candidatosNombre && candidatosNombre.length === 1) {
+        const { error } = await supabase
+          .from('puntos_relevamiento')
+          .update({ odoo_id: odooId, ...fila })
+          .eq('id', candidatosNombre[0].id)
+
+        if (error) {
+          return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+        }
+        return new Response(
+          JSON.stringify({ success: true, op: 'update-nombre-adoptar-odoo', nombre: nombreLuminaria }),
+          { status: 200 }
+        )
+      }
+
+      const { error } = await supabase
+        .from('puntos_relevamiento')
+        .insert({ nombre: nombreLuminaria, odoo_id: odooId, ...fila })
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+      }
+      return new Response(
+        JSON.stringify({ success: true, op: 'insert-odoo', nombre: nombreLuminaria }),
+        { status: 200 }
+      )
+    }
+
     const { error } = await supabase
       .from('puntos_relevamiento')
       .upsert({
         nombre: nombreLuminaria,
-        barrio_id,
-        geom: `POINT(${lng} ${lat})`,
-        propiedades,
-        tipo_luminaria: payload.tipo_luminaria || null,
-        cableado: payload.tipo_cableado || null,
-        sin_luz: payload.sin_luz !== undefined ? normalizarSinLuz(payload.sin_luz) : false,
-        estado_base: payload.estado_base ? normalizarEstadoBase(payload.estado_base) : null,
-        direccion: payload.direccion || null,
-        barrio_nombre: barrioNombre || null,
+        ...fila,
       }, {
         onConflict: 'nombre',
         ignoreDuplicates: false,
@@ -175,7 +243,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, nombre: nombreLuminaria }),
+      JSON.stringify({ success: true, op: 'upsert-nombre', nombre: nombreLuminaria }),
       { status: 200 }
     )
   } catch (err) {
