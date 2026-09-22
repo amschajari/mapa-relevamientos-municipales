@@ -8,6 +8,7 @@ import { useBarrioStore } from '@/stores/barrioStore'
 import { useMapStore } from '@/stores'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { cn } from '@/lib/utils'
+import { formatearValorCatalogo } from '@/lib/utils'
 import { LayerControl } from './LayerControl'
 import { BaseMapToggle } from './BaseMapToggle'
 import { MobileMapControls } from './MobileMapControls'
@@ -168,7 +169,7 @@ const OfficialPointsLayer = () => {
 
       // Filtrar por Estados de Base (Multi-selección)
       if (mapFilters.estadosBase && mapFilters.estadosBase.length > 0) {
-        const estadoBaseStr = (point.estado_base || props.estado_base || '').toLowerCase()
+        const estadoBaseStr = (point.estado_base || props.estado_base || '').toLowerCase().replace(/_/g, ' ')
         const isSinBase = estadoBaseStr.includes('sin base')
         const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
         const isOk = !isSinBase && !isMala && estadoBaseStr !== ''
@@ -248,7 +249,8 @@ const OfficialPointsLayer = () => {
             const name = point.nombre || `L-${idx + 1}`
             
             // Determinar si poner el pin en rojo (mala) o naranja (sin base)
-            const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase()
+            // Normalizar "_" de Odoo (ej "sin_base") a espacio para que matchee
+            const estadoBaseStr = (point.estado_base || point.propiedades?.estado_base || '').toLowerCase().replace(/_/g, ' ')
             const isMala = estadoBaseStr.includes('mala') || estadoBaseStr.includes('deteriorad')
             const isSinBase = estadoBaseStr.includes('sin base')
             
@@ -296,9 +298,9 @@ const OfficialPointsLayer = () => {
                         const sinLuzRaw = point.sin_luz ?? props.sin_luz
                         const sinLuz = sinLuzRaw === true || sinLuzRaw === 'True' || sinLuzRaw === 'true'
 
-                        const tipo = point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia || ''
-                        const estadoBase = point.estado_base || props.estado_base || ''
-                        const cableado = point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado || ''
+                        const tipo = formatearValorCatalogo(point.tipo_luminaria || props.tipo || props.tipo_luminaria || props.tipologia)
+                        const estadoBase = formatearValorCatalogo(point.estado_base || props.estado_base)
+                        const cableado = formatearValorCatalogo(point.cableado || props.cableado || props.alimentacion || props.tipo_de_cableado)
                         const medidor = props.medidor || point.medidor || ''
 
                         return (
@@ -336,9 +338,9 @@ const OfficialPointsLayer = () => {
                                 <span className="text-gray-400 w-4 shrink-0">🔩</span>
                                 <span className={cn(
                                   "font-semibold",
-                                  estadoBase.toLowerCase().includes('deteriorada') || estadoBase.toLowerCase().includes('mala') 
+                                  estadoBase.toLowerCase().replace(/_/g, ' ').includes('deteriorada') || estadoBase.toLowerCase().replace(/_/g, ' ').includes('mala') 
                                     ? 'text-red-500' 
-                                    : estadoBase.toLowerCase().includes('sin base')
+                                    : estadoBase.toLowerCase().replace(/_/g, ' ').includes('sin base')
                                       ? 'text-yellow-600'
                                       : 'text-green-600'
                                 )}>
